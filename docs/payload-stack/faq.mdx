@@ -1,0 +1,28 @@
+---
+title: FAQ
+description: Common questions about Payload Stack.
+---
+
+## Why Payload 3 and not 4?
+
+Payload 4 is canary-only, and payload-auth (the Better Auth bridge) supports Payload 3 only. Payload Stack will move to Payload 4 with Payload's codemod once payload-auth follows. Follow the [roadmap](https://payload.solutions/#roadmap).
+
+## Why Better Auth instead of Payload's built-in auth?
+
+Payload's auth is built for admin users. A SaaS needs passkeys, magic links, two-factor, social sign-in, organizations with invitations and roles, impersonation, and Stripe-aware sessions. Better Auth has all of that, and payload-auth makes the Payload admin trust the same session, so there is still only one users collection.
+
+## Why both Better Auth organizations and the multi-tenant plugin?
+
+They solve different halves. Better Auth gives you the app-side organization experience (create, invite, switch, roles, billing per organization). The multi-tenant plugin gives you enforcement inside Payload: access control on every tenant-scoped collection, the tenant selector and filters in the admin. The bridge in `src/tenancy` keeps them in sync.
+
+## Can I remove the example Projects collection?
+
+Yes. Delete `src/collections/Projects.ts`, its entry in `payload.config.ts` and `multiTenantPlugin.collections`, and the `dashboard/projects` route, then run `pnpm generate:types`.
+
+## Can I use Payload's admin as the only UI?
+
+You can, but Payload Stack assumes end users never see `/admin`. The admin is the back office for your team; users get the shadcn dashboard.
+
+## Is it free?
+
+MIT licensed, no strings. If you want the team behind it to build your product, [get in touch](https://payload.solutions/#contact).

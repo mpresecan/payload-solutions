@@ -1,0 +1,45 @@
+---
+title: Database
+description: PostgreSQL, MongoDB, SQLite or Vercel Postgres.
+---
+
+The CLI writes the adapter you chose into `src/payload.config.ts` between two markers:
+
+```ts
+// database-adapter-import
+import { postgresAdapter } from '@payloadcms/db-postgres'
+...
+  // database-adapter-config-start
+  db: postgresAdapter({ pool: { connectionString: env.DATABASE_URL } }),
+  // database-adapter-config-end
+```
+
+To switch later, replace the import and the block (or re-run the CLI with `--local-template` pointing at your project's parent template) and install the matching `@payloadcms/db-*` package.
+
+## Connection strings
+
+| Database | `DATABASE_URL` |
+| --- | --- |
+| PostgreSQL | `postgres://user:password@host:5432/dbname` |
+| MongoDB | `mongodb://127.0.0.1/dbname` or an Atlas URI |
+| SQLite | `file:./your-app.db` |
+| Vercel Postgres | the `POSTGRES_URL` Vercel provides |
+
+## Schema and migrations
+
+In development (`pnpm dev`), Payload pushes schema changes to the database automatically. For production use migrations:
+
+```bash
+pnpm db:migrate:create   # after changing collections
+pnpm db:migrate          # in your deploy step
+```
+
+Commit the generated files in `src/migrations`.
+
+## Ids
+
+PostgreSQL and SQLite use numeric ids by default; MongoDB uses ObjectId strings. Better Auth always works with strings. `toPayloadId()` in `src/lib/ids.ts` normalizes ids where the two meet; use it whenever a Better Auth id enters a Payload query.
+
+## Local services
+
+`docker compose up -d` starts PostgreSQL 16 on `localhost:5432` (user `postgres`, password `postgres`) and Mailpit on http://localhost:8025.

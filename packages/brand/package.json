@@ -5,23 +5,32 @@
   "license": "MIT",
   "private": true,
   "type": "module",
-  "sideEffects": ["*.css"],
+  "sideEffects": [
+    "*.css"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./logos": "./src/logos.tsx",
     "./brands": "./src/brands.ts",
     "./tokens.css": "./css/tokens.css",
     "./tailwind.css": "./css/tailwind.css",
-    "./assets/*": "./assets/*"
+    "./assets/*": "./assets/*",
+    "./iso-stack": "./src/iso-stack.tsx"
   },
-  "files": ["src", "css", "assets"],
+  "files": [
+    "src",
+    "css",
+    "assets"
+  ],
   "peerDependencies": {
-    "react": "^19.0.0"
+    "react": "^19.0.0",
+    "motion": "^13.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.0",
     "react": "^19.2.8",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "motion": "^13.2.0"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

@@ -1,0 +1,32 @@
+---
+title: Dashboard and UI
+description: shadcn/ui, Better Auth UI, the sidebar shell and where to put your product.
+---
+
+## Layout
+
+`src/app/(frontend)` has three groups:
+
+- `(marketing)`: the public site with header and footer from `stack.config.ts`: home, `/pricing`, `/legal/[slug]`.
+- `auth/[path]`: every authentication screen.
+- `(app)`: everything that needs a session: `/onboarding` and `/dashboard/**`.
+
+`(app)/layout.tsx` fetches the session once and redirects to sign-in when there is none. `dashboard/layout.tsx` renders shadcn's `sidebar-08` shell with the organization switcher, navigation from `components/dashboard/nav-config.tsx`, and the user menu.
+
+## Your product goes here
+
+`src/app/(frontend)/(app)/dashboard/page.tsx` is the overview; `dashboard/projects` is a complete example of a tenant-scoped feature: a collection (`src/collections/Projects.ts`), a server component that lists documents with `tenantScope()`, server actions with zod validation, and client components for the form and delete dialog. Copy the pattern, then delete Projects.
+
+## Components
+
+- `src/components/ui`: shadcn/ui, radix-nova style, Tailwind v4. Add more with `npx shadcn@latest add <component>`; `components.json` is configured.
+- `src/components/auth`: Better Auth UI. Add more from its registry with `npx shadcn@latest add @better-auth-ui/<item>`.
+- `src/components/marketing` and `src/components/dashboard`: Payload Stack's own components, meant to be edited.
+
+## Theming
+
+Colours are CSS variables in `src/app/(frontend)/globals.css` (shadcn's neutral theme). Change `--primary` and friends to brand the whole app, including Better Auth UI. Dark mode follows the system through `next-themes`; users can toggle it from the user menu.
+
+## Better Auth UI base paths
+
+`src/components/providers.tsx` sets `basePaths` so Better Auth UI links match the routes: auth at `/auth`, settings at `/dashboard/settings`, organization at `/dashboard/organization`, and its admin views at `/dashboard/admin` (Payload owns `/admin`). Change paths in `src/lib/paths.ts`.

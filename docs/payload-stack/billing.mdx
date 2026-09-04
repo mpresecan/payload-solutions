@@ -1,0 +1,63 @@
+---
+title: Billing
+description: Stripe subscriptions with @better-auth/stripe.
+---
+
+Billing uses Better Auth's [Stripe plugin](https://better-auth.com/docs/plugins/stripe) on the server and Better Auth UI's billing views in the app. Plans are declared once in `stack.config.ts` and drive the pricing page, checkout, entitlements and the billing settings.
+
+## Setup
+
+1. In Stripe, create a product per plan and a recurring price per interval (monthly, optionally yearly).
+2. Put the price ids in `.env`:
+
+   ```bash
+   NEXT_PUBLIC_STRIPE_PRICE_TEAM_MONTHLY=price_...
+   NEXT_PUBLIC_STRIPE_PRICE_TEAM_YEARLY=price_...
+   ```
+
+   Price ids are public identifiers; they are referenced from `stack.config.ts`.
+
+3. Add your keys:
+
+   ```bash
+   STRIPE_SECRET_KEY=sk_test_...
+   STRIPE_WEBHOOK_SECRET=whsec_...
+   ```
+
+4. Forward webhooks locally:
+
+   ```bash
+   stripe listen --forward-to localhost:3000/api/auth/stripe/webhook
+   ```
+
+   In production, create a webhook endpoint for `https://your-app.com/api/auth/stripe/webhook` with `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated` and `customer.subscription.deleted`.
+
+Without Stripe keys the app still builds and runs; the pricing page renders from config and checkout is hidden.
+
+## Per organization or per user
+
+`billing.attachedTo` decides who owns the subscription.
+
+- `'organization'`: the Stripe customer is the organization; owners and admins manage it at `/dashboard/organization/billing`. `authorizeReference` in `src/lib/auth/options.ts` checks the caller's membership role before any billing action.
+- `'user'`: each user has their own subscription at `/dashboard/settings/billing`.
+
+## Seats and trials
+
+Set `seats` on a plan to bill per member (`seatBased` in the UI, `seats` on checkout). Set `trialDays` for a free trial; Better Auth records `trialStart` and `trialEnd` on the subscription.
+
+## Entitlements
+
+Subscriptions are stored in the `subscriptions` collection payload-auth generates. Read the active plan on the server and compare against `plan.limits`:
+
+```ts
+const subs = await payload.find({
+  collection: 'subscriptions',
+  where: { and: [{ referenceId: { equals: orgId } }, { status: { in: ['active', 'trialing'] } }] },
+})
+const plan = stack.billing.provider === 'stripe' ? stack.billing.plans.find((p) => p.id === subs.docs[0]?.plan) : undefined
+const projectLimit = plan?.limits.projects ?? 0
+```
+
+## Customer portal
+
+Cancel, restore, change plan and update payment methods go through Stripe's customer portal (`billingPortal`), opened from the billing settings. Enable the portal in your Stripe dashboard.

@@ -1,0 +1,41 @@
+---
+title: Payload Stack
+description: The SaaS boilerplate for Payload CMS.
+---
+
+Payload Stack is an open-source SaaS boilerplate on [Payload CMS](https://payloadcms.com) 3 and Next.js 16. It ships the parts every product needs before the product itself exists, already connected:
+
+- **Authentication** with [Better Auth](https://better-auth.com) through [payload-auth](https://payloadauth.com): email and password, magic links, passkeys, TOTP two-factor, social sign-in and impersonation. One session for your app and the Payload admin.
+- **Organizations** using Better Auth's organization plugin as the source of truth, bridged into `@payloadcms/plugin-multi-tenant` so every tenant-scoped collection is enforced in the API and in the admin.
+- **Billing** with `@better-auth/stripe`: plans from config, per user or per organization, seats, trials, the customer portal and webhooks.
+- **UI** with Tailwind v4, shadcn/ui and [Better Auth UI](https://better-auth-ui.com) for auth screens, account and security settings, organization management and billing. The dashboard shell is shadcn's `sidebar-08`.
+- **Back office**: Payload's admin at `/admin` for users, organizations, subscriptions, content and support, with a tenant selector.
+- **Email** with React Email templates sent through Payload's email adapter.
+- **Content**: legal pages as a collection (seeded), media, rich text.
+
+Everything product-specific is declared once in `src/stack.config.ts` and validated with zod. Turn organizations or billing off and the related UI, plugins and collections disappear.
+
+```bash
+npx create-payload-stack@latest
+```
+
+<Cards>
+  <Card title="Getting started" href="/docs/payload-stack/getting-started" description="Scaffold, run, create your admin, sign up." />
+  <Card title="Configuration" href="/docs/payload-stack/configuration" description="Every option in stack.config.ts." />
+  <Card title="Organizations" href="/docs/payload-stack/organizations" description="How Better Auth organizations become Payload tenants." />
+  <Card title="Billing" href="/docs/payload-stack/billing" description="Plans, Stripe keys, webhooks, seats and trials." />
+</Cards>
+
+## Versions
+
+| Dependency | Version | Notes |
+| --- | --- | --- |
+| Payload | 3.88 | Payload 4 is canary-only and not yet supported by payload-auth. Migration is on the [roadmap](https://payload.solutions/#roadmap). |
+| Next.js | 16.3 | App Router, Turbopack |
+| Better Auth | 1.7 | via payload-auth 3.0 |
+| Better Auth UI | 1.7 | shadcn registry components, vendored into `src/components/auth` |
+| shadcn/ui | radix-nova style | Tailwind v4 |
+
+## License
+
+MIT. Payload Stack is a [payload.solutions](https://payload.solutions) project.

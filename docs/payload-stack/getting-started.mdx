@@ -1,0 +1,58 @@
+---
+title: Getting started
+description: From an empty directory to a signed-in dashboard.
+---
+
+## Requirements
+
+- Node.js 20.9 or newer (22 recommended)
+- pnpm 9 or newer (npm, yarn and bun also work)
+- A database: PostgreSQL (recommended), MongoDB, SQLite or Vercel Postgres
+
+## Scaffold
+
+```bash
+npx create-payload-stack@latest
+```
+
+The CLI asks six questions:
+
+1. **Project name**, also the directory it creates.
+2. **Database**: PostgreSQL, MongoDB, SQLite or Vercel Postgres. The matching Payload adapter is written into `payload.config.ts` and `package.json`.
+3. **Connection string**, written to `.env` as `DATABASE_URL`. SQLite needs no server: `file:./your-app.db`.
+4. **Sign-in methods**: email + password, magic link, passkeys, Google, GitHub.
+5. **Organizations**: whether users work in teams.
+6. **Billing**: Stripe subscriptions per organization, per user, or none for now.
+
+It then installs dependencies and initializes a git repository. Every answer can be passed as a flag; see the [CLI reference](/docs/payload-stack/cli).
+
+## Run
+
+```bash
+cd your-app
+pnpm dev
+```
+
+In development Payload pushes the database schema automatically. Open http://localhost:3000.
+
+## Create your admin account
+
+Visit http://localhost:3000/admin. With no admin yet, payload-auth redirects you to a one-time sign-up page. That account has the `admin` role: it can use the Payload admin, impersonate users and see every organization.
+
+<Callout type="warn">
+Create the admin before opening sign-up to the public. The bootstrap page appears only while no admin exists.
+</Callout>
+
+## Sign up as a user
+
+Open http://localhost:3000/auth/sign-up in a private window. After signing up you land on onboarding, create your first organization and reach the dashboard. Projects you create there are scoped to that organization; open `/admin` as the admin to see them under App with the tenant selector.
+
+## Emails in development
+
+Without `RESEND_API_KEY`, Payload logs every email (magic links, verification, invitations) to the terminal. Copy the link from the log. `docker compose up -d` also starts Mailpit at http://localhost:8025 if you prefer an inbox; point Payload's email adapter at `localhost:1025` to use it.
+
+## Next
+
+- [Configuration](/docs/payload-stack/configuration): rename the product, pick auth methods, define plans.
+- [Billing](/docs/payload-stack/billing): connect Stripe.
+- [Deployment](/docs/payload-stack/deployment): migrations and environment variables.

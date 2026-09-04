@@ -1,0 +1,47 @@
+---
+title: Deployment
+description: Environment variables, migrations and hosting.
+---
+
+Payload Stack is a standard Next.js application with a database. It runs on Vercel, on any Node host, or in the included Docker image.
+
+## Environment variables
+
+From `.env.example`:
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `DATABASE_URL` | yes | Connection string for the adapter you chose |
+| `PAYLOAD_SECRET` | yes | Payload encryption and JWT secret |
+| `BETTER_AUTH_SECRET` | recommended | Falls back to `PAYLOAD_SECRET`. 32+ random characters. |
+| `NEXT_PUBLIC_APP_URL` | yes | Public origin, used for auth callbacks and email links |
+| `RESEND_API_KEY`, `EMAIL_FROM` | for email | Without them, emails are logged, not sent |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PRICE_*` | for billing | See [Billing](/docs/payload-stack/billing) |
+| `<PROVIDER>_CLIENT_ID`, `<PROVIDER>_CLIENT_SECRET` | per social provider | |
+
+`src/lib/env.ts` validates them at boot and fails with the missing name.
+
+## Migrations
+
+Generate a migration whenever collections change and run migrations during deploy:
+
+```bash
+pnpm db:migrate:create
+pnpm db:migrate && pnpm build
+```
+
+## Vercel
+
+Import the repository, set the variables above, use a managed PostgreSQL (Vercel Postgres, Neon, Supabase) and set the build command to `pnpm db:migrate && pnpm build`. Add the Stripe webhook endpoint after the first deploy.
+
+## Docker
+
+The included `Dockerfile` builds a standalone Next.js image. Provide the environment variables at runtime and run migrations before starting the container.
+
+## Checklist before launch
+
+- An admin account exists (`/admin` bootstrap is disabled once one does).
+- `auth.allowSignUp` and `auth.requireEmailVerification` are set as intended.
+- Legal pages reviewed in the admin (they are seeded placeholders).
+- Stripe webhook endpoint created for production and the portal enabled.
+- `NEXT_PUBLIC_APP_URL` is the final domain (passkeys are bound to it).

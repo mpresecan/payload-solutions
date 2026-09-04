@@ -1,0 +1,45 @@
+---
+title: CLI reference
+description: Every flag of create-payload-stack.
+---
+
+```bash
+npx create-payload-stack@latest [name] [options]
+```
+
+| Flag | Values | Default |
+| --- | --- | --- |
+| `-n, --name <name>` | Project name (also the directory) | prompt |
+| `-d, --db <db>` | `postgres`, `mongodb`, `sqlite`, `vercel-postgres` | prompt (postgres) |
+| `--db-connection-string <url>` | Written to `.env` as `DATABASE_URL` | prompt, per-database default |
+| `--auth <list>` | Comma-separated: `email-password`, `magic-link`, `passkey` | prompt |
+| `--social <list>` | Comma-separated: `google`, `github` | prompt |
+| `--organizations` / `--no-organizations` | Enable teams | prompt (on) |
+| `--billing <mode>` | `organization`, `user`, `none` | prompt |
+| `--use-pnpm`, `--use-npm`, `--use-yarn`, `--use-bun` | Package manager | detected |
+| `--no-install` | Skip dependency installation | install |
+| `--no-git` | Skip `git init` | init |
+| `-y, --defaults` | Accept defaults for every unanswered prompt | |
+| `--branch <ref>` | Branch or tag of the template repository | `main` |
+| `--local-template <path>` | Scaffold from a local checkout of `templates/payload-stack` | |
+| `--dry-run` | Print the resolved options, write nothing | |
+
+## Non-interactive example
+
+```bash
+npx create-payload-stack@latest ridgeline \
+  -d postgres \
+  --auth email-password,magic-link,passkey \
+  --social github \
+  --billing organization \
+  -y
+```
+
+## What the CLI writes
+
+- `src/stack.config.ts` from your answers.
+- `src/payload.config.ts` with the chosen database adapter (between the `database-adapter` markers).
+- `package.json` with the matching `@payloadcms/db-*` dependency and your project name.
+- `.env` from `.env.example`, with `DATABASE_URL`, a generated `PAYLOAD_SECRET` and `BETTER_AUTH_SECRET`, and `NEXT_PUBLIC_APP_URL`.
+
+The template itself is downloaded from the `templates/payload-stack` directory of the [payload-solutions repository](https://github.com/mpresecan/payload-solutions), exactly like `create-payload-app` downloads Payload's templates.

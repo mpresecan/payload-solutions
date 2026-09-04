@@ -1,0 +1,4 @@
+{
+  "title": "Payload Stack",
+  "pages": ["index", "getting-started", "cli", "configuration", "authentication", "organizations", "billing", "emails", "database", "dashboard", "deployment", "faq"]
+}

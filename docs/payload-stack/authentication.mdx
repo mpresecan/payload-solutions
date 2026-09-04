@@ -1,0 +1,57 @@
+---
+title: Authentication
+description: Better Auth for the app and the Payload admin, through payload-auth.
+---
+
+Payload Stack does not use Payload's built-in authentication. [payload-auth](https://payloadauth.com) replaces it with [Better Auth](https://better-auth.com): Better Auth gets a database adapter backed by Payload's local API, Payload gets collections for users, sessions, accounts and verifications, and the admin panel trusts the same session as your app.
+
+## What is configured
+
+`src/lib/auth/options.ts` builds the Better Auth server options from `stack.config.ts`:
+
+- `emailAndPassword` when `email-password` is in `auth.methods`, with password reset and "password changed" emails.
+- `magicLink` when `magic-link` is enabled (five-minute links).
+- `passkey` from `@better-auth/passkey` when `passkey` is enabled. `rpID` is the hostname of `stack.url`.
+- `twoFactor` (TOTP + backup codes) when `auth.twoFactor` is true.
+- `admin` for roles, bans and impersonation. payload-auth forwards `users.roles` and `adminRoles`.
+- `apiKey` so users and organizations can issue API keys from security settings.
+- `lastLoginMethod` so the sign-in screen can badge the method used last time.
+- `organization` and `stripe` when the matching features are enabled (see their pages).
+- `nextCookies()` last, so server actions can set cookies.
+
+Social providers listed in `auth.social` are added with credentials from `.env`.
+
+The client (`src/lib/auth/auth-client.ts`) mirrors the same plugins for the browser.
+
+## Roles
+
+Two roles exist: `user` (default) and `admin`. Admins can enter the Payload admin, see all organizations and impersonate users. Change roles in the Payload admin under Auth, Users. `src/access/index.ts` exports `isAdmin`, `adminOnly`, `authenticated` and `adminOrOwner` for your own collections.
+
+## Screens
+
+Better Auth UI renders every auth screen from one route, `src/app/(frontend)/auth/[path]/page.tsx`: `/auth/sign-in`, `/auth/sign-up`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/verify-email`, `/auth/magic-link`, `/auth/two-factor`, `/auth/accept-invitation`. Account and security settings live under `/dashboard/settings/account` and `/dashboard/settings/security` (password, sessions, passkeys, two-factor, linked accounts, API keys, delete account).
+
+The components are copied into `src/components/auth` from the Better Auth UI shadcn registry. Treat them as your code: restyle or replace freely.
+
+## Sessions on the server
+
+```ts
+import { getSession, requireSession } from '@/lib/auth/session'
+
+const session = await getSession()          // null when signed out
+const session = await requireSession('/dashboard/x') // redirects to sign-in with a return URL
+```
+
+`(app)/layout.tsx` fetches the session once per request and hydrates it into TanStack Query, so Better Auth UI components render without a loading flash.
+
+## The Payload admin
+
+`/admin/login` is replaced by payload-auth. The first visit with no admin in the database redirects to a one-time sign-up. Later, admins sign in with the same credentials they use in the app; regular users are refused with an "unauthorized" page. From a user's document in the admin you can impersonate them; stop impersonating from the user menu in the dashboard.
+
+<Callout>
+payload-auth 3.0.0 does not set `expiresAt` when it creates the first-admin invitation, which Payload rejects. Payload Stack works around it with a `collectionOverrides` default in `payload.config.ts`. Remove the override once the upstream fix lands.
+</Callout>
+
+## Ids
+
+Better Auth ids are strings; Payload's PostgreSQL and SQLite adapters use numeric ids by default. Use `toPayloadId(payload, id)` from `src/lib/ids.ts` before passing a Better Auth id to a Payload query or relationship.

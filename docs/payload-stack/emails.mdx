@@ -1,0 +1,32 @@
+---
+title: Emails
+description: React Email templates sent through Payload's email adapter.
+---
+
+Every transactional email (verification, magic link, password reset, password changed, change-email confirmation, delete-account confirmation, organization invitation, admin invitation) is a React Email template in `src/components/auth/email`, installed from Better Auth UI's registry.
+
+`src/emails/index.ts` renders a template to HTML and plain text and calls `payload.sendEmail`. That means one pipeline for all mail: Resend in production (`RESEND_API_KEY`, `EMAIL_FROM`), console logging in development.
+
+```ts
+await emails.magicLink(payload, user.email, url)
+```
+
+## Preview
+
+```bash
+pnpm email:dev
+```
+
+Opens the React Email preview at http://localhost:3001 with each template's `PreviewProps`.
+
+## Branding
+
+Templates accept `appName`, `logoURL`, `colors` and `darkMode`. Defaults are set in `src/emails/send.ts` (`emailDefaults`). Pass a hosted logo URL and your brand colours there.
+
+## Other providers
+
+Swap the adapter in `payload.config.ts` (`email:`) for any Payload email adapter, for example `@payloadcms/email-nodemailer` pointed at Mailpit in development or at your SMTP relay. Nothing else changes.
+
+## Roadmap
+
+The planned [Payload Emails plugin](/docs/plugins/payload-emails) will move the copy of these emails into the admin so editors can change wording without a deploy.

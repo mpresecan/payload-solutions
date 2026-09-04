@@ -1,0 +1,130 @@
+---
+title: Configuration
+description: Everything product-specific lives in src/stack.config.ts.
+---
+
+`src/stack.config.ts` is the only file you must edit to make Payload Stack yours. It is validated at import time by the zod schema in `src/lib/stack.ts`; a wrong value fails the build with the path of the offending key.
+
+```ts title="src/stack.config.ts"
+import { defineStack } from '@/lib/stack'
+
+export default defineStack({
+  name: 'Ridgeline',
+  tagline: 'Plan, ship and bill from one place.',
+  description: 'Ridgeline is ...',
+  url: process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
+  support: { email: 'help@ridgeline.app' },
+
+  auth: {
+    methods: ['email-password', 'magic-link', 'passkey'],
+    social: ['google', 'github'],
+    twoFactor: true,
+    requireEmailVerification: false,
+    allowSignUp: true,
+  },
+
+  organizations: {
+    enabled: true,
+    allowUserToCreate: true,
+    creatorRole: 'owner',
+    teams: false,
+  },
+
+  billing: {
+    provider: 'stripe',
+    attachedTo: 'organization',
+    plans: [
+      {
+        id: 'team',
+        name: 'Team',
+        prices: [{ id: process.env.NEXT_PUBLIC_STRIPE_PRICE_TEAM_MONTHLY!, amount: 9900, currency: 'usd', interval: 'month' }],
+        features: ['Up to 25 members', 'Unlimited projects'],
+        seats: 25,
+        trialDays: 14,
+        limits: { projects: -1 },
+      },
+    ],
+  },
+
+  legal: { company: 'Ridgeline Software Ltd', jurisdiction: 'Ireland' },
+})
+```
+
+The file is imported on the server and in the browser, so it must not contain secrets. Secrets stay in `.env` and are read through `src/lib/env.ts`.
+
+## Reference
+
+### Top level
+
+| Key | Type | Notes |
+| --- | --- | --- |
+| `name` | string | Product name. Used in metadata, emails, the admin title, the logo. |
+| `tagline` | string | One line for the hero and Open Graph title. |
+| `description` | string | Meta description and hero paragraph. |
+| `url` | URL | Canonical origin, no trailing slash. Base URL for Better Auth and emails. |
+| `support.email` | email | Shown in the footer and in emails. |
+| `nav` | `{ label, href }[]` | Marketing navigation. |
+| `social` | `{ github?, twitter?, linkedin? }` | Footer links. |
+
+### `auth`
+
+| Key | Default | Notes |
+| --- | --- | --- |
+| `methods` | `['email-password']` | Any of `email-password`, `magic-link`, `passkey`. At least one. |
+| `social` | `[]` | Any of `google`, `github`, `microsoft`, `apple`, `discord`. Each needs `<PROVIDER>_CLIENT_ID` and `_CLIENT_SECRET` in `.env`; boot fails otherwise. |
+| `twoFactor` | `true` | TOTP with backup codes. Only applies with `email-password`. |
+| `requireEmailVerification` | `false` | Block sign-in until the address is verified. |
+| `allowSignUp` | `true` | Set `false` for invite-only products; admins create users in the Payload admin. |
+
+### `organizations`
+
+| Key | Default | Notes |
+| --- | --- | --- |
+| `enabled` | `true` | Turns on the Better Auth organization plugin, the multi-tenant bridge, onboarding, the switcher and the organization pages. |
+| `allowUserToCreate` | `true` | Whether users may create organizations themselves. |
+| `creatorRole` | `'owner'` | Role given to whoever creates an organization. |
+| `teams` | `false` | Sub-teams inside organizations. |
+| `additionalRoles` | `{}` | Extra roles as `{ key: 'Label' }`. |
+
+### `billing`
+
+Either `{ provider: 'none' }` or:
+
+| Key | Default | Notes |
+| --- | --- | --- |
+| `provider` | | `'stripe'` |
+| `attachedTo` | `'organization'` | Who owns the subscription. `'organization'` requires `organizations.enabled`. |
+| `plans[]` | | See below. |
+| `freePlanId` | | Plan id that unsubscribed accounts are treated as. |
+
+Each plan:
+
+| Key | Notes |
+| --- | --- |
+| `id` | Lowercase slug. Also the Better Auth plan name. |
+| `name`, `description` | Shown on the pricing page and billing settings. |
+| `prices[]` | `{ id, amount, currency, interval }`. `id` is the Stripe price id (public). `amount` in cents, for display only. One `month` and optionally one `year` price. |
+| `features[]` | Bullets on the pricing page. |
+| `highlighted` | Emphasise this plan. |
+| `seats` | Seat-based plan, billed per member. |
+| `trialDays` | Free trial length. |
+| `limits` | Free-form numbers your code can enforce, e.g. `{ projects: 10 }`. |
+
+### `legal`
+
+`company` and `jurisdiction` (and optional `address`) are used to seed the Privacy Policy, Terms of Service and Cookie Policy on first boot. Edit the generated pages in the admin under Content.
+
+## Derived flags
+
+`defineStack` adds a `features` object you should read instead of re-deriving conditions:
+
+```ts
+stack.features.organizations   // organizations.enabled
+stack.features.billing         // billing.provider !== 'none'
+stack.features.billingAttachedTo // 'user' | 'organization' | null
+stack.features.magicLink, passkeys, emailPassword, twoFactor
+```
+
+## Environment variables
+
+See `.env.example` in the project. Required: `DATABASE_URL`, `PAYLOAD_SECRET`, `NEXT_PUBLIC_APP_URL`. Recommended: `BETTER_AUTH_SECRET` (falls back to `PAYLOAD_SECRET`). Optional: Resend, Stripe and social provider credentials. `src/lib/env.ts` validates them at boot.

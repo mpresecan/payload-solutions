@@ -1,0 +1,55 @@
+---
+title: Organizations
+description: Better Auth organizations as Payload tenants.
+---
+
+With `organizations.enabled`, users work inside organizations: they create one during onboarding, invite members, switch between them, and every tenant-scoped document belongs to the active organization.
+
+## Two systems, one source of truth
+
+Better Auth's [organization plugin](https://better-auth.com/docs/plugins/organization) owns organizations, members and invitations. payload-auth turns those into real Payload collections (`organizations`, `members`, `invitations`), so they show up in the admin and can be queried with the local API.
+
+Payload's [multi-tenant plugin](https://payloadcms.com/docs/plugins/multi-tenant) expects a tenants collection and a `tenants[]` array on the user document. Payload Stack points it at `organizations` and keeps the array in sync:
+
+```ts title="src/payload.config.ts"
+betterAuthPlugin({ ...pluginCollectionOverrides: { members: withMembershipSync } }),
+multiTenantPlugin({
+  tenantsSlug: 'organizations',
+  collections: { projects: {}, media: {} },
+  userHasAccessToAllTenants: (user) => isAdmin(user),
+  tenantsArrayField: { includeDefaultField: true, rowFields: [{ name: 'role', type: 'text' }] },
+})
+```
+
+`src/tenancy/sync-memberships.ts` adds `afterChange` and `afterDelete` hooks to `members`. Whenever Better Auth creates, updates or removes a membership, the user's `tenants[]` is rebuilt from their memberships (with the role). The hooks pass `req` to nested operations so they join Better Auth's transaction.
+
+The result: the admin has a tenant selector and scopes tenant-enabled collections; API and local-API requests are constrained to the user's organizations; the app uses Better Auth's organization APIs and UI.
+
+## Adding a tenant-scoped collection
+
+1. Create the collection (copy `src/collections/Projects.ts`).
+2. Add it to `multiTenantPlugin({ collections: { yourSlug: {} } })`. The plugin adds a required `tenant` relationship and the access constraints.
+3. Regenerate types: `pnpm generate:types`.
+
+In server code, scope reads and writes to the active organization:
+
+```ts
+import { tenantData, tenantScope } from '@/lib/tenancy'
+
+const docs = await payload.find({ collection: 'projects', where: await tenantScope() })
+await payload.create({ collection: 'projects', data: { name, ...(await tenantData()) } })
+```
+
+The active organization comes from `session.activeOrganizationId`, which Better Auth sets when the user switches organizations (and Payload Stack sets after onboarding).
+
+## Roles and permissions
+
+Better Auth ships `owner`, `admin` and `member`. Add more with `organizations.additionalRoles`. The organization pages (`/dashboard/organization/people`) let owners and admins invite, change roles and remove members. Use `authClient.organization.hasPermission` or the server API for fine-grained checks.
+
+## Invitations
+
+Invitation emails are sent through Payload's email adapter with the React Email template in `src/components/auth/email/organization-invitation.tsx`. The link points to `/auth/accept-invitation?invitationId=...`, where signed-in users accept and new users are asked to sign up first.
+
+## Turning organizations off
+
+Set `organizations.enabled: false`. Onboarding, the switcher, the organization pages and the multi-tenant plugin are skipped; the `Projects` example falls back to owner-based access. Billing must then be attached to users.

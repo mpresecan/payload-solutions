@@ -1,0 +1,19 @@
+---
+title: Payload Clock
+description: A reliable clock for serverless Payload job queues. In progress.
+---
+
+Payload's [job queue](https://payloadcms.com/docs/jobs-queue/overview) runs tasks and workflows, but something has to tell it to run. On a long-lived server that is a cron process; on serverless platforms nothing runs between requests, so scheduled jobs silently wait.
+
+Payload Clock is a small hosted service that calls your Payload deployment's `/api/payload-jobs/run` endpoint on schedule, with retries, alerts and run history, plus a companion plugin that shows the next runs inside your admin.
+
+## Status
+
+In progress. Payload Clock is being built on Payload Stack itself. Watch the [roadmap](https://payload.solutions/#roadmap) or [get in touch](https://payload.solutions/#contact) if you need it early.
+
+## Planned
+
+- Cron and interval schedules per queue, with time zones.
+- Signed requests, so only Payload Clock can trigger your queues.
+- Run history, failure alerts by email and webhook.
+- `@payload-solutions/plugin-clock`: connect a project from the admin and see upcoming and recent runs.
