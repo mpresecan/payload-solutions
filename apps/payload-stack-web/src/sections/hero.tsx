@@ -1,4 +1,5 @@
 import { brands } from '@payload-solutions/brand'
+import { Parallax } from '@payload-solutions/brand/parallax'
 import { CopyCommand } from '@/components/copy-command'
 import { StackVisual } from '@/components/stack-visual'
 import { Button } from '@/components/ui/button'
@@ -7,8 +8,8 @@ const brand = brands.stack
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden" aria-labelledby="hero-heading">
-      <div className="container-content grid min-h-[calc(100dvh-var(--header-height))] grid-cols-1 items-center gap-12 py-16 lg:grid-cols-12 lg:gap-8 lg:py-20">
+    <section className="relative" aria-labelledby="hero-heading">
+      <div className="container-content relative grid min-h-[calc(100dvh-var(--header-height))] grid-cols-1 items-center gap-12 py-16 lg:grid-cols-12 lg:gap-8 lg:py-20">
         <div className="lg:col-span-6">
           <h1
             id="hero-heading"
@@ -28,9 +29,9 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="min-w-0 lg:col-span-6 lg:pl-4">
+        <Parallax speed={-0.08} className="min-w-0 lg:col-span-6 lg:pl-4">
           <StackVisual className="mx-auto w-full max-w-[40rem] lg:max-w-none" />
-        </div>
+        </Parallax>
       </div>
     </section>
   )

@@ -3,13 +3,13 @@ import { Reveal } from '@/components/reveal'
 
 export function Statement() {
   return (
-    <section className="hairline-t" aria-label="About Payload Solutions">
+    <section className="hairline-t relative" aria-label="About Payload Solutions">
       <div className="container-content py-section">
         <Reveal className="mx-auto max-w-3xl">
           <p className="text-balance text-2xl font-medium leading-snug tracking-tight sm:text-3xl">
-            Payload gave us the best backend we have ever shipped on. We give back: every product here
-            is MIT licensed, developed in one public monorepo and documented on this site, by a team
-            that builds client SaaS on Payload every week.
+            Payload gave us the best backend we have ever shipped on. We give back: every product
+            here is MIT licensed, developed in one public monorepo and documented on this site, by a
+            team that builds client SaaS on Payload every week.
           </p>
           <p className="mt-6 text-fg-muted">
             <a

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { siGithub } from 'simple-icons'
 import { Logo, brands } from '@payload-solutions/brand'
+import { HeaderThemeSync } from '@payload-solutions/brand/use-header-theme'
 import { BrandIcon } from '@/components/brand-icon'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
@@ -17,6 +18,7 @@ const NAV = [
 export function SiteHeader() {
   return (
     <header className="site-header sticky top-0 z-40 h-header hairline-b">
+      <HeaderThemeSync />
       <div className="container-content flex h-full items-center justify-between gap-6">
         <Link href="/" className="flex items-center text-fg" aria-label="Payload Stack home">
           <Logo brand="stack" size={24} />

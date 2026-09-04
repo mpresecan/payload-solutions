@@ -32,12 +32,15 @@ const LOGOS = [
 /** Logo wall, logos only. Sits directly under the hero as its own section. */
 export function BuiltWith() {
   return (
-    <section aria-label="Built with" className="hairline-t hairline-b">
+    <section aria-label="Built with" className="hairline-t hairline-b relative">
       <div className="container-content flex flex-col gap-6 py-8 md:flex-row md:items-center md:gap-10">
         <p className="shrink-0 text-sm text-fg-muted">Built with</p>
         <ul className="grid grid-cols-4 gap-x-6 gap-y-6 sm:grid-cols-6 md:flex md:flex-1 md:flex-wrap md:items-center md:justify-between">
           {LOGOS.map(({ icon, href }) => (
-            <li key={icon.slug} className="flex items-center justify-center text-fg-subtle transition-colors hover:text-fg">
+            <li
+              key={icon.slug}
+              className="flex items-center justify-center text-fg-subtle transition-colors hover:text-fg"
+            >
               <a href={href} target="_blank" rel="noreferrer noopener" aria-label={icon.title}>
                 <BrandIcon icon={icon} size={24} />
               </a>

@@ -5,10 +5,13 @@
 
   Theme strategy: CSS variables. Light is the default on :root, dark is applied by
   prefers-color-scheme unless the page forces `data-theme="light"`, and
-  `data-theme="dark"` always wins. Neutrals are off-black / off-white on purpose.
+  `data-theme="dark"` always wins. The attribute also works on any element, so a single
+  section can be a dark band on a light page (see ThemeBand). Neutrals are off-black /
+  off-white on purpose.
 */
 
-:root {
+:root,
+[data-theme='light'] {
   color-scheme: light;
 
   /* surfaces */
@@ -47,10 +50,19 @@
   --slab-side-a: #e9e9e9;
   --slab-side-b: #dcdcdc;
 
+  /* ambient backdrop (hero): light field, grid ink, texture strength */
+  --ambient-glow: rgba(194, 83, 28, 0.16);
+  --ambient-cool: rgba(20, 20, 20, 0.06);
+  --ambient-sheen: rgba(255, 255, 255, 0.5);
+  --ambient-grid: rgba(20, 20, 20, 0.07);
+  --noise-opacity: 0.05;
+  --scanline-ink: rgba(20, 20, 20, 0.08);
+  --display-light: block;
+  --display-dark: none;
+
   /* type */
   --font-sans:
-    var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
-    sans-serif;
+    var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono:
     var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono',
     monospace;
@@ -102,10 +114,19 @@
     --slab-top: #1e1e1e;
     --slab-side-a: #151515;
     --slab-side-b: #0f0f0f;
+
+    --ambient-glow: rgba(242, 128, 63, 0.2);
+    --ambient-cool: rgba(255, 255, 255, 0.05);
+    --ambient-sheen: rgba(255, 255, 255, 0.07);
+    --ambient-grid: rgba(255, 255, 255, 0.06);
+    --noise-opacity: 0.07;
+    --scanline-ink: rgba(255, 255, 255, 0.09);
+    --display-light: none;
+    --display-dark: block;
   }
 }
 
-:root[data-theme='dark'] {
+[data-theme='dark'] {
   color-scheme: dark;
 
   --bg: #0a0a0a;
@@ -133,4 +154,13 @@
   --slab-top: #1e1e1e;
   --slab-side-a: #151515;
   --slab-side-b: #0f0f0f;
+
+  --ambient-glow: rgba(242, 128, 63, 0.2);
+  --ambient-cool: rgba(255, 255, 255, 0.05);
+  --ambient-sheen: rgba(255, 255, 255, 0.07);
+  --ambient-grid: rgba(255, 255, 255, 0.06);
+  --noise-opacity: 0.07;
+  --scanline-ink: rgba(255, 255, 255, 0.09);
+  --display-light: none;
+  --display-dark: block;
 }

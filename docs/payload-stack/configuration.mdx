@@ -3,7 +3,7 @@ title: Configuration
 description: Everything product-specific lives in src/stack.config.ts.
 ---
 
-`src/stack.config.ts` is the only file you must edit to make Payload Stack yours. It is validated at import time by the zod schema in `src/lib/stack.ts`; a wrong value fails the build with the path of the offending key.
+`src/stack.config.ts` is the only file you must edit to make Payload Stack yours. The object you pass to `defineStack` is typed (`StackInput` in `src/lib/stack.ts`), so your editor suggests every key and value and `pnpm typecheck` fails on a typo or an unknown key. The same zod schema validates the file again at import time; a wrong value fails the build with the path of the offending key.
 
 ```ts title="src/stack.config.ts"
 import { defineStack } from '@/lib/stack'
@@ -82,7 +82,7 @@ The file is imported on the server and in the browser, so it must not contain se
 | --- | --- | --- |
 | `enabled` | `true` | Turns on the Better Auth organization plugin, the multi-tenant bridge, onboarding, the switcher and the organization pages. |
 | `allowUserToCreate` | `true` | Whether users may create organizations themselves. |
-| `creatorRole` | `'owner'` | Role given to whoever creates an organization. |
+| `creatorRole` | `'owner'` | Role given to whoever creates an organization: `'owner'`, `'admin'`, `'member'` or a key of `additionalRoles`. |
 | `teams` | `false` | Sub-teams inside organizations. |
 | `additionalRoles` | `{}` | Extra roles as `{ key: 'Label' }`. |
 

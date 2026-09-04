@@ -6,6 +6,10 @@
  * product decisions), so changing the config changes the pricing page, checkout, sign-in screens,
  * navigation, legal pages and emails together.
  *
+ * The config is typed end to end: `defineStack` takes a `StackInput`, so the editor autocompletes
+ * every key and enum value, `pnpm typecheck` rejects typos and unknown keys, and the same schema
+ * rejects them again at boot (objects are strict) with the path of the offending key.
+ *
  * This module is imported on both the server (payload.config.ts) and the client (providers,
  * pricing), so it must stay free of secrets and of server-only imports.
  */
@@ -14,8 +18,20 @@ import { z } from 'zod'
 export const AUTH_METHODS = ['email-password', 'magic-link', 'passkey'] as const
 export const SOCIAL_PROVIDERS = ['google', 'github', 'microsoft', 'apple', 'discord'] as const
 export const BILLING_INTERVALS = ['month', 'year', 'one-time'] as const
+/** Roles Better Auth's organization plugin ships with. Extend with organizations.additionalRoles. */
+export const ORGANIZATION_ROLES = ['owner', 'admin', 'member'] as const
+export type OrganizationRole = (typeof ORGANIZATION_ROLES)[number]
 
-const priceSchema = z.object({
+/**
+ * A built-in organization role, or a key declared in organizations.additionalRoles. The
+ * `string & {}` half keeps custom roles legal while the editor still suggests the built-in ones.
+ */
+const organizationRoleSchema = z.custom<OrganizationRole | (string & {})>(
+  (v) => typeof v === 'string' && v.length > 0,
+  'role must be a non-empty string',
+)
+
+const priceSchema = z.strictObject({
   /** Stripe Price ID (price_...). Public identifier, safe to expose. */
   id: z.string().min(1, 'Stripe price id is required (set the matching NEXT_PUBLIC_STRIPE_PRICE_* env)'),
   /** Amount in the smallest currency unit, e.g. cents. Used for display only; Stripe is the source of truth. */
@@ -24,7 +40,7 @@ const priceSchema = z.object({
   interval: z.enum(BILLING_INTERVALS).default('month'),
 })
 
-const planSchema = z.object({
+const planSchema = z.strictObject({
   /** Stable identifier, also used as the Better Auth plan name and in URLs. */
   id: z.string().regex(/^[a-z0-9-]+$/, 'plan ids are lowercase slugs'),
   name: z.string().min(1),
@@ -40,17 +56,17 @@ const planSchema = z.object({
   limits: z.record(z.string(), z.number()).default({}),
 })
 
-const stackSchema = z.object({
+const stackSchema = z.strictObject({
   name: z.string().min(1),
   /** Short line used in metadata and the marketing hero. */
   tagline: z.string().default('A new SaaS, built on Payload CMS.'),
   description: z.string().default(''),
   /** Canonical origin, no trailing slash. */
   url: z.string().url(),
-  support: z.object({ email: z.string().email() }),
+  support: z.strictObject({ email: z.string().email() }),
 
   auth: z
-    .object({
+    .strictObject({
       methods: z.array(z.enum(AUTH_METHODS)).min(1).default(['email-password']),
       social: z.array(z.enum(SOCIAL_PROVIDERS)).default([]),
       twoFactor: z.boolean().default(true),
@@ -61,20 +77,31 @@ const stackSchema = z.object({
     .prefault({}),
 
   organizations: z
-    .object({
+    .strictObject({
       enabled: z.boolean().default(true),
       allowUserToCreate: z.boolean().default(true),
-      creatorRole: z.string().default('owner'),
+      /** Role given to whoever creates an organization: a built-in role or an additionalRoles key. */
+      creatorRole: organizationRoleSchema.default('owner'),
       teams: z.boolean().default(false),
       /** Extra roles beyond owner / admin / member, as { key: label }. */
       additionalRoles: z.record(z.string(), z.string()).default({}),
+    })
+    .superRefine((org, ctx) => {
+      const known = [...ORGANIZATION_ROLES, ...Object.keys(org.additionalRoles)]
+      if (!known.includes(org.creatorRole)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['creatorRole'],
+          message: `"${org.creatorRole}" is not a role; use ${known.map((r) => `"${r}"`).join(', ')} or declare it in additionalRoles`,
+        })
+      }
     })
     .prefault({}),
 
   billing: z
     .discriminatedUnion('provider', [
-      z.object({ provider: z.literal('none') }),
-      z.object({
+      z.strictObject({ provider: z.literal('none') }),
+      z.strictObject({
         provider: z.literal('stripe'),
         /** Who owns the subscription. 'organization' requires organizations.enabled. */
         attachedTo: z.enum(['user', 'organization']).default('organization'),
@@ -85,7 +112,7 @@ const stackSchema = z.object({
     ])
     .default({ provider: 'none' }),
 
-  legal: z.object({
+  legal: z.strictObject({
     company: z.string().min(1),
     jurisdiction: z.string().min(1),
     address: z.string().optional(),
@@ -93,14 +120,14 @@ const stackSchema = z.object({
 
   /** Marketing navigation. Dashboard navigation lives in components/dashboard/nav-config.tsx. */
   nav: z
-    .array(z.object({ label: z.string(), href: z.string() }))
+    .array(z.strictObject({ label: z.string(), href: z.string() }))
     .default([
       { label: 'Pricing', href: '/pricing' },
       { label: 'Docs', href: 'https://payload.solutions/docs/payload-stack' },
     ]),
 
   social: z
-    .object({
+    .strictObject({
       twitter: z.string().optional(),
       github: z.string().optional(),
       linkedin: z.string().optional(),
@@ -124,6 +151,11 @@ export type StackConfig = z.output<typeof stackSchema> & {
 
 export type StackPlan = z.output<typeof planSchema>
 
+/**
+ * Validates `src/stack.config.ts` and derives `features`. Pass an object literal so TypeScript
+ * checks every key and value while you type; anything that slips past the types is rejected here
+ * at import time with the path of the offending key.
+ */
 export function defineStack(input: StackInput): StackConfig {
   const parsed = stackSchema.safeParse(input)
   if (!parsed.success) {

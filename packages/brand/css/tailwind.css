@@ -132,3 +132,92 @@
   border-left: 1px solid var(--border);
   border-right: 1px solid var(--border);
 }
+
+/* ---------------------------------------------------------------------------------------------
+   Surfaces and textures. Used by the components in src/: AmbientBackdrop, GridColumns,
+   MediaStack, ThemeBand. Everything animates transform and opacity only.
+   --------------------------------------------------------------------------------------------- */
+
+/* Diagonal hatch, the "desk" a screenshot or logo wall sits on. No image asset. */
+@utility scanline {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--scanline-ink) 0 1px,
+    transparent 1px 7px
+  );
+}
+
+/* Film grain from an inline SVG turbulence. Apply only to fixed or absolute,
+   pointer-events-none layers (see AmbientBackdrop), never to scrolling containers. */
+@utility noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  opacity: var(--noise-opacity);
+  mix-blend-mode: overlay;
+}
+
+/* Isometric floor: two families of lines at 30 degrees, matching the IsoStack projection. */
+@utility iso-floor {
+  background-image:
+    repeating-linear-gradient(30deg, var(--ambient-grid) 0 1px, transparent 1px 56px),
+    repeating-linear-gradient(150deg, var(--ambient-grid) 0 1px, transparent 1px 56px);
+}
+
+/* Theme-dependent visibility for image variants. The display values are custom properties
+   set by the theme tokens, so the nearest themed ancestor wins (a dark band inside a light
+   page, or the reverse). Pair with loading="lazy" so the hidden variant is never fetched. */
+@utility only-light {
+  display: var(--display-light);
+}
+@utility only-dark {
+  display: var(--display-dark);
+}
+
+/* Ambient backdrop motion. A warm light drifts on a long loop and a sheen crosses the
+   floor; both are transforms on blurred, absolutely positioned layers. */
+@keyframes ambient-drift {
+  0% {
+    transform: translate3d(-6%, 4%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(8%, -6%, 0) scale(1.12);
+  }
+  100% {
+    transform: translate3d(-6%, 4%, 0) scale(1);
+  }
+}
+@keyframes ambient-sheen {
+  0% {
+    transform: translate3d(-70%, 0, 0) rotate(-30deg);
+  }
+  100% {
+    transform: translate3d(70%, 0, 0) rotate(-30deg);
+  }
+}
+.ambient-glow {
+  animation: ambient-drift 26s var(--ease-standard) infinite;
+  will-change: transform;
+}
+.ambient-sheen {
+  animation: ambient-sheen 18s linear infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ambient-glow,
+  .ambient-sheen {
+    animation: none;
+  }
+  /* Parallax collapses to static: the backdrop scrolls with its section. */
+  .ambient-sticky {
+    position: absolute !important;
+    height: 100% !important;
+  }
+}
+
+/* Header colour follows the band underneath it (see useHeaderTheme). */
+.site-header {
+  transition:
+    background-color var(--dur) var(--ease-standard),
+    border-color var(--dur) var(--ease-standard),
+    color var(--dur) var(--ease-standard);
+}

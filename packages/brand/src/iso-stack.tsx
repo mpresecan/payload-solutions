@@ -1,6 +1,7 @@
 'use client'
 
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useReducedMotionSafe } from './reduced-motion'
 import { useEffect, useState } from 'react'
 
 /**
@@ -56,7 +57,7 @@ function leftFace(z: number) {
 const topOf = (i: number) => W * 0.5 - i * STEP
 
 export function IsoStack({ layers, className, caption, cycleIntervalMs = 2600 }: IsoStackProps) {
-  const reduce = useReducedMotion()
+  const reduce = useReducedMotionSafe()
   const [tick, setTick] = useState(0)
   const hasCycle = layers.some((l) => l.cycle && l.cycle.length > 0)
 
@@ -103,7 +104,15 @@ export function IsoStack({ layers, className, caption, cycleIntervalMs = 2600 }:
           `}</style>
         </defs>
 
-        <line x1={0} y1={pillarTop} x2={0} y2={pillarBottom} stroke="var(--border-strong)" strokeWidth={2} vectorEffect="non-scaling-stroke" />
+        <line
+          x1={0}
+          y1={pillarTop}
+          x2={0}
+          y2={pillarBottom}
+          stroke="var(--border-strong)"
+          strokeWidth={2}
+          vectorEffect="non-scaling-stroke"
+        />
 
         {layers.map((layer, i) => {
           const z = i * STEP
@@ -118,8 +127,22 @@ export function IsoStack({ layers, className, caption, cycleIntervalMs = 2600 }:
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.15 + i * 0.09, ease: [0.16, 1, 0.3, 1] }}
             >
-              <polygon points={leftFace(z)} fill="var(--slab-side-b)" stroke="var(--border-strong)" strokeWidth={1} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
-              <polygon points={rightFace(z)} fill="var(--slab-side-a)" stroke="var(--border-strong)" strokeWidth={1} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+              <polygon
+                points={leftFace(z)}
+                fill="var(--slab-side-b)"
+                stroke="var(--border-strong)"
+                strokeWidth={1}
+                vectorEffect="non-scaling-stroke"
+                strokeLinejoin="round"
+              />
+              <polygon
+                points={rightFace(z)}
+                fill="var(--slab-side-a)"
+                stroke="var(--border-strong)"
+                strokeWidth={1}
+                vectorEffect="non-scaling-stroke"
+                strokeLinejoin="round"
+              />
               <polygon
                 className="iso-top"
                 points={tf.points}
@@ -130,21 +153,71 @@ export function IsoStack({ layers, className, caption, cycleIntervalMs = 2600 }:
                 strokeLinejoin="round"
               />
               {i < lastIndex ? (
-                <line x1={0} y1={topOf(i)} x2={0} y2={topOf(i) - GAP} stroke="var(--border-strong)" strokeWidth={2} vectorEffect="non-scaling-stroke" />
+                <line
+                  x1={0}
+                  y1={topOf(i)}
+                  x2={0}
+                  y2={topOf(i) - GAP}
+                  stroke="var(--border-strong)"
+                  strokeWidth={2}
+                  vectorEffect="non-scaling-stroke"
+                />
               ) : (
                 <>
-                  <line x1={0} y1={topOf(i)} x2={0} y2={topOf(i) - 34} stroke="var(--border-strong)" strokeWidth={2} vectorEffect="non-scaling-stroke" />
-                  <circle cx={0} cy={topOf(i) - 34} r={3.5} fill="var(--bg)" stroke="var(--fg)" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
+                  <line
+                    x1={0}
+                    y1={topOf(i)}
+                    x2={0}
+                    y2={topOf(i) - 34}
+                    stroke="var(--border-strong)"
+                    strokeWidth={2}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  <circle
+                    cx={0}
+                    cy={topOf(i) - 34}
+                    r={3.5}
+                    fill="var(--bg)"
+                    stroke="var(--fg)"
+                    strokeWidth={1.5}
+                    vectorEffect="non-scaling-stroke"
+                  />
                 </>
               )}
-              <circle cx={0} cy={topOf(i)} r={3} fill={layer.accent ? 'var(--accent)' : 'var(--fg)'} />
+              <circle
+                cx={0}
+                cy={topOf(i)}
+                r={3}
+                fill={layer.accent ? 'var(--accent)' : 'var(--fg)'}
+              />
 
               <g className="hidden md:block">
-                <line x1={tf.b[0]! + 6} y1={labelY} x2={LABEL_X - 8} y2={labelY} stroke="var(--border)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
-                <text x={LABEL_X} y={labelY - 4} className="iso-name" fontSize={11.5} letterSpacing={1.4} style={{ textTransform: 'uppercase' }}>
+                <line
+                  x1={tf.b[0]! + 6}
+                  y1={labelY}
+                  x2={LABEL_X - 8}
+                  y2={labelY}
+                  stroke="var(--border)"
+                  strokeWidth={1}
+                  vectorEffect="non-scaling-stroke"
+                />
+                <text
+                  x={LABEL_X}
+                  y={labelY - 4}
+                  className="iso-name"
+                  fontSize={11.5}
+                  letterSpacing={1.4}
+                  style={{ textTransform: 'uppercase' }}
+                >
                   {layer.cycle?.length && !reduce ? (
                     <AnimatePresence mode="wait" initial={false}>
-                      <motion.tspan key={label} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+                      <motion.tspan
+                        key={label}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
                         {label.toUpperCase()}
                       </motion.tspan>
                     </AnimatePresence>

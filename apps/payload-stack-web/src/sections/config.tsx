@@ -1,77 +1,263 @@
+import { Crosshairs } from '@payload-solutions/brand/crosshairs'
+import { Parallax } from '@payload-solutions/brand/parallax'
+import { screens } from '@payload-solutions/brand/screens'
+import { ThemedImage } from '@payload-solutions/brand/themed-image'
 import { Reveal } from '@/components/reveal'
 
 type Tok = [cls: 'k' | 's' | 'c' | 'p' | '', text: string]
 
 /* Mirrors templates/payload-stack/src/stack.config.ts. Keep in sync. */
 const LINES: Tok[][] = [
-  [['p', 'import'], ['', ' { defineStack } '], ['p', 'from'], ['', ' '], ['s', "'@/lib/stack'"]],
+  [
+    ['p', 'import'],
+    ['', ' { defineStack } '],
+    ['p', 'from'],
+    ['', ' '],
+    ['s', "'@/lib/stack'"],
+  ],
   [],
-  [['p', 'export default'], ['', ' defineStack({']],
-  [['', '  '], ['k', 'name'], ['', ': '], ['s', "'Ridgeline'"], ['', ',']],
-  [['', '  '], ['k', 'url'], ['', ': process.env.'], ['k', 'NEXT_PUBLIC_APP_URL'], ['', ',']],
-  [['', '  '], ['k', 'support'], ['', ': { '], ['k', 'email'], ['', ': '], ['s', "'help@ridgeline.app'"], ['', ' },']],
+  [
+    ['p', 'export default'],
+    ['', ' defineStack({'],
+  ],
+  [
+    ['', '  '],
+    ['k', 'name'],
+    ['', ': '],
+    ['s', "'Ridgeline'"],
+    ['', ','],
+  ],
+  [
+    ['', '  '],
+    ['k', 'url'],
+    ['', ': process.env.'],
+    ['k', 'NEXT_PUBLIC_APP_URL'],
+    ['', ','],
+  ],
+  [
+    ['', '  '],
+    ['k', 'support'],
+    ['', ': { '],
+    ['k', 'email'],
+    ['', ': '],
+    ['s', "'help@ridgeline.app'"],
+    ['', ' },'],
+  ],
   [],
-  [['', '  '], ['k', 'auth'], ['', ': {']],
-  [['', '    '], ['k', 'methods'], ['', ': ['], ['s', "'email-password'"], ['', ', '], ['s', "'magic-link'"], ['', ', '], ['s', "'passkey'"], ['', '],']],
-  [['', '    '], ['k', 'social'], ['', ': ['], ['s', "'google'"], ['', ', '], ['s', "'github'"], ['', '],']],
-  [['', '    '], ['k', 'twoFactor'], ['', ': '], ['s', 'true'], ['', ',']],
+  [
+    ['', '  '],
+    ['k', 'auth'],
+    ['', ': {'],
+  ],
+  [
+    ['', '    '],
+    ['k', 'methods'],
+    ['', ': ['],
+    ['s', "'email-password'"],
+    ['', ', '],
+    ['s', "'magic-link'"],
+    ['', ', '],
+    ['s', "'passkey'"],
+    ['', '],'],
+  ],
+  [
+    ['', '    '],
+    ['k', 'social'],
+    ['', ': ['],
+    ['s', "'google'"],
+    ['', ', '],
+    ['s', "'github'"],
+    ['', '],'],
+  ],
+  [
+    ['', '    '],
+    ['k', 'twoFactor'],
+    ['', ': '],
+    ['s', 'true'],
+    ['', ','],
+  ],
   [['', '  },']],
   [],
-  [['', '  '], ['k', 'organizations'], ['', ': { '], ['k', 'enabled'], ['', ': '], ['s', 'true'], ['', ', '], ['k', 'allowUserToCreate'], ['', ': '], ['s', 'true'], ['', ', '], ['k', 'creatorRole'], ['', ': '], ['s', "'owner'"], ['', ' },']],
+  [
+    ['', '  '],
+    ['k', 'organizations'],
+    ['', ': { '],
+    ['k', 'enabled'],
+    ['', ': '],
+    ['s', 'true'],
+    ['', ', '],
+    ['k', 'allowUserToCreate'],
+    ['', ': '],
+    ['s', 'true'],
+    ['', ', '],
+    ['k', 'creatorRole'],
+    ['', ': '],
+    ['s', "'owner'"],
+    ['', ' },'],
+  ],
   [],
-  [['', '  '], ['k', 'billing'], ['', ': {']],
-  [['', '    '], ['k', 'provider'], ['', ': '], ['s', "'stripe'"], ['', ',']],
-  [['', '    '], ['k', 'attachedTo'], ['', ': '], ['s', "'organization'"], ['', ',  '], ['c', "// or 'user'"]],
-  [['', '    '], ['k', 'plans'], ['', ': [']],
+  [
+    ['', '  '],
+    ['k', 'billing'],
+    ['', ': {'],
+  ],
+  [
+    ['', '    '],
+    ['k', 'provider'],
+    ['', ': '],
+    ['s', "'stripe'"],
+    ['', ','],
+  ],
+  [
+    ['', '    '],
+    ['k', 'attachedTo'],
+    ['', ': '],
+    ['s', "'organization'"],
+    ['', ',  '],
+    ['c', "// or 'user'"],
+  ],
+  [
+    ['', '    '],
+    ['k', 'plans'],
+    ['', ': ['],
+  ],
   [['', '      {']],
-  [['', '        '], ['k', 'id'], ['', ': '], ['s', "'team'"], ['', ', '], ['k', 'name'], ['', ': '], ['s', "'Team'"], ['', ', '], ['k', 'seats'], ['', ': '], ['s', '25'], ['', ', '], ['k', 'trialDays'], ['', ': '], ['s', '14'], ['', ',']],
-  [['', '        '], ['k', 'prices'], ['', ': [{ '], ['k', 'id'], ['', ': process.env.'], ['k', 'NEXT_PUBLIC_STRIPE_PRICE_TEAM_MONTHLY'], ['', ', '], ['k', 'amount'], ['', ': '], ['s', '9900'], ['', ', '], ['k', 'interval'], ['', ': '], ['s', "'month'"], ['', ' }],']],
-  [['', '        '], ['k', 'features'], ['', ': ['], ['s', "'Up to 25 members'"], ['', ', '], ['s', "'Unlimited projects'"], ['', '],']],
-  [['', '        '], ['k', 'limits'], ['', ': { '], ['k', 'projects'], ['', ': '], ['s', '-1'], ['', ' },']],
+  [
+    ['', '        '],
+    ['k', 'id'],
+    ['', ': '],
+    ['s', "'team'"],
+    ['', ', '],
+    ['k', 'name'],
+    ['', ': '],
+    ['s', "'Team'"],
+    ['', ', '],
+    ['k', 'seats'],
+    ['', ': '],
+    ['s', '25'],
+    ['', ', '],
+    ['k', 'trialDays'],
+    ['', ': '],
+    ['s', '14'],
+    ['', ','],
+  ],
+  [
+    ['', '        '],
+    ['k', 'prices'],
+    ['', ': [{ '],
+    ['k', 'id'],
+    ['', ': process.env.'],
+    ['k', 'NEXT_PUBLIC_STRIPE_PRICE_TEAM_MONTHLY'],
+    ['', ', '],
+    ['k', 'amount'],
+    ['', ': '],
+    ['s', '9900'],
+    ['', ', '],
+    ['k', 'interval'],
+    ['', ': '],
+    ['s', "'month'"],
+    ['', ' }],'],
+  ],
+  [
+    ['', '        '],
+    ['k', 'features'],
+    ['', ': ['],
+    ['s', "'Up to 25 members'"],
+    ['', ', '],
+    ['s', "'Unlimited projects'"],
+    ['', '],'],
+  ],
+  [
+    ['', '        '],
+    ['k', 'limits'],
+    ['', ': { '],
+    ['k', 'projects'],
+    ['', ': '],
+    ['s', '-1'],
+    ['', ' },'],
+  ],
   [['', '      },']],
   [['', '    ],']],
   [['', '  },']],
   [],
-  [['', '  '], ['k', 'legal'], ['', ': { '], ['k', 'company'], ['', ': '], ['s', "'Ridgeline Software Ltd'"], ['', ', '], ['k', 'jurisdiction'], ['', ': '], ['s', "'Ireland'"], ['', ' },']],
+  [
+    ['', '  '],
+    ['k', 'legal'],
+    ['', ': { '],
+    ['k', 'company'],
+    ['', ': '],
+    ['s', "'Ridgeline Software Ltd'"],
+    ['', ', '],
+    ['k', 'jurisdiction'],
+    ['', ': '],
+    ['s', "'Ireland'"],
+    ['', ' },'],
+  ],
   [['', '})']],
 ]
 
 export function Config() {
   return (
-    <section id="config" className="scroll-mt-header hairline-t py-section" aria-labelledby="config-heading">
+    <section
+      id="config"
+      className="scroll-mt-header hairline-t py-section"
+      aria-labelledby="config-heading"
+    >
       <div className="container-content">
-        <Reveal className="mx-auto max-w-3xl text-center">
-          <h2 id="config-heading" className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl lg:text-5xl">
+        <Reveal className="max-w-2xl">
+          <h2
+            id="config-heading"
+            className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl lg:text-5xl"
+          >
             Your whole product, described in one file.
           </h2>
-          <p className="mx-auto mt-5 max-w-[52ch] text-pretty text-lg leading-relaxed text-fg-muted">
+          <p className="mt-5 max-w-[52ch] text-pretty text-lg leading-relaxed text-fg-muted">
             Pricing page, checkout, entitlements, sign-in screens and legal pages all read from
             stack.config.ts. Change it once and everything follows.
           </p>
         </Reveal>
 
-        <Reveal className="mx-auto mt-12 min-w-0 max-w-4xl">
-          <div className="border border-border bg-surface">
-            <div className="flex items-center justify-between border-b border-border px-5 py-3">
-              <span className="font-mono text-xs text-fg-muted">src/stack.config.ts</span>
-              <span className="font-mono text-xs text-fg-subtle">TypeScript</span>
+        <div className="mt-12 grid grid-cols-1 gap-8 lg:mt-16 lg:grid-cols-12 lg:items-start lg:gap-10">
+          <Reveal className="min-w-0 lg:col-span-7">
+            <div className="border border-border bg-surface">
+              <div className="flex items-center justify-between border-b border-border px-5 py-3">
+                <span className="font-mono text-xs text-fg-muted">src/stack.config.ts</span>
+                <span className="font-mono text-xs text-fg-subtle">TypeScript</span>
+              </div>
+              <pre className="code-block p-6 lg:p-8">
+                <code>
+                  {LINES.map((line, i) => (
+                    <span key={i}>
+                      {line.map(([cls, text], j) => (
+                        <span key={j} className={cls ? `tok-${cls}` : undefined}>
+                          {text}
+                        </span>
+                      ))}
+                      {'\n'}
+                    </span>
+                  ))}
+                </code>
+              </pre>
             </div>
-            <pre className="code-block p-6 lg:p-8">
-              <code>
-                {LINES.map((line, i) => (
-                  <span key={i}>
-                    {line.map(([cls, text], j) => (
-                      <span key={j} className={cls ? `tok-${cls}` : undefined}>
-                        {text}
-                      </span>
-                    ))}
-                    {'\n'}
-                  </span>
-                ))}
-              </code>
-            </pre>
-          </div>
-        </Reveal>
+          </Reveal>
+
+          {/* What the plans above turn into: the real pricing page, leading slightly on scroll. */}
+          <Reveal className="min-w-0 lg:col-span-5 lg:sticky lg:top-[calc(var(--header-height)+2rem)]">
+            <Parallax speed={-0.05} as="figure" className="relative m-0">
+              <div className="scanline relative border border-border p-[6%]">
+                <Crosshairs />
+                <ThemedImage
+                  {...screens.pricing}
+                  sizes="(min-width: 1024px) 480px, 90vw"
+                  className="block h-auto w-full border border-border-strong"
+                />
+              </div>
+              <figcaption className="mt-3 text-sm text-fg-muted">
+                The pricing page, generated from the plans in this file.
+              </figcaption>
+            </Parallax>
+          </Reveal>
+        </div>
       </div>
     </section>
   )

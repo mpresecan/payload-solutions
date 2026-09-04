@@ -1,3 +1,6 @@
+import { AmbientBackdrop } from '@payload-solutions/brand/ambient-backdrop'
+import { GridColumns } from '@payload-solutions/brand/grid-columns'
+import { ThemeBand } from '@payload-solutions/brand/theme-band'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
 import { getPayloadClient } from '@/lib/payload'
@@ -22,12 +25,21 @@ export default async function HomePage() {
     <>
       <SiteHeader />
       <main id="main" className="flex-1">
-        <Hero />
-        <Statement />
-        <Products products={products.docs} />
-        <Plugins plugins={plugins.docs} />
-        <Roadmap items={roadmap.docs} />
-        <Contact />
+        {/* One dark band for the hero and the statement, pulled under the header so the header
+            takes its colour; the rest follows the visitor's theme and slides over the backdrop. */}
+        <ThemeBand theme="dark" as="div" className="-mt-header pt-header">
+          <AmbientBackdrop />
+          <GridColumns />
+          <Hero />
+          <Statement />
+        </ThemeBand>
+        <div className="relative z-10 bg-bg">
+          <GridColumns />
+          <Products products={products.docs} />
+          <Plugins plugins={plugins.docs} />
+          <Roadmap items={roadmap.docs} />
+          <Contact />
+        </div>
       </main>
       <SiteFooter />
     </>

@@ -1,6 +1,7 @@
 'use client'
 
-import { motion, useReducedMotion } from 'motion/react'
+import { motion } from 'motion/react'
+import { useReducedMotionSafe } from '@payload-solutions/brand/reduced-motion'
 import type { ReactNode } from 'react'
 
 interface RevealProps {
@@ -16,7 +17,7 @@ interface RevealProps {
  * section's headline as it arrives. Collapses to static under reduced motion.
  */
 export function Reveal({ children, className, index = 0, as = 'div' }: RevealProps) {
-  const reduce = useReducedMotion()
+  const reduce = useReducedMotionSafe()
   const Tag = motion[as]
   return (
     <Tag

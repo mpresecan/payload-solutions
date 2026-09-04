@@ -6,6 +6,9 @@ import { defineStack } from '@/lib/stack'
  * Pricing page, checkout, entitlements, sign-in screens, navigation, legal pages and emails all
  * read from here. Secrets never go in this file: they stay in .env and are read in src/lib/env.ts.
  * Stripe price ids are public identifiers, so they may come from NEXT_PUBLIC_* variables.
+ *
+ * The object is typed (StackInput in src/lib/stack.ts): your editor suggests every key and value,
+ * pnpm typecheck fails on typos or unknown keys, and the schema rejects them again at boot.
  */
 export default defineStack({
   name: 'Payload Stack',
@@ -32,7 +35,7 @@ export default defineStack({
 
   billing: {
     provider: 'stripe',
-    attachedTo: 'organization', // or 'user'
+    attachedTo: 'organization',
     plans: [
       {
         id: 'starter',
