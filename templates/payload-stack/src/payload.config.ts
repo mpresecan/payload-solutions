@@ -1,3 +1,4 @@
+// database-adapter-import
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { resendAdapter } from '@payloadcms/email-resend'
 import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
@@ -129,11 +130,13 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
+  // database-adapter-config-start
   db: postgresAdapter({
     pool: {
       connectionString: env.DATABASE_URL,
     },
   }),
+  // database-adapter-config-end
   email: env.RESEND_API_KEY
     ? resendAdapter({
         apiKey: env.RESEND_API_KEY,

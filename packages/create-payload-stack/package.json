@@ -1,0 +1,43 @@
+{
+  "name": "create-payload-stack",
+  "version": "0.1.0",
+  "description": "Scaffold a SaaS on Payload CMS: Better Auth, organizations, Stripe subscriptions and a shadcn dashboard, in one command.",
+  "keywords": ["payload", "payloadcms", "saas", "boilerplate", "starter", "better-auth", "stripe", "shadcn", "nextjs", "create"],
+  "license": "MIT",
+  "homepage": "https://www.payloadstack.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mpresecan/payload-solutions.git",
+    "directory": "packages/create-payload-stack"
+  },
+  "bugs": "https://github.com/mpresecan/payload-solutions/issues",
+  "type": "module",
+  "bin": {
+    "create-payload-stack": "./dist/index.js"
+  },
+  "files": ["dist", "README.md"],
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist .turbo",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.7.0",
+    "@sindresorhus/slugify": "^3.0.1",
+    "execa": "^10.0.1",
+    "picocolors": "^1.1.1",
+    "tar": "^7.5.22"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}

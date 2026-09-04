@@ -97,5 +97,22 @@
     "type": "git",
     "url": "https://github.com/mpresecan/payload-solutions.git",
     "directory": "templates/payload-stack"
+  },
+  "pnpm": {
+    "overrides": {
+      "@better-auth/utils": "0.5.0"
+    },
+    "onlyBuiltDependencies": [
+      "sharp",
+      "esbuild",
+      "unrs-resolver",
+      "@tailwindcss/oxide"
+    ]
+  },
+  "overrides": {
+    "@better-auth/utils": "0.5.0"
+  },
+  "resolutions": {
+    "@better-auth/utils": "0.5.0"
   }
 }
