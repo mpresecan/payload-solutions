@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { brands } from '@payload-solutions/brand'
 import { Parallax } from '@payload-solutions/brand/parallax'
 import { CopyCommand } from '@/components/copy-command'
@@ -27,6 +28,15 @@ export function Hero() {
               Documentation
             </Button>
           </div>
+          <p className="mt-6 text-sm text-fg-muted">
+            Not sure it fits your product?{' '}
+            <Link
+              href="/when-to-choose"
+              className="text-fg underline decoration-border-strong underline-offset-4 transition-colors hover:decoration-fg"
+            >
+              When to choose Payload Stack
+            </Link>
+          </p>
         </div>
 
         <Parallax speed={-0.08} className="min-w-0 lg:col-span-6 lg:pl-4">

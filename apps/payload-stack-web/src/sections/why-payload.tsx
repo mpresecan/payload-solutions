@@ -1,3 +1,5 @@
+import Link from 'next/link'
+import { ArrowRight } from '@phosphor-icons/react/dist/ssr'
 import { Reveal } from '@/components/reveal'
 
 const POINTS: Array<{ title: string; body: string }> = [
@@ -43,6 +45,21 @@ export function WhyPayload() {
             </Reveal>
           ))}
         </dl>
+
+        <Reveal className="mt-14">
+          <Link
+            href="/when-to-choose"
+            className="group inline-flex items-center gap-2 text-[0.9375rem] font-medium text-fg"
+          >
+            When to choose Payload Stack, and when not to
+            <ArrowRight
+              size={16}
+              weight="bold"
+              className="transition-transform duration-150 ease-standard group-hover:translate-x-0.5"
+              aria-hidden
+            />
+          </Link>
+        </Reveal>
       </div>
     </section>
   )

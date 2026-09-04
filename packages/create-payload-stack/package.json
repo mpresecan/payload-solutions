@@ -1,8 +1,19 @@
 {
   "name": "create-payload-stack",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Scaffold a SaaS on Payload CMS: Better Auth, organizations, Stripe subscriptions and a shadcn dashboard, in one command.",
-  "keywords": ["payload", "payloadcms", "saas", "boilerplate", "starter", "better-auth", "stripe", "shadcn", "nextjs", "create"],
+  "keywords": [
+    "payload",
+    "payloadcms",
+    "saas",
+    "boilerplate",
+    "starter",
+    "better-auth",
+    "stripe",
+    "shadcn",
+    "nextjs",
+    "create"
+  ],
   "license": "MIT",
   "homepage": "https://www.payloadstack.com",
   "repository": {
@@ -15,7 +26,10 @@
   "bin": {
     "create-payload-stack": "./dist/index.js"
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "engines": {
     "node": ">=20.9.0"
   },

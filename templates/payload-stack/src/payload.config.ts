@@ -55,7 +55,10 @@ export const payloadAuthOptions = {
       ...collection,
       fields: collection.fields.map((field): Field => {
         if (field.type === 'date' && field.name === 'expiresAt') {
-          return { ...field, defaultValue: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() }
+          return {
+            ...field,
+            defaultValue: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          }
         }
         return field
       }),
@@ -125,7 +128,13 @@ export default buildConfig({
       titleSuffix: ` | ${stack.name}`,
     },
   },
-  collections: [Users, ...(stack.features.organizations ? [Organizations] : []), Projects, Media, LegalPages],
+  collections: [
+    Users,
+    ...(stack.features.organizations ? [Organizations] : []),
+    Projects,
+    Media,
+    LegalPages,
+  ],
   editor: lexicalEditor(),
   secret: env.PAYLOAD_SECRET,
   serverURL: stack.url,

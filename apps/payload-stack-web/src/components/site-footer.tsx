@@ -17,6 +17,7 @@ const COLUMNS: Array<{
     title: 'Payload Stack',
     links: [
       { label: 'Documentation', href: stack.docsUrl },
+      { label: 'When to choose', href: '/when-to-choose' },
       { label: 'GitHub', href: stack.github },
       { label: 'Roadmap', href: `${SOLUTIONS_URL}/#roadmap` },
       { label: 'MIT License', href: `${stack.github}/blob/main/LICENSE` },

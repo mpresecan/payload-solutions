@@ -19,7 +19,8 @@ export function ActiveOrganizationSync() {
   const router = useRouter()
   const { data: session } = useSession(authClient)
   const activeOrganizationId =
-    (session?.session as { activeOrganizationId?: string | null } | undefined)?.activeOrganizationId ?? null
+    (session?.session as { activeOrganizationId?: string | null } | undefined)
+      ?.activeOrganizationId ?? null
   const previous = useRef<string | null | undefined>(undefined)
 
   useEffect(() => {

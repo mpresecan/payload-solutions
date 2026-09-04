@@ -9,11 +9,13 @@ import { Button } from '@/components/ui/button'
 
 const brand = brands.stack
 
+/** Section anchors are absolute so they also work from /when-to-choose. */
 const NAV = [
-  { href: '#inside', label: 'Inside' },
-  { href: '#how', label: 'How it works' },
-  { href: '#config', label: 'Config' },
-  { href: '#why', label: 'Why Payload' },
+  { href: '/#inside', label: 'Inside' },
+  { href: '/#how', label: 'How it works' },
+  { href: '/#config', label: 'Config' },
+  { href: '/#why', label: 'Why Payload' },
+  { href: '/when-to-choose', label: 'When to choose' },
 ]
 
 export function SiteHeader() {
@@ -29,9 +31,9 @@ export function SiteHeader() {
           <ul className="flex items-center gap-7 text-sm text-fg-muted">
             {NAV.map((item) => (
               <li key={item.href}>
-                <a href={item.href} className="transition-colors hover:text-fg">
+                <Link href={item.href} className="transition-colors hover:text-fg">
                   {item.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
