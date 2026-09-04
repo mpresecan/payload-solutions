@@ -89,6 +89,8 @@ figure[data-rehype-pretty-code-figure] pre {
   isolation: isolate;
 }
 .btn-slide > .btn-slide__label {
+  /* Full button height, so translateY(-100%) moves the label completely out of the box. */
+  height: 100%;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
