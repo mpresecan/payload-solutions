@@ -1,0 +1,80 @@
+@import 'tailwindcss';
+@import '@payload-solutions/brand/tailwind.css';
+
+@source '../../../../packages/brand/src';
+
+/* Header stays readable over content without a blur filter on the whole scroll container. */
+.site-header {
+  background-color: color-mix(in oklab, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(140%) blur(10px);
+}
+
+/* Code blocks: real <pre>, brand mono, generous but tight line height. */
+.code-block {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  tab-size: 2;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.code-block .tok-k {
+  color: var(--accent);
+}
+.code-block .tok-s {
+  color: var(--fg);
+}
+.code-block .tok-c {
+  color: var(--fg-subtle);
+}
+.code-block .tok-p {
+  color: var(--fg-muted);
+}
+
+/* Button hover: the label lifts and an inverted panel slides in, in the spirit of payloadcms.com,
+   done with transform + opacity only. */
+.btn-slide {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn-slide > .btn-slide__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+.btn-slide > .btn-slide__ghost {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transform: translateY(100%);
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+@media (hover: hover) {
+  .btn-slide:hover > .btn-slide__label {
+    transform: translateY(-100%);
+  }
+  .btn-slide:hover > .btn-slide__ghost {
+    transform: translateY(0);
+  }
+}
+.btn-slide:active {
+  transform: translateY(1px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-slide > .btn-slide__label,
+  .btn-slide > .btn-slide__ghost {
+    transition: none;
+  }
+  .btn-slide:hover > .btn-slide__label {
+    transform: none;
+  }
+  .btn-slide:hover > .btn-slide__ghost {
+    transform: translateY(100%);
+  }
+}

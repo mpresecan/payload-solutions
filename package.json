@@ -1,0 +1,35 @@
+{
+  "name": "payload-ecosystem",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Payload Solutions monorepo: Payload Stack (SaaS boilerplate), create-payload-stack CLI, plugins, and the payload.solutions and payloadstack.com websites.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mpresecan/payload-solutions.git"
+  },
+  "homepage": "https://payload.solutions",
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --concurrency 12",
+    "dev:stack-web": "pnpm --filter @payload-solutions/stack-web dev",
+    "dev:solutions": "pnpm --filter @payload-solutions/web dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,md,mdx,json,css}\" --ignore-path .gitignore",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,mdx,json,css}\" --ignore-path .gitignore",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "turbo": "^2.10.12",
+    "typescript": "^5.9.3"
+  }
+}

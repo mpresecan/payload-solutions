@@ -1,0 +1,29 @@
+{
+  "name": "@payload-solutions/brand",
+  "version": "0.1.0",
+  "description": "Shared brand system for Payload Solutions, Payload Stack and Payload Clock: logo mark, wordmarks, design tokens and Tailwind theme.",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "sideEffects": ["*.css"],
+  "exports": {
+    ".": "./src/index.ts",
+    "./logos": "./src/logos.tsx",
+    "./brands": "./src/brands.ts",
+    "./tokens.css": "./css/tokens.css",
+    "./tailwind.css": "./css/tailwind.css",
+    "./assets/*": "./assets/*"
+  },
+  "files": ["src", "css", "assets"],
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "react": "^19.2.8",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}
