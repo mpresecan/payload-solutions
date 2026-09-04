@@ -29,9 +29,15 @@ test.describe('Authentication and onboarding', () => {
     if (await confirm.count()) await confirm.fill(password)
     await page.getByRole('button', { name: /sign up/i }).click()
 
+    // Sign-up lands on /dashboard, which sends users without an organization to /onboarding.
     await page.waitForURL(/\/onboarding|\/dashboard/, { timeout: 60_000 })
-    if (page.url().includes('/onboarding')) {
-      await page.locator('#org-name').fill(`E2E Org ${stamp}`)
+    const orgName = page.locator('#org-name')
+    const needsOnboarding = await orgName.waitFor({ timeout: 15_000 }).then(
+      () => true,
+      () => false,
+    )
+    if (needsOnboarding) {
+      await orgName.fill(`E2E Org ${stamp}`)
       await page.getByRole('button', { name: /continue/i }).click()
       await page.waitForURL(/\/dashboard/, { timeout: 60_000 })
     }

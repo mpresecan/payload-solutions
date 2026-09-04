@@ -67,7 +67,7 @@ Checkout, the customer portal, cancel and restore are handled by Better Auth's S
 | `pnpm generate:importmap` | Regenerate the admin import map after adding plugins or admin components |
 | `pnpm db:migrate:create` / `pnpm db:migrate` | Payload migrations for production databases |
 | `pnpm email:dev` | Preview email templates at http://localhost:3001 |
-| `pnpm test:int` / `pnpm test:e2e` | Vitest integration tests, Playwright end-to-end tests |
+| `pnpm test:int` / `pnpm test:e2e` | Vitest integration tests, Playwright end-to-end tests (`pnpm exec playwright install chromium` once; set `PLAYWRIGHT_CHROMIUM_PATH` to reuse an existing Chromium) |
 | `pnpm lint` / `pnpm typecheck` | ESLint and TypeScript |
 
 ## Project layout
