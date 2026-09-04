@@ -16,6 +16,7 @@ import { Organizations } from '@/collections/Organizations'
 import { Projects } from '@/collections/Projects'
 import { Users } from '@/collections/Users'
 import { ADMIN_ROLES, ROLES, betterAuthOptions } from '@/lib/auth/options'
+import { silenceKnownPayloadAuthWarnings } from '@/lib/auth/payload-auth-workarounds'
 import { env } from '@/lib/env'
 import { seedLegalPages } from '@/seed/legal'
 import stack from '@/stack.config'
@@ -23,6 +24,9 @@ import { withMembershipSync } from '@/tenancy/sync-memberships'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
+
+// payload-auth 3.0.0 logs a harmless adapter error on every session lookup; see the module for details.
+silenceKnownPayloadAuthWarnings()
 
 /**
  * Better Auth via payload-auth. Exported so `payload.betterAuth` can be typed from these options

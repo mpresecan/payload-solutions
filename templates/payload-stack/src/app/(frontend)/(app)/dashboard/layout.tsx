@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import type { ReactNode } from 'react'
 
+import { ActiveOrganizationSync } from '@/components/dashboard/active-organization-sync'
 import { AppSidebar } from '@/components/dashboard/app-sidebar'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
@@ -21,6 +22,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   return (
     <SidebarProvider>
+      {stack.features.organizations ? <ActiveOrganizationSync /> : null}
       <AppSidebar isAdmin={isSiteAdmin(session)} />
       <SidebarInset>
         <DashboardHeader />

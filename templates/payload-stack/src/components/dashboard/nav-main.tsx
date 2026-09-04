@@ -16,6 +16,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from '@/components/ui/sidebar'
 
 function isActivePath(pathname: string, url: string, exact = false) {
@@ -25,6 +26,7 @@ function isActivePath(pathname: string, url: string, exact = false) {
 
 export function NavMain({ items }: { items: NavItem[] }) {
   const pathname = usePathname()
+  const { state } = useSidebar()
 
   return (
     <SidebarGroup>
@@ -32,7 +34,11 @@ export function NavMain({ items }: { items: NavItem[] }) {
       <SidebarMenu>
         {items.map((item) => {
           const sectionActive = item.items?.some((sub) => isActivePath(pathname, sub.url)) ?? false
-          const active = item.items?.length ? sectionActive : isActivePath(pathname, item.url, item.url === '/dashboard')
+          // Only the current page is highlighted. A group's parent takes the highlight when the
+          // sidebar is collapsed to icons and its sub-items are hidden.
+          const active = item.items?.length
+            ? sectionActive && state === 'collapsed'
+            : isActivePath(pathname, item.url, item.url === '/dashboard')
           return (
             <Collapsible key={item.title} asChild defaultOpen={sectionActive || item.isActive}>
               <SidebarMenuItem>

@@ -1,5 +1,11 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+/*
+  Custom variants the shadcn "radix-nova" components depend on (data-active, data-open, data-checked,
+  data-horizontal, ...) plus the no-scrollbar, scroll-fade and shimmer utilities. Do not remove: without
+  it Radix state attributes are not mapped and sidebar/tabs/checkbox states render wrong.
+*/
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
 
