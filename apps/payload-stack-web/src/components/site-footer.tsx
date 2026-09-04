@@ -9,7 +9,10 @@ import {
 
 const stack = brands.stack
 
-const COLUMNS: Array<{ title: string; links: Array<{ label: string; href: string; soon?: boolean }> }> = [
+const COLUMNS: Array<{
+  title: string
+  links: Array<{ label: string; href: string; soon?: boolean }>
+}> = [
   {
     title: 'Payload Stack',
     links: [
@@ -42,15 +45,18 @@ const COLUMNS: Array<{ title: string; links: Array<{ label: string; href: string
 export function SiteFooter() {
   return (
     <footer className="hairline-t">
-      <div className="container-content grid grid-cols-1 gap-12 py-16 md:grid-cols-12 md:gap-8">
-        <div className="md:col-span-5">
+      <div className="container-content grid grid-cols-2 gap-x-6 gap-y-10 py-12 md:grid-cols-12 md:gap-8 md:py-16">
+        <div className="col-span-2 md:col-span-5">
           <Link href="/" className="inline-flex text-fg" aria-label="Payload Stack home">
             <Logo brand="stack" size={24} />
           </Link>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-fg-muted">{stack.tagline}</p>
           <p className="mt-6 text-sm text-fg-muted">
             A{' '}
-            <a href={SOLUTIONS_URL} className="text-fg underline decoration-border-strong underline-offset-4 hover:decoration-fg">
+            <a
+              href={SOLUTIONS_URL}
+              className="text-fg underline decoration-border-strong underline-offset-4 hover:decoration-fg"
+            >
               payload.solutions
             </a>{' '}
             project.
@@ -71,7 +77,11 @@ export function SiteFooter() {
                       : {})}
                   >
                     {l.label}
-                    {l.soon ? <span className="ml-2 font-mono text-[0.625rem] uppercase tracking-[0.12em] text-fg-subtle">soon</span> : null}
+                    {l.soon ? (
+                      <span className="ml-2 font-mono text-[0.625rem] uppercase tracking-[0.12em] text-fg-subtle">
+                        soon
+                      </span>
+                    ) : null}
                   </a>
                 </li>
               ))}
@@ -85,7 +95,9 @@ export function SiteFooter() {
           <p className="max-w-3xl">
             {PAYLOAD_TRADEMARK_ATTRIBUTION} {INDEPENDENCE_NOTICE}
           </p>
-          <p className="shrink-0">MIT licensed. Copyright {new Date().getFullYear()} Payload Solutions.</p>
+          <p className="shrink-0">
+            MIT licensed. Copyright {new Date().getFullYear()} Payload Solutions.
+          </p>
         </div>
       </div>
     </footer>

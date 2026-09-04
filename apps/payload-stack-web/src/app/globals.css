@@ -9,14 +9,17 @@
   backdrop-filter: saturate(140%) blur(10px);
 }
 
-/* Code blocks: real <pre>, brand mono, generous but tight line height. */
-.code-block {
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  tab-size: 2;
-  overflow-x: auto;
-  white-space: pre;
+/* Code blocks: real <pre>, brand mono, generous but tight line height. Lives in the components
+   layer so utilities (a smaller size on phones, whitespace-pre-wrap on short snippets) win. */
+@layer components {
+  .code-block {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    tab-size: 2;
+    overflow-x: auto;
+    white-space: pre;
+  }
 }
 
 .code-block .tok-k {

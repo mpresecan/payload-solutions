@@ -14,6 +14,10 @@ interface CopyCommandProps {
 /**
  * The primary call to action on the whole site: the scaffold command, one click to copy.
  * Feedback state ("Copied") is the only motion here; it acknowledges the click.
+ *
+ * On narrow screens the command must stay readable, so the box stretches to its container
+ * and the text is allowed to wrap onto a second line rather than being cut with an ellipsis.
+ * From `sm` up it is a single, compact line.
  */
 export function CopyCommand({ className, size = 'md' }: CopyCommandProps) {
   const [copied, setCopied] = useState(false)
@@ -62,14 +66,18 @@ export function CopyCommand({ className, size = 'md' }: CopyCommandProps) {
       aria-live="polite"
       className={cn(
         'group inline-flex max-w-full items-center gap-3 border border-border-strong bg-surface font-mono text-fg transition-colors duration-150 ease-standard hover:border-fg active:translate-y-px',
-        size === 'lg' ? 'h-12 pl-4 pr-3 text-[0.9375rem]' : 'h-11 pl-3.5 pr-2.5 text-sm',
+        size === 'lg'
+          ? 'min-h-12 py-2.5 pl-4 pr-3 text-[0.8125rem] sm:text-[0.9375rem]'
+          : 'min-h-11 py-2 pl-3.5 pr-2.5 text-[0.8125rem] sm:text-sm',
         className,
       )}
     >
       <span className="text-fg-subtle" aria-hidden>
         $
       </span>
-      <span className="truncate">{NPX_COMMAND}</span>
+      <span className="min-w-0 flex-1 text-left leading-snug [overflow-wrap:anywhere] sm:truncate">
+        {NPX_COMMAND}
+      </span>
       <span
         className={cn(
           'ml-1 inline-flex h-7 w-7 shrink-0 items-center justify-center border border-transparent transition-colors duration-150',
@@ -79,7 +87,9 @@ export function CopyCommand({ className, size = 'md' }: CopyCommandProps) {
       >
         {copied ? <Check size={15} weight="bold" /> : <Copy size={15} />}
       </span>
-      <span className="sr-only">{copied ? 'Copied' : failed ? 'Copy failed, select the text instead' : ''}</span>
+      <span className="sr-only">
+        {copied ? 'Copied' : failed ? 'Copy failed, select the text instead' : ''}
+      </span>
     </button>
   )
 }

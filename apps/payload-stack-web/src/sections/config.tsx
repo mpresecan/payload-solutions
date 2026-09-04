@@ -220,11 +220,11 @@ export function Config() {
         <div className="mt-12 grid grid-cols-1 gap-8 lg:mt-16 lg:grid-cols-12 lg:items-start lg:gap-10">
           <Reveal className="min-w-0 lg:col-span-7">
             <div className="border border-border bg-surface">
-              <div className="flex items-center justify-between border-b border-border px-5 py-3">
+              <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
                 <span className="font-mono text-xs text-fg-muted">src/stack.config.ts</span>
                 <span className="font-mono text-xs text-fg-subtle">TypeScript</span>
               </div>
-              <pre className="code-block p-6 lg:p-8">
+              <pre className="code-block p-4 text-[0.75rem] sm:p-6 sm:text-[0.8125rem] lg:p-8">
                 <code>
                   {LINES.map((line, i) => (
                     <span key={i}>

@@ -9,9 +9,12 @@ export function OpenSource() {
   return (
     <section className="hairline-t" aria-labelledby="oss-heading">
       <div className="container-content py-section">
-        <Reveal className="grid grid-cols-1 gap-10 border border-border bg-surface p-8 lg:grid-cols-12 lg:items-end lg:gap-8 lg:p-12">
+        <Reveal className="grid grid-cols-1 gap-10 border border-border bg-surface p-6 sm:p-8 lg:grid-cols-12 lg:items-end lg:gap-8 lg:p-12">
           <div className="lg:col-span-7">
-            <h2 id="oss-heading" className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl">
+            <h2
+              id="oss-heading"
+              className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl"
+            >
               Open source, MIT licensed, built in the open.
             </h2>
             <p className="mt-5 max-w-[52ch] text-pretty text-lg leading-relaxed text-fg-muted">
@@ -20,7 +23,7 @@ export function OpenSource() {
             </p>
           </div>
           <div className="flex min-w-0 flex-col items-start gap-3 lg:col-span-5 lg:items-end">
-            <CopyCommand size="lg" />
+            <CopyCommand size="lg" className="w-full sm:w-auto" />
             <div className="flex flex-wrap gap-3">
               <Button href={brand.github} variant="secondary" arrow>
                 GitHub

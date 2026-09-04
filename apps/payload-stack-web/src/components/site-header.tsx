@@ -3,6 +3,7 @@ import { siGithub } from 'simple-icons'
 import { Logo, brands } from '@payload-solutions/brand'
 import { HeaderThemeSync } from '@payload-solutions/brand/use-header-theme'
 import { BrandIcon } from '@/components/brand-icon'
+import { MobileNav } from '@/components/mobile-nav'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 
@@ -52,6 +53,9 @@ export function SiteHeader() {
               Documentation
             </Button>
           </div>
+          <MobileNav
+            items={[...NAV, { href: brand.docsUrl, label: 'Documentation', external: true }]}
+          />
         </div>
       </div>
     </header>

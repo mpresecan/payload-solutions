@@ -22,7 +22,7 @@ export function Hero() {
             Payload and Next.js. Open source, one command.
           </p>
           <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <CopyCommand size="lg" />
+            <CopyCommand size="lg" className="w-full sm:w-auto" />
             <Button href={brand.docsUrl} variant="secondary" size="lg" className="shrink-0" arrow>
               Documentation
             </Button>
@@ -30,7 +30,7 @@ export function Hero() {
         </div>
 
         <Parallax speed={-0.08} className="min-w-0 lg:col-span-6 lg:pl-4">
-          <StackVisual className="mx-auto w-full max-w-[40rem] lg:max-w-none" />
+          <StackVisual className="mx-auto w-full max-w-[20rem] sm:max-w-[26rem] md:max-w-[40rem] lg:max-w-none" />
         </Parallax>
       </div>
     </section>

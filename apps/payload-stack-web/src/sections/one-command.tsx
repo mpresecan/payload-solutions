@@ -29,7 +29,11 @@ const TRANSCRIPT = [
   { t: 'ui', v: '│' },
   { t: 'q', k: '◇  Database', v: '│  PostgreSQL' },
   { t: 'ui', v: '│' },
-  { t: 'q', k: '◇  Connection string', v: '│  postgres://postgres:<password>@127.0.0.1:5432/ridgeline' },
+  {
+    t: 'q',
+    k: '◇  Connection string',
+    v: '│  postgres://postgres:<password>@127.0.0.1:5432/ridgeline',
+  },
   { t: 'ui', v: '│' },
   { t: 'q', k: '◇  Sign-in methods', v: '│  Email + password, Magic link, Passkeys' },
   { t: 'ui', v: '│' },
@@ -48,17 +52,29 @@ const TRANSCRIPT = [
 
 export function OneCommand() {
   return (
-    <section id="how" className="scroll-mt-header hairline-t py-section" aria-labelledby="how-heading">
+    <section
+      id="how"
+      className="scroll-mt-header hairline-t py-section"
+      aria-labelledby="how-heading"
+    >
       <div className="container-content grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-10">
         <div className="lg:col-span-5">
           <Reveal>
-            <h2 id="how-heading" className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl lg:text-5xl">
+            <h2
+              id="how-heading"
+              className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl lg:text-5xl"
+            >
               From zero to a running product in six prompts.
             </h2>
           </Reveal>
           <ol className="mt-10 space-y-6">
             {STEPS.map((step, i) => (
-              <Reveal as="li" key={step.title} index={i} className="border-t border-border pt-6 first:border-t-0 first:pt-0">
+              <Reveal
+                as="li"
+                key={step.title}
+                index={i}
+                className="border-t border-border pt-6 first:border-t-0 first:pt-0"
+              >
                 <div>
                   <h3 className="text-lg font-medium leading-snug tracking-tight">{step.title}</h3>
                   <p className="mt-1.5 max-w-[46ch] text-pretty text-[0.9375rem] leading-relaxed text-fg-muted">
@@ -71,7 +87,10 @@ export function OneCommand() {
         </div>
 
         <Reveal className="min-w-0 lg:col-span-7">
-          <pre className="code-block border border-border bg-surface p-6 lg:p-8" aria-label="Terminal transcript of create-payload-stack">
+          <pre
+            className="code-block border border-border bg-surface p-4 text-[0.75rem] sm:p-6 sm:text-[0.8125rem] lg:p-8"
+            aria-label="Terminal transcript of create-payload-stack"
+          >
             <code>
               {TRANSCRIPT.map((line, i) => {
                 if (line.t === 'blank') return <span key={i}>{'\n'}</span>
