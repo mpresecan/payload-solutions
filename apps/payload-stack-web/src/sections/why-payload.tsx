@@ -15,7 +15,7 @@ const POINTS: Array<{ title: string; body: string }> = [
   },
   {
     title: 'The database is your call.',
-    body: 'PostgreSQL, MongoDB, SQLite, Vercel Postgres or Cloudflare D1, chosen at scaffold time. Payload’s adapters handle schema and migrations.',
+    body: 'PostgreSQL, MongoDB, SQLite or Vercel Postgres, chosen at scaffold time. Payload’s adapters handle schema and migrations.',
   },
 ]
 

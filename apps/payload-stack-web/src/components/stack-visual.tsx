@@ -23,7 +23,7 @@ const T = 16 // slab thickness
 const GAP = 30 // clear space between slabs, where the pillar shows
 const STEP = T + GAP
 
-const DATABASES = ['PostgreSQL', 'MongoDB', 'SQLite', 'Vercel Postgres', 'Cloudflare D1']
+const DATABASES = ['PostgreSQL', 'MongoDB', 'SQLite', 'Vercel Postgres']
 
 interface Layer {
   id: string
@@ -195,8 +195,8 @@ export function StackVisual({ className }: { className?: string }) {
       </ol>
 
       <figcaption id="stack-visual-caption" className="sr-only">
-        The Payload Stack: a database of your choice (PostgreSQL, MongoDB, SQLite, Vercel Postgres or
-        Cloudflare D1), Payload CMS, Better Auth, organizations, Stripe billing, and a Next.js front end
+        The Payload Stack: a database of your choice (PostgreSQL, MongoDB, SQLite or Vercel Postgres),
+        Payload CMS, Better Auth, organizations, Stripe billing, and a Next.js front end
         with shadcn/ui, connected by one configuration.
       </figcaption>
     </figure>

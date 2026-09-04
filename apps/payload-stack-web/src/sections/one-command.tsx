@@ -7,11 +7,11 @@ const STEPS: Array<{ title: string; body: string }> = [
   },
   {
     title: 'Pick a database',
-    body: 'PostgreSQL, MongoDB, SQLite, Vercel Postgres or Cloudflare D1. The adapter and connection string are written into your config.',
+    body: 'PostgreSQL, MongoDB, SQLite or Vercel Postgres. The adapter and connection string are written into your config.',
   },
   {
     title: 'Choose sign-in methods, teams and billing',
-    body: 'Turn organizations and Stripe on or off. What you turn off is not left in the code as dead weight.',
+    body: 'Turn organizations and Stripe on or off. Every screen, plugin and collection follows the flags in stack.config.ts.',
   },
   {
     title: 'Sign in at /admin',
