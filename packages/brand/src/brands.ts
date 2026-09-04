@@ -69,7 +69,7 @@ export const brands: Record<BrandId, Brand> = {
  * Payload marks. Render this in every footer, verbatim.
  */
 export const PAYLOAD_TRADEMARK_ATTRIBUTION =
-  'Payload, the Payload design, and related marks are trademarks or registered trademarks of Payload CMS, Inc.'
+  'Payload, the Payload design, and related marks, designs, and logos are trademarks or registered trademarks of Payload CMS, Inc. in the U.S. and other countries.'
 
 export const INDEPENDENCE_NOTICE =
   'Payload Solutions is an independent open-source project and is not affiliated with, sponsored by, or endorsed by Payload CMS, Inc.'

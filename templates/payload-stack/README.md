@@ -100,4 +100,4 @@ Any Node host or Vercel. Set the environment variables from `.env.example`, use 
 
 ## License
 
-MIT. Payload Stack is a [payload.solutions](https://payload.solutions) project. Payload, the Payload design, and related marks are trademarks or registered trademarks of Payload CMS, Inc.; Payload Solutions is not affiliated with or endorsed by Payload CMS, Inc.
+MIT. Payload Stack is a [payload.solutions](https://payload.solutions) project. Payload, the Payload design, and related marks, designs, and logos are trademarks or registered trademarks of Payload CMS, Inc. in the U.S. and other countries.; Payload Solutions is not affiliated with or endorsed by Payload CMS, Inc.

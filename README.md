@@ -26,7 +26,7 @@ Node 22+ and pnpm 10+.
 
 ## Trademark
 
-Payload, the Payload design, and related marks are trademarks or registered trademarks of Payload CMS, Inc. Payload Solutions is an independent open-source project and is not affiliated with, sponsored by, or endorsed by Payload CMS, Inc.
+Payload, the Payload design, and related marks, designs, and logos are trademarks or registered trademarks of Payload CMS, Inc. in the U.S. and other countries. Payload Solutions is an independent open-source project and is not affiliated with, sponsored by, or endorsed by Payload CMS, Inc.
 
 ## License
 
