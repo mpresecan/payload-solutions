@@ -34,6 +34,18 @@
   --color-fd-secondary: var(--surface-2);
 }
 
+/* Sidebar product select (and the search box above it): square, hairline, like every other
+   surface on the site. The select itself is Fumadocs' root-folder dropdown. */
+#nd-sidebar [aria-haspopup='dialog'],
+#nd-sidebar [data-search-full] {
+  border-radius: 0;
+  border-color: var(--border);
+}
+[data-radix-popper-content-wrapper] .fd-scroll-container,
+[data-radix-popper-content-wrapper] .fd-scroll-container > a {
+  border-radius: 0;
+}
+
 /* Docs pages: square corners, brand type, mono code. */
 #nd-docs-layout,
 #nd-page {

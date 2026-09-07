@@ -89,6 +89,11 @@ export default defineStack({
 
 ${billingBlock}
 
+  observability: {
+    tracesSampleRate: 0.1,
+    sendPII: false,
+  },
+
   legal: {
     company: '${o.name.replace(/'/g, "\\'")} Ltd',
     jurisdiction: 'Ireland',
@@ -123,7 +128,7 @@ export function swapDatabaseAdapter(payloadConfigSource: string, db: DbChoice) {
 const STORAGE_IMPORT_MARKER = '// storage-adapter-import'
 const STORAGE_CONFIG_START = '// storage-adapter-config-start'
 const STORAGE_CONFIG_END = '// storage-adapter-config-end'
-const ENV_IMPORT = /^import \{ env(?:, requireEnv)? \} from '@\/lib\/env'$/m
+const ENV_IMPORT = /^import \{ ([^}]*) \} from '@\/lib\/env'$/m
 
 /**
  * Writes the storage adapter (or the local-disk comment for `null`) between the storage markers of
@@ -142,8 +147,18 @@ export function swapStorageAdapter(payloadConfigSource: string, storage: Storage
     : `${STORAGE_IMPORT_MARKER}\n`
   let out = payloadConfigSource.replace(importPattern, importLines)
 
-  if (!ENV_IMPORT.test(out)) throw new Error(`payload.config.ts is missing the "@/lib/env" import`)
-  out = out.replace(ENV_IMPORT, storage?.usesRequireEnv ? "import { env, requireEnv } from '@/lib/env'" : "import { env } from '@/lib/env'")
+  const envImport = ENV_IMPORT.exec(out)
+  if (!envImport) throw new Error(`payload.config.ts is missing the "@/lib/env" import`)
+  // Keep whatever else the template imports from @/lib/env; only requireEnv is ours to add or drop.
+  const names = envImport[1]!
+    .split(',')
+    .map((name) => name.trim())
+    .filter((name) => name && name !== 'requireEnv')
+  if (storage?.usesRequireEnv) {
+    const at = names.findIndex((name) => name > 'requireEnv')
+    names.splice(at === -1 ? names.length : at, 0, 'requireEnv')
+  }
+  out = out.replace(ENV_IMPORT, `import { ${names.join(', ')} } from '@/lib/env'`)
 
   const start = out.indexOf(STORAGE_CONFIG_START)
   const end = out.indexOf(STORAGE_CONFIG_END)

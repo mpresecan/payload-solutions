@@ -1,0 +1,6 @@
+{
+  "title": "Payload Action Scheduler",
+  "description": "Named, recurring actions on Payload job queues",
+  "root": true,
+  "pages": ["index"]
+}

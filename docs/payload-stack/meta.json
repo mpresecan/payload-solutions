@@ -1,4 +1,6 @@
 {
   "title": "Payload Stack",
+  "description": "SaaS boilerplate for Payload CMS",
+  "root": true,
   "pages": ["index", "getting-started", "cli", "configuration", "authentication", "organizations", "billing", "emails", "database", "storage", "dashboard", "observability", "testing", "deployment", "faq"]
 }

@@ -1,5 +1,7 @@
 {
   "title": "Payload Consent",
+  "description": "Consent, cookies and legal pages in the admin",
+  "root": true,
   "pages": [
     "index",
     "installation",

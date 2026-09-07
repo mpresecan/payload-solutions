@@ -1,0 +1,6 @@
+{
+  "title": "Vercel Integration",
+  "description": "Deploy hooks and build status in the admin",
+  "root": true,
+  "pages": ["index"]
+}

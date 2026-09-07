@@ -1,0 +1,6 @@
+{
+  "title": "Payload Emails",
+  "description": "Automated email copy, edited in the admin",
+  "root": true,
+  "pages": ["index"]
+}

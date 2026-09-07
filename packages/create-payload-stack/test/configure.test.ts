@@ -183,6 +183,15 @@ describe('swapStorageAdapter', () => {
   /** Keys declared (set or commented out) in the template's .env.example. */
   const envExampleKeys = new Set([...envExample.matchAll(/^#?\s?([A-Z0-9_]+)=/gm)].map((m) => m[1]))
 
+  /** The names the source imports from '@/lib/env', in order. */
+  const envImportNames = (source: string) =>
+    /^import \{ ([^}]*) \} from '@\/lib\/env'$/m
+      .exec(source)![1]!
+      .split(',')
+      .map((name) => name.trim())
+  /** What the template itself imports from '@/lib/env' — the swap must not disturb these. */
+  const templateEnvNames = envImportNames(payloadConfig)
+
   it.each(STORAGE_ADAPTER_KEYS)('writes the %s adapter behind its env guard and imports it', (key) => {
     const storage = STORAGE_CHOICES[key]
     const out = swapStorageAdapter(payloadConfig, storage)
@@ -191,7 +200,10 @@ describe('swapStorageAdapter', () => {
     expect(out).toContain(`${storage.importName}({`)
     expect(out).toContain('plugins.push(')
     expect(out).toMatch(/collections: \{\s*media/)
-    expect(out).toContain(storage.usesRequireEnv ? "import { env, requireEnv } from '@/lib/env'" : "import { env } from '@/lib/env'")
+    // requireEnv is added only when the adapter needs it; every other template import survives.
+    const envNames = envImportNames(out)
+    expect(envNames.includes('requireEnv')).toBe(storage.usesRequireEnv)
+    expect(envNames.filter((name) => name !== 'requireEnv')).toEqual(templateEnvNames)
     expect(out.includes('requireEnv(')).toBe(storage.usesRequireEnv)
     // The local-disk comment is gone and exactly one storage package is imported.
     expect(out).not.toContain(LOCAL_STORAGE_CONFIG)
@@ -227,7 +239,7 @@ describe('swapStorageAdapter', () => {
     const azure = swapStorageAdapter(s3, STORAGE_CHOICES.azure)
     expect(azure).not.toContain('@payloadcms/storage-s3')
     expect(azure).not.toContain('s3Storage')
-    expect(azure).toContain("import { env, requireEnv } from '@/lib/env'")
+    expect(envImportNames(azure)).toContain('requireEnv')
     expect(swapStorageAdapter(azure, null)).toBe(payloadConfig)
   })
 

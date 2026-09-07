@@ -1,1 +1,6 @@
-{ "title": "Payload Clock", "pages": ["index"] }
+{
+  "title": "Payload Clock",
+  "description": "Scheduled jobs for serverless Payload",
+  "root": true,
+  "pages": ["index"]
+}
