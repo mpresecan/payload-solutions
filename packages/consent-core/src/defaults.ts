@@ -54,7 +54,7 @@ export const DEFAULT_BANNER: ConsentBannerConfig = {
     reloadNotice: 'Some services were switched off. Reload the page to apply your choice fully.',
     requiredBadge: 'Always on',
   },
-  position: 'bottom',
+  position: 'bottom-left',
   showRejectAll: true,
   links: {},
 }

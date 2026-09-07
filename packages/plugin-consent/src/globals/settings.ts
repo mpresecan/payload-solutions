@@ -208,7 +208,7 @@ export function createSettingsGlobal(options: ResolvedConsentPluginOptions, loca
                     {
                       name: 'position',
                       type: 'select',
-                      defaultValue: 'bottom',
+                      defaultValue: DEFAULT_BANNER.position,
                       options: ['bottom', 'bottom-left', 'bottom-right', 'center'].map((v) => ({ label: v, value: v })),
                       custom: { noLocalize: true },
                     },

@@ -51,6 +51,8 @@ The built-in defaults are opt-in for the EEA, GB, CH, BR and CA, opt-out for the
 
 Title, description, position, and the eight label strings (the six buttons plus the "always on" badge and the reload notice). All of it is localized when your Payload config has localization.
 
+**Position** is `bottom-left` by default, and every option renders the same card — `bottom` centres it, `center` puts it mid-screen. There is no full-width bar: a bar reads as a wall, and a wall that makes refusing harder than accepting is the thing regulators actually object to.
+
 **Show "Reject all"** should stay on. Under opt-in law, refusing must be as easy as accepting (EDPB Guidelines 05/2020), and the banner shipped in the registry enforces that for opt-in visitors regardless of this switch — the setting only affects notice and opt-out jurisdictions.
 
 At the bottom, **Privacy page** and **Cookie page** point at documents in Legal pages; their URLs end up in the banner as `/legal/<slug>`. With `legalPages: false` these become plain URL fields instead.

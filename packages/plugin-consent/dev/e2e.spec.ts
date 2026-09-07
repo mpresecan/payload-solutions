@@ -4,10 +4,17 @@ import { devUser } from './helpers/credentials.js'
 
 test.describe('admin', () => {
   test('logs in and shows the Privacy group and the consent overview widget', async ({ page }) => {
+    // On a cold database this is the slowest test in the suite: Next compiles the admin from
+    // scratch while `onInit` seeds categories, trackers, processors and five legal pages. The
+    // first load renders the form before its JS is hydrated, so a submit into that gap is
+    // swallowed — load once to compile, then reload and drive the hydrated form.
+    test.slow()
     await page.goto('/admin')
+    await page.waitForSelector('#field-email')
+    await page.reload()
     await page.fill('#field-email', devUser.email)
     await page.fill('#field-password', devUser.password)
-    await page.click('.form-submit button')
+    await Promise.all([page.waitForURL(/\/admin\/?$/), page.click('.form-submit button')])
     await expect(page).toHaveTitle(/Dashboard/)
     await expect(page.getByText('Payload Consent', { exact: true })).toBeVisible()
     await expect(page.locator('#nav-consent-trackers')).toBeVisible()

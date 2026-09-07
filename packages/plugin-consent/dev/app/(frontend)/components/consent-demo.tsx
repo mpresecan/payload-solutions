@@ -1,10 +1,15 @@
 'use client'
 
 import { ConsentGate, useConsent } from '@payload-solutions/consent-react'
+import { useEffect, useState } from 'react'
 
 /** Shows the live store state and a gated embed, so the effect of each decision is visible. */
 export function ConsentDemo() {
   const { ready, state, has, withdraw, open } = useConsent()
+  // An undecided visitor gets a fresh random consent id, which differs between the server render
+  // and the client one. Show it only after mount so this demo does not trip React's hydration check.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
   if (!ready || !state) {
     return <p>Consent is disabled in the admin.</p>
   }
@@ -21,7 +26,7 @@ export function ConsentDemo() {
             repromptReason: state.repromptReason,
             gpc: state.gpc,
             needsReload: state.needsReload,
-            consentId: state.consentId,
+            consentId: mounted ? state.consentId : '…',
           },
           null,
           2,

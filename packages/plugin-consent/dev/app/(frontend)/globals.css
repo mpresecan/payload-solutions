@@ -3,15 +3,23 @@
   --bg: #fafafa;
   --fg: #111;
   --muted: #666;
-  --line: #ddd;
+  --line: #e4e4e7;
   --accent: #c2410c;
+  --card: #fff;
+  --sunk: #f7f7f8;
+  --secondary: #ececee;
+  --secondary-hover: #e2e2e5;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #111;
     --fg: #eee;
     --muted: #999;
-    --line: #333;
+    --line: #2a2a2e;
+    --card: #18181b;
+    --sunk: #1c1c20;
+    --secondary: #2a2a2e;
+    --secondary-hover: #333338;
   }
 }
 * {
@@ -97,52 +105,247 @@ button.link {
   text-decoration: underline;
   color: var(--muted);
 }
+/* ---- Consent banner: a card, never a full-width bar ---------------------- */
 .consent-banner {
   position: fixed;
-  inset-inline: 0;
-  bottom: 0;
-  background: var(--bg);
-  border-top: 1px solid var(--line);
-  padding: 1rem 1.5rem;
+  z-index: 50;
+  width: calc(100vw - 2rem);
+  max-width: 28rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  animation: consent-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes consent-in {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+}
+.consent-banner--bottom {
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  animation-name: consent-in-centered;
+}
+@keyframes consent-in-centered {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+.consent-banner--bottom-left {
+  bottom: 1rem;
+  left: 1rem;
+}
+.consent-banner--bottom-right {
+  bottom: 1rem;
+  right: 1rem;
+}
+.consent-banner--center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: none;
+}
+.consent-banner header,
+.consent-preferences header {
   display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 -8px 24px rgb(0 0 0 / 0.08);
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--line);
 }
-.consent-banner p {
-  margin: 0.25rem 0 0;
+.consent-banner header h2,
+.consent-preferences header h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+.consent-banner header svg,
+.consent-preferences header svg {
+  flex: none;
   color: var(--muted);
-  max-width: 40rem;
 }
-.consent-banner .actions {
+.consent-banner .body,
+.consent-preferences .body {
+  padding: 0.75rem 1rem;
+}
+.consent-banner .body p {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+.consent-banner .body p + p {
+  margin-top: 0.5rem;
+}
+.consent-banner .body .reason {
+  color: var(--fg);
+  font-weight: 500;
+}
+.consent-banner .body .links {
   display: flex;
-  gap: 0.5rem;
   flex-wrap: wrap;
+  gap: 0.75rem;
 }
+.consent-banner .body .links a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.consent-banner footer,
+.consent-preferences footer {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-top: 1px solid var(--line);
+  background: var(--sunk);
+  border-radius: 0 0 0.6rem 0.6rem;
+}
+.consent-banner .row {
+  display: grid;
+  gap: 0.5rem;
+}
+.consent-banner .row.two {
+  grid-template-columns: 1fr 1fr;
+}
+.consent-banner .row.one {
+  grid-template-columns: 1fr;
+}
+.consent-banner .row button {
+  width: 100%;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+}
+/* Accept and reject: same size, same weight, both filled. Refusing must be as easy as
+   accepting (EDPB Guidelines 05/2020), which is a visual requirement as much as a functional one. */
+.consent-banner .row.two button.secondary,
+.consent-banner .row.two button.primary {
+  min-height: 2.5rem;
+}
+
+/* ---- Preferences dialog -------------------------------------------------- */
 dialog.consent-preferences {
   border: 1px solid var(--line);
-  background: var(--bg);
+  border-radius: 0.6rem;
+  background: var(--card);
   color: var(--fg);
   max-width: 32rem;
   width: calc(100% - 2rem);
-  padding: 1.5rem;
+  padding: 0;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.15),
+    0 8px 10px -6px rgb(0 0 0 / 0.15);
 }
 dialog.consent-preferences::backdrop {
-  background: rgb(0 0 0 / 0.4);
+  background: rgb(0 0 0 / 0.5);
+}
+.consent-preferences header p {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+.consent-preferences .body {
+  display: grid;
+  gap: 0.5rem;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+.consent-preferences footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.consent-preferences .reload {
+  margin: 0;
+  border: 1px dashed var(--line);
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--muted);
 }
 .category {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.5rem 1rem;
-  padding: 0.75rem 0;
-  border-top: 1px solid var(--line);
+  border: 1px solid var(--line);
+  border-radius: 0.375rem;
+}
+.category .head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem;
+}
+.category label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.category .badge {
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: var(--muted);
+  background: var(--sunk);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.05rem 0.45rem;
 }
 .category small {
+  display: block;
+  margin-top: 0.25rem;
   color: var(--muted);
-  grid-column: 1 / -1;
+  font-size: 0.75rem;
 }
+.category input[type='checkbox'] {
+  flex: none;
+  margin-top: 0.2rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--fg);
+}
+.category .services {
+  border-top: 1px solid var(--line);
+  padding: 0.4rem 0.75rem 0.6rem;
+  font-size: 0.75rem;
+}
+.category .services ul {
+  margin: 0.4rem 0 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+.category .services p {
+  margin: 0.15rem 0 0;
+  color: var(--muted);
+}
+button.secondary {
+  background: var(--secondary);
+  border-color: transparent;
+  color: var(--fg);
+}
+button.secondary:hover {
+  background: var(--secondary-hover);
+}
+button.ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+button.ghost:hover {
+  color: var(--fg);
+  background: var(--sunk);
+}
+
 .gate {
   border: 1px dashed var(--line);
   padding: 1.5rem;

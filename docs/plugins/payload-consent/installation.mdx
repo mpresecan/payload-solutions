@@ -71,7 +71,9 @@ The banner is not shipped as a component you import; it is copied into your proj
 npx shadcn@latest add https://payload.solutions/r/consent-banner.json
 ```
 
-That writes `components/consent/consent-banner.tsx` (banner + preferences dialog) and `components/consent/consent-settings-link.tsx`. Both are ordinary client components built on `useConsent()`; edit them freely. If you would rather write your own, [Recipes](/docs/plugins/payload-consent/recipes#build-your-own-banner) has a 40-line version.
+That writes `components/consent/consent-banner.tsx`, `components/consent/consent-preferences-dialog.tsx` and `components/consent/consent-settings-link.tsx`. They use your own shadcn primitives — `button`, `dialog`, `switch`, `badge`, `label` — so they inherit your theme, your radius and your dark mode, and you can edit them freely.
+
+The banner is a **card**, bottom-left by default, not a full-width bar: it never covers the page and never blocks it, because a cookie wall is not valid consent. Accept and reject sit side by side at the same size, both filled, so neither is nudged; customise sits below them where it does not compete. If you would rather write your own, [Recipes](/docs/plugins/payload-consent/recipes#build-your-own-banner) has a 40-line version.
 
 ## Wire the frontend (Next.js App Router)
 

@@ -135,7 +135,7 @@ async function loadBase(payload: Payload, options: ResolvedConsentPluginOptions,
       ...DEFAULT_BANNER.labels,
       ...Object.fromEntries(Object.entries(labelsDoc).filter(([, v]) => typeof v === 'string' && v)),
     } as ConsentBannerConfig['labels'],
-    position: (bannerDoc.position as ConsentBannerConfig['position']) ?? 'bottom',
+    position: (bannerDoc.position as ConsentBannerConfig['position']) ?? DEFAULT_BANNER.position,
     showRejectAll: bannerDoc.showRejectAll !== false,
     links: {
       privacy: (await resolvePage(bannerDoc.privacyPage)) ?? (bannerDoc.privacyUrl ? String(bannerDoc.privacyUrl) : undefined),
