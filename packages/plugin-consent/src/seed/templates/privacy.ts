@@ -51,11 +51,19 @@ We use cookies and comparable technologies. Necessary ones keep the service work
 
 ## 4. Who receives your data
 
-We share personal data only with processors that help us run the service, under contracts that bind them to our instructions and to appropriate security measures. Typical categories: hosting and infrastructure, payment processing, transactional email, customer support tooling, and analytics (only with your consent). [List your main providers here, e.g. hosting provider, payment provider, email provider.] We may also disclose data when the law requires it or to protect our rights.
+We share personal data with the providers below. Processors act only on our instructions, under a written contract that binds them to confidentiality and appropriate security. A small number act as independent controllers for their own regulated purposes — payment providers, for example, which have their own anti-fraud and anti-money-laundering duties.
+
+{{processor-table:recipients}}
+
+We may also disclose personal data when the law requires it, to establish or defend legal claims, or to a buyer as part of a merger or acquisition — in which case this policy continues to apply until you are told otherwise. We do not sell personal data.
 
 ## 5. International transfers
 
-Some providers process data outside ${jurisdictionsText(company)}. Where that happens we rely on an adequacy decision or on Standard Contractual Clauses (and the UK Addendum where applicable), with additional safeguards where needed. You can ask us for a copy of the relevant safeguards.
+Some of these providers process data outside ${jurisdictionsText(company)}. Every such transfer rests on one of the safeguards in Chapter V of the GDPR, listed per provider below. You can ask us for a copy of the Standard Contractual Clauses we rely on at ${company.email}.
+
+{{processor-table:transfers}}
+
+Where a transfer rests on an adequacy decision, we also keep Standard Contractual Clauses on file as a fallback, so a transfer does not have to stop if that decision is annulled.
 
 ## 6. How long we keep data
 

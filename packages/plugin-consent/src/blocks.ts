@@ -25,6 +25,44 @@ export const CookieTableBlock: Block = {
   ],
 }
 
+/**
+ * Renders the processor register in one of the shapes a legal document needs.
+ * `recipients` and `transfers` belong in the privacy policy; `subprocessors`, `annex` and
+ * `changes` belong on the public sub-processor page and in the DPA.
+ */
+export const ProcessorTableBlock: Block = {
+  slug: 'processorTable',
+  interfaceName: 'ConsentProcessorTableBlock',
+  labels: { singular: 'Processor table', plural: 'Processor tables' },
+  fields: [
+    {
+      type: 'row',
+      fields: [
+        {
+          name: 'mode',
+          type: 'select',
+          defaultValue: 'recipients',
+          required: true,
+          options: [
+            { label: 'Recipients — who receives data and why (privacy policy)', value: 'recipients' },
+            { label: 'Transfers — country and safeguard per recipient (privacy policy)', value: 'transfers' },
+            { label: 'Sub-processors — the public list', value: 'subprocessors' },
+            { label: 'Annex III — the DPA annex shape', value: 'annex' },
+            { label: 'Change log — recent additions and removals', value: 'changes' },
+          ],
+          admin: { width: '60%' },
+        },
+        {
+          name: 'showRole',
+          type: 'checkbox',
+          defaultValue: true,
+          admin: { width: '40%', description: 'Show whether each recipient is a processor or an independent controller.' },
+        },
+      ],
+    },
+  ],
+}
+
 /** Renders "Version xxxx, effective DATE" for the page. */
 export const PolicyVersionBlock: Block = {
   slug: 'policyVersion',

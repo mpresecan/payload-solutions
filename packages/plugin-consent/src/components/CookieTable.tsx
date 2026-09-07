@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 
 import type { ConsentCategory, ConsentTracker } from '@payload-solutions/consent-core'
 
+import type { ProcessorEntry, SubprocessorList } from '../processors.js'
+import { ProcessorTable, type ProcessorTableMode } from './ProcessorTable.js'
 import { consentTableConverters } from './RichTextTable.js'
 
 export type CookieTableLabels = {
@@ -110,6 +112,10 @@ type ConverterData = {
   documentsVersion?: string
   effectiveDate?: string
   labels?: Partial<CookieTableLabels>
+  /** The processor register, for the `processorTable` block. Omit and that block renders nothing. */
+  processors?: ProcessorEntry[]
+  /** Sub-processor additions and removals, for `mode="changes"`. */
+  processorChanges?: SubprocessorList['changes']
 }
 
 /**
@@ -132,6 +138,15 @@ export function consentBlockConverters(data: ConverterData) {
       cookieTable: ({ node }: { node: { fields: { groupBy?: 'category' | 'vendor'; showDurations?: boolean } } }): ReactNode => (
         <CookieTable categories={data.categories} trackers={data.trackers} groupBy={node.fields.groupBy} showDurations={node.fields.showDurations !== false} labels={data.labels} />
       ),
+      processorTable: ({ node }: { node: { fields: { mode?: ProcessorTableMode; showRole?: boolean } } }): ReactNode =>
+        data.processors ? (
+          <ProcessorTable
+            changes={data.processorChanges}
+            mode={node.fields.mode}
+            processors={data.processors}
+            showRole={node.fields.showRole !== false}
+          />
+        ) : null,
       policyVersion: ({ node }: { node: { fields: { prefix?: string } } }): ReactNode => (
         <p data-consent-policy-version="">
           {node.fields.prefix ?? 'Version'} {data.documentsVersion ?? '—'}

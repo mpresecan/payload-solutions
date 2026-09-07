@@ -73,6 +73,36 @@ test.describe('frontend (opt-in jurisdiction)', () => {
     await expect(page.locator('[data-legal-page="privacy"]')).not.toContainText('| --- |')
   })
 
+  test('renders the privacy policy recipients and transfers tables from the register', async ({ page }) => {
+    await page.goto('/legal/privacy')
+    const recipients = page.locator('[data-consent-processors="recipients"]')
+    await expect(recipients).toBeVisible()
+    await expect(recipients.getByRole('link', { name: 'Vercel' })).toBeVisible()
+    // Stripe is disclosed as an independent controller, not as our processor.
+    await expect(recipients.locator('td', { hasText: /^Independent controller$/ })).toHaveCount(1)
+
+    const transfers = page.locator('[data-consent-processors="transfers"]')
+    await expect(transfers).toBeVisible()
+    await expect(transfers.locator('td', { hasText: /^EU–US Data Privacy Framework$/ })).toHaveCount(1) // GA4
+    await expect(transfers.locator('td', { hasText: 'Fallback: Standard Contractual Clauses' }).first()).toBeVisible()
+  })
+
+  test('renders the public sub-processor page and the DPA annex', async ({ page }) => {
+    await page.goto('/legal/subprocessors')
+    const table = page.locator('[data-consent-processors="subprocessors"]')
+    await expect(table).toBeVisible()
+    await expect(table.getByRole('link', { name: 'Sentry' })).toBeVisible()
+    // Google Analytics is disclosed as a recipient but is not a sub-processor of customer data.
+    await expect(table.locator('td', { hasText: 'Google Analytics 4' })).toHaveCount(0)
+    await expect(page.locator('[data-consent-processors="changes"]')).toBeVisible()
+
+    await page.goto('/legal/dpa')
+    const annex = page.locator('[data-consent-processors="annex"]')
+    await expect(annex).toBeVisible()
+    await expect(annex.locator('thead th').first()).toHaveText('Provider')
+    await expect(annex.locator('td', { hasText: 'Functional Software, Inc.' }).first()).toBeVisible()
+  })
+
   test('renders the cookie policy with the generated cookie table', async ({ page }) => {
     await page.goto('/legal/cookies')
     await expect(page.locator('[data-legal-page="cookies"] h1')).toHaveText('Cookie Policy')

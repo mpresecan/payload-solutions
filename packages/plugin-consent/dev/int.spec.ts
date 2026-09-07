@@ -6,6 +6,7 @@ import { getPluginOptions } from '@payload-solutions/plugin-consent'
 import {
   getConsentConfig,
   getConsentOverview,
+  getSubprocessors,
   purgeExpiredRecords,
   readConsent,
 } from '@payload-solutions/plugin-consent/server'
@@ -47,7 +48,7 @@ describe('registration and seeds', () => {
   test('registers the collections, global, endpoints and job', () => {
     const slugs = payload.config.collections.map((c) => c.slug)
     expect(slugs).toEqual(
-      expect.arrayContaining(['consent-categories', 'consent-trackers', 'consent-records', 'legal-pages']),
+      expect.arrayContaining(['consent-categories', 'consent-trackers', 'consent-records', 'legal-pages', 'consent-processors']),
     )
     expect(payload.config.globals.map((g) => g.slug)).toContain('consent-settings')
     expect(payload.config.endpoints.map((e) => `${e.method} ${e.path}`)).toEqual(
@@ -71,7 +72,9 @@ describe('registration and seeds', () => {
     const pages = await payload.find({ collection: 'legal-pages', overrideAccess: true, sort: 'slug' })
     expect(pages.docs.map((p) => `${p.kind}:${p.slug}:${p._status}`)).toEqual([
       'cookies:cookies:published',
+      'dpa:dpa:published',
       'privacy:privacy:published',
+      'subprocessors:subprocessors:published',
       'terms:terms:published',
     ])
     const cookiesPage = pages.docs.find((p) => p.kind === 'cookies')!
@@ -87,7 +90,9 @@ describe('registration and seeds', () => {
 
   test('converts markdown tables in the seeded documents into Lexical table nodes', async () => {
     const pages = await payload.find({ collection: 'legal-pages', overrideAccess: true, sort: 'slug' })
-    for (const page of pages.docs.filter((p) => p.kind !== 'cookies')) {
+    // privacy, terms and the DPA are written with GFM pipe tables; the cookie policy and the
+    // sub-processor page get theirs from blocks instead.
+    for (const page of pages.docs.filter((p) => ['privacy', 'terms', 'dpa'].includes(String(p.kind)))) {
       const root = (page.content as { root: { children: LexicalNode[] } }).root
       const tables = root.children.filter((n) => n.type === 'table')
       expect(tables.length, `${page.slug} should contain tables`).toBeGreaterThan(0)
@@ -109,7 +114,7 @@ describe('registration and seeds', () => {
   })
 })
 
-type LexicalNode = { children?: LexicalNode[]; headerState?: number; text?: string; type: string }
+type LexicalNode = { children?: LexicalNode[]; fields?: { blockType?: string; mode?: string }; headerState?: number; text?: string; type: string }
 
 /** Trimmed text of every top-level paragraph, used to prove nothing stayed as raw markdown. */
 function plainText(nodes: LexicalNode[]): string[] {
@@ -117,6 +122,77 @@ function plainText(nodes: LexicalNode[]): string[] {
     .filter((n) => n.type === 'paragraph')
     .map((n) => (n.children ?? []).map((c) => c.text ?? '').join('').trim())
 }
+
+describe('processors', () => {
+  test('seeds the register unverified, with a sub-processor version of its own', async () => {
+    const processors = await payload.find({ collection: 'consent-processors', overrideAccess: true, sort: 'name' })
+    expect(processors.docs.map((p) => p.presetKey)).toEqual(['ga4', 'neon', 'posthog', 'resend', 'sentry', 'stripe', 'vercel'])
+    expect(processors.docs.every((p) => p.verified === false)).toBe(true)
+    expect(processors.docs.every((p) => typeof p.addedAt === 'string')).toBe(true)
+
+    // Roles are not all "processor": Stripe decides its own anti-fraud purposes.
+    expect(processors.docs.find((p) => p.presetKey === 'stripe')?.role).toBe('independent-controller')
+    // An adequacy-based transfer carries an SCC fallback, so Schrems III does not stop the transfer.
+    expect(processors.docs.find((p) => p.presetKey === 'ga4')?.transfer).toMatchObject({ mechanism: 'dpf', fallback: 'scc' })
+    // GA4 is a recipient to disclose but not a sub-processor of customer data.
+    expect(processors.docs.find((p) => p.presetKey === 'ga4')?.subprocessor).toBe(false)
+
+    const settings = await payload.findGlobal({ slug: 'consent-settings', depth: 0, overrideAccess: true })
+    expect(settings.processors?.subprocessorsVersion).toMatch(/^[0-9a-f]{8}$/)
+    expect(settings.processors?.noticeDays).toBe(30)
+  })
+
+  test('changing a sub-processor moves its own version and leaves the consent policy version alone', async () => {
+    const before = await payload.findGlobal({ slug: 'consent-settings', depth: 0, overrideAccess: true })
+    const row = (await payload.find({ collection: 'consent-processors', overrideAccess: true, where: { presetKey: { equals: 'resend' } } })).docs[0]!
+    await payload.update({
+      collection: 'consent-processors',
+      id: row.id,
+      data: { status: 'removed', removedAt: new Date().toISOString() } as never,
+      overrideAccess: true,
+    })
+    const after = await payload.findGlobal({ slug: 'consent-settings', depth: 0, overrideAccess: true })
+    expect(after.processors?.subprocessorsVersion).not.toBe(before.processors?.subprocessorsVersion)
+    expect(after.versions?.policyVersion).toBe(before.versions?.policyVersion)
+
+    // It leaves the active list and shows up in the change log.
+    const list = await getSubprocessors(payload, getPluginOptions(payload))
+    expect(list.processors.map((p) => p.name)).not.toContain('Resend')
+    expect(list.changes.some((c) => c.name === 'Resend' && c.change === 'removed')).toBe(true)
+
+    await payload.update({ collection: 'consent-processors', id: row.id, data: { status: 'active', removedAt: null } as never, overrideAccess: true })
+  })
+
+  test('serves GET /api/consent/subprocessors', async () => {
+    const res = await call('/consent/subprocessors')
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { noticeDays: number; processors: Array<{ name: string; verified: boolean }>; version: string }
+    expect(body.version).toMatch(/^[0-9a-f]{8}$/)
+    expect(body.noticeDays).toBe(30)
+    expect(body.processors.map((p) => p.name)).toContain('Vercel')
+    expect(body.processors.map((p) => p.name)).not.toContain('Google Analytics 4')
+  })
+
+  test('the privacy policy carries recipients and transfers tables, and the DPA carries Annex III', async () => {
+    const pages = await payload.find({ collection: 'legal-pages', overrideAccess: true })
+    const modes = (slug: string) =>
+      ((pages.docs.find((p) => p.slug === slug)!.content as { root: { children: LexicalNode[] } }).root.children ?? [])
+        .filter((n) => n.type === 'block' && n.fields?.blockType === 'processorTable')
+        .map((n) => n.fields!.mode)
+
+    expect(modes('privacy')).toEqual(['recipients', 'transfers'])
+    expect(modes('subprocessors')).toEqual(['subprocessors', 'changes'])
+    expect(modes('dpa')).toEqual(['annex'])
+  })
+
+  test('the dashboard warns about unverified rows and about trackers missing from the register', async () => {
+    const overview = await getConsentOverview(payload)
+    expect(overview.processors).toBe(7)
+    expect(overview.warnings.join(' ')).toMatch(/have not been checked against a signed contract/)
+    // YouTube is declared as a tracker but was never added to the register.
+    expect(overview.warnings.join(' ')).toMatch(/YouTube embeds.*not in the processor register/)
+  })
+})
 
 describe('config', () => {
   test('assembles the client config and resolves the jurisdiction from headers', async () => {

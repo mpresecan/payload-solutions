@@ -1,0 +1,161 @@
+---
+title: Payload Consent
+description: Cookie categories, trackers, legal pages and consent records in the Payload admin. One source of truth for the banner, the script gating and the cookie policy.
+---
+
+Payload Consent is a consent management plugin for Payload. Editors maintain the list of cookies and scripts in the admin; the plugin derives three things from that list that normally drift apart: the categories in the consent banner, which scripts load after which decision, and the "cookies we use" table inside the cookie policy. Decisions are stored as minimal, immutable consent records in Payload, which gives you the audit trail hosted consent tools sell as a paid tier.
+
+> Payload Consent helps you publish and enforce your privacy choices. It is not legal advice; have your documents reviewed for your jurisdiction.
+
+## Packages
+
+| Package | What |
+| --- | --- |
+| `@payload-solutions/plugin-consent` | the Payload plugin: collections, global, endpoints, seeds, retention job, server helpers |
+| `@payload-solutions/consent-react` | React provider, hooks, `ConsentGate`, Consent Mode script, Next.js helpers |
+| `@payload-solutions/consent-core` | framework-agnostic store, cookie codec, jurisdiction models, script loader (used by both) |
+| `consent-banner` (shadcn registry) | banner, preferences dialog and footer link copied into your project |
+
+## Install
+
+```bash
+pnpm add @payload-solutions/plugin-consent @payload-solutions/consent-react
+npx shadcn@latest add https://payload.solutions/r/consent-banner.json
+```
+
+```ts
+// payload.config.ts
+import { consentPlugin } from '@payload-solutions/plugin-consent'
+
+plugins: [
+  consentPlugin({
+    seed: {
+      company: { name: 'Acme', legalName: 'Acme Ltd', address: '1 Main St, Dublin', email: 'privacy@acme.com', url: 'https://acme.com', governingLaw: 'Ireland' },
+      trackers: ['posthog-eu', 'stripe'],
+    },
+  }),
+]
+```
+
+On first boot the plugin seeds the four default categories, the trackers you listed (from built-in presets), and three legal pages: a privacy policy, a cookie policy with the live cookie table, and terms of service following the Common Paper model. Everything is then edited in the admin under **Privacy**.
+
+## Wire the frontend (Next.js App Router)
+
+```tsx
+// app/layout.tsx
+import { cookies, headers } from 'next/headers'
+import { getPayload } from 'payload'
+import { getConsentConfig } from '@payload-solutions/plugin-consent/server'
+import { ConsentModeScript, ConsentProvider } from '@payload-solutions/consent-react'
+import { ConsentBanner } from '@/components/consent/consent-banner'
+import config from '@payload-config'
+
+export default async function RootLayout({ children }) {
+  const payload = await getPayload({ config })
+  const consent = await getConsentConfig(payload, { headers: await headers() })
+  const cookie = (await cookies()).get(consent.cookie.name)?.value
+
+  return (
+    <html>
+      <head>
+        <ConsentModeScript config={consent} cookie={cookie} />
+      </head>
+      <body>
+        <ConsentProvider config={consent} initialCookie={cookie}>
+          {children}
+          <ConsentBanner />
+        </ConsentProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+The config is read through the local API and the cookie through `cookies()`, so the first client render matches the server render: no banner flash, no hydration mismatch. Put `<ConsentSettingsLink />` in the footer so withdrawing consent is one click away.
+
+### Gate content and scripts
+
+Scripts and pixels declared in **Cookies & scripts** with a loader are injected by the provider once their category is granted. Google tags marked *Consent Mode managed* load immediately and are governed by Consent Mode v2 signals instead. For embeds and your own SDK initialisation:
+
+```tsx
+<ConsentGate category="functional" fallback={<EmbedPlaceholder />}>
+  <iframe src="https://www.youtube-nocookie.com/embed/…" />
+</ConsentGate>
+```
+
+```ts
+const { has } = useConsent()
+useEffect(() => { if (has('analytics')) posthog.opt_in_capturing() }, [has])
+```
+
+### Read consent on the server
+
+```ts
+import { readConsent } from '@payload-solutions/consent-react/next'
+
+const consent = readConsent(await cookies(), config)
+if (consent.has('analytics')) { /* server-side capture */ }
+```
+
+### Render a legal page
+
+Legal pages use a Lexical editor with tables and two blocks: **Cookie table** (the live list of declared cookies) and **Policy version**. `legalPageConverters` renders all three:
+
+```tsx
+import { RichText } from '@payloadcms/richtext-lexical/react'
+import { legalPageConverters } from '@payload-solutions/plugin-consent/rsc'
+import { getCookieTableData } from '@payload-solutions/plugin-consent/server'
+
+const data = await getCookieTableData(payload)
+<RichText data={page.content} converters={({ defaultConverters }) => ({ ...defaultConverters, ...legalPageConverters(data) })} />
+```
+
+Tables are not part of Payload's default Lexical features, but legal documents are made of them — what we collect, retention periods, sub-processors — so the plugin enables `EXPERIMENTAL_TableFeature` on the legal-pages editor. Editors get the usual table controls, the seeded markdown tables come through as real tables, and `legalPageConverters` renders them semantically: `<thead>`/`<tbody>`, `scope`d `<th>`, a horizontally scrollable wrapper, and no hard-coded colours or padding, so they inherit your typography and work in dark mode. Style them through `[data-lexical-table]`. If you already have a table converter, spread `consentBlockConverters` instead and keep yours.
+
+## How decisions work
+
+| Model | Before a choice | Banner |
+| --- | --- | --- |
+| opt-in (EEA, UK, CH, BR, CA, unknown) | non-required categories off | Accept all / Reject all / Customize, equally prominent |
+| opt-out (US) | on by default; Global Privacy Control switches `respectGPC` categories off | notice with Customize |
+| notice | on | dismissable notice |
+| none | on | nothing |
+
+The model is resolved per request from the CDN country header (`cf-ipcountry`, `x-vercel-ip-country`, …), a fixed region, or the fallback. Decisions are stored in a first-party cookie (`pl-consent`, six months by default) that carries the versions of the categories, trackers and documents it was given for; when a watched version changes or the cookie expires, the visitor is asked again with their previous choices as defaults.
+
+## Records and retention
+
+By default every decision creates an anonymous consent record: a random consent id, the decisions, the policy versions, the country and the model. No IP address, no user agent. Set recording to *linked* to attach the logged-in user, or *none* to disable. The `consentPurgeRecords` job deletes records older than the retention period; schedule it with `jobs: { purge: { cron: '0 3 * * *' } }` or run it from your own scheduler.
+
+## Options
+
+```ts
+consentPlugin({
+  basePath: '/consent',
+  slugs: { settings, categories, trackers, records, legalPages },
+  usersSlug: 'users',                // or false
+  legalPages: true,
+  access: { manage: ({ req }) => Boolean(req.user) },
+  cookie: { name: 'pl-consent', domain: undefined, sameSite: 'lax' },
+  jurisdiction: { headers, overrides: [{ region: 'US-CA', model: 'opt-out' }], fallback: 'opt-in', trustProxy: true },
+  recording: { mode: 'anonymous', retentionMonths: 36, rateLimitPerMinute: 20 },
+  allowedOrigins: ['https://www.example.com'],
+  seed: { company, trackers: ['posthog-eu'], legalPages: true } | false,
+  admin: { group: 'Privacy', dashboardWidget: true },
+  jobs: { purge: { cron: '0 3 * * *' } },
+})
+```
+
+Tracker presets: `posthog`, `posthog-eu`, `ga4`, `gtm`, `meta-pixel`, `linkedin-insight`, `hotjar`, `clarity`, `intercom`, `crisp`, `youtube`, `vimeo`, `google-maps`, `stripe`, `vercel-analytics`, `umami`, `plausible`. Presets with placeholders (measurement ids and the like) are created with the placeholder left in place and a warning in the log.
+
+## Payload Stack
+
+Payload Stack ships this plugin wired to `stack.config.ts`: `analytics.provider` registers the matching tracker, `privacy.consent: 'auto'` enables the banner only when a consent-gated tracker exists, and the account settings get a Privacy tab with consent history. See the Payload Stack docs.
+
+## Development
+
+The package follows the official Payload plugin template: `src/` is the plugin, `dev/` is a Next.js + Payload app that uses it. `pnpm dev` starts it on port 3000 with a SQLite file, seeded categories, trackers and legal pages, a plain banner and a `/legal/[slug]` page; `pnpm test:int` runs the integration tests against a real Payload instance and `pnpm test:e2e` the Playwright suite (admin login, banner flow, cookie table).
+
+## Status
+
+0.1.0 — first public release. Roadmap: embed script for non-React sites, banner preview in the admin, a scanner CLI that diffs discovered cookies against declared ones.

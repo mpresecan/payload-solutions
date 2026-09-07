@@ -1,7 +1,7 @@
 import { BlocksFeature, EXPERIMENTAL_TableFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
 import type { CollectionConfig } from 'payload'
 
-import { CookieTableBlock, PolicyVersionBlock } from '../blocks.js'
+import { CookieTableBlock, PolicyVersionBlock, ProcessorTableBlock } from '../blocks.js'
 import { localize } from '../fields.js'
 import type { ResolvedConsentPluginOptions } from '../types.js'
 import { versionHooks } from '../versions.js'
@@ -10,13 +10,14 @@ export const LEGAL_PAGE_KINDS = [
   { label: 'Privacy policy', value: 'privacy' },
   { label: 'Terms of service', value: 'terms' },
   { label: 'Cookie policy', value: 'cookies' },
+  { label: 'Sub-processors', value: 'subprocessors' },
   { label: 'Data processing agreement', value: 'dpa' },
   { label: 'Other', value: 'other' },
 ]
 
 /**
  * Lexical editor for legal pages: the default features plus tables and the
- * cookie-table / policy-version blocks.
+ * cookie-table, processor-table and policy-version blocks.
  *
  * Tables are not in Payload's default feature set, but legal documents are full
  * of them (what we collect, retention periods, sub-processors), and the seeded
@@ -30,7 +31,7 @@ export const legalPagesEditor = (): ReturnType<typeof lexicalEditor> =>
     features: ({ defaultFeatures }) => [
       ...defaultFeatures,
       EXPERIMENTAL_TableFeature(),
-      BlocksFeature({ blocks: [CookieTableBlock, PolicyVersionBlock] }),
+      BlocksFeature({ blocks: [CookieTableBlock, ProcessorTableBlock, PolicyVersionBlock] }),
     ],
   })
 

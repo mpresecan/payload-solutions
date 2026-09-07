@@ -13,14 +13,17 @@ import {
 
 import { getConsentConfig as buildConfig, type ConsentConfigWithMeta, type GetConsentConfigOptions } from './config.js'
 import { getPluginOptions } from './index.js'
+import { getProcessors, getSubprocessors, type ProcessorListOptions } from './processors.js'
 import { purgeExpiredRecords } from './jobs.js'
 import type { AnyDoc, ResolvedConsentPluginOptions } from './types.js'
 
 export type { ConsentConfigWithMeta, GetConsentConfigOptions }
-export { computeVersions, recomputeVersions } from './versions.js'
+export { computeVersions, computeSubprocessorsVersion, recomputeSubprocessorsVersion, recomputeVersions } from './versions.js'
+export { type ProcessorEntry, type ProcessorListOptions, type SubprocessorList } from './processors.js'
+export { getProcessors, getSubprocessors }
 export { invalidateConfigCache } from './config-cache.js'
 export { buildLegalDocuments, markdownToLegalContent } from './seed/legal.js'
-export { seedTrackers } from './seed/index.js'
+export { seedProcessors, seedTrackers } from './seed/index.js'
 export { purgeExpiredRecords }
 /** Re-exported so server-side scripts need only one import. */
 export { getPluginOptions }
@@ -68,6 +71,15 @@ export function readConsent(cookies: CookieSource, config: ConsentConfig, gpc = 
   return { ...resolved, has: (key: string) => required.has(key) || resolved.decisions[key] === true }
 }
 
+/** The processor register plus the sub-processor metadata, for rendering a legal page. */
+export async function getProcessorTableData(payload: Payload, input: ProcessorListOptions = {}) {
+  const options = getPluginOptions(payload)
+  if (!options.processors) return { processors: [], processorChanges: [] }
+  const list = await getSubprocessors(payload, options, input)
+  const processors = await getProcessors(payload, options, input)
+  return { processors, processorChanges: list.changes }
+}
+
 /** Public trackers + categories for rendering the cookie table outside the plugin's own components. */
 export async function getCookieTableData(payload: Payload, input: GetConsentConfigOptions = {}) {
   const config = await getConsentConfig(payload, input)
@@ -100,6 +112,38 @@ export async function getConsentOverview(payload: Payload, options: ResolvedCons
   for (const t of trackers.docs) {
     if (!t.vendorPrivacyUrl) warnings.push(`"${String(t.name)}" has no vendor privacy policy link.`)
   }
+
+  let processorCount = 0
+  let subprocessorCount = 0
+  if (options.processors) {
+    const rows = await getProcessors(payload, options)
+    processorCount = rows.length
+    subprocessorCount = rows.filter((p) => p.subprocessor).length
+
+    const unverified = rows.filter((p) => !p.verified)
+    if (unverified.length > 0) {
+      warnings.push(
+        `${unverified.length} processor(s) have not been checked against a signed contract: ${unverified.slice(0, 4).map((p) => p.name).join(', ')}${unverified.length > 4 ? '…' : ''}.`,
+      )
+    }
+    for (const p of rows) {
+      if (!p.dpaUrl && (p.role === 'processor' || p.role === 'sub-processor')) {
+        warnings.push(`Processor "${p.name}" has no DPA link. Art. 28(3) needs a written contract.`)
+      }
+      if (p.subprocessor && !p.addedAt) {
+        warnings.push(`Sub-processor "${p.name}" has no "since" date, so it cannot appear in the change log.`)
+      }
+    }
+
+    // The two lists describe the same vendors from different angles and drift apart silently.
+    const known = new Set(rows.flatMap((p) => [p.name.toLowerCase(), p.legalName?.toLowerCase() ?? '']))
+    for (const t of trackers.docs) {
+      const vendor = t.vendor ? String(t.vendor) : String(t.name)
+      if (!known.has(vendor.toLowerCase()) && !known.has(String(t.name).toLowerCase())) {
+        warnings.push(`"${String(t.name)}" is declared as a tracker but is not in the processor register.`)
+      }
+    }
+  }
   const usedCategories = new Set(trackers.docs.map((t) => (typeof t.category === 'object' && t.category ? String((t.category as { id: unknown }).id) : String(t.category))))
   for (const c of categories.docs) {
     if (!c.required && !usedCategories.has(String(c.id))) warnings.push(`Category "${String(c.label)}" has no trackers.`)
@@ -112,6 +156,8 @@ export async function getConsentOverview(payload: Payload, options: ResolvedCons
     grantedLast30Days: perCategory,
     trackers: trackers.docs.length,
     trackersWithCookies: trackers.docs.filter((t) => Array.isArray(t.cookies) && t.cookies.length > 0).length,
+    processors: processorCount,
+    subprocessors: subprocessorCount,
     warnings,
   }
 }

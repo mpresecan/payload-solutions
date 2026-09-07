@@ -191,6 +191,15 @@ The policy version changed while the page was open. The response carries the cur
 **`POST /api/consent/records` returns 403.**
 The request's `Origin` is neither same-origin nor in `allowedOrigins`.
 
+**A vendor appears in the cookie policy but not in the privacy policy's recipients table.**
+Trackers and processors are separate collections on purpose. Add the vendor to Processors as well, and link the two with the `tracker` field — the dashboard warns about exactly this.
+
+**The sub-processor page is empty.**
+Rows need **Publish as a sub-processor** ticked and `status: active`. Vendors that never touch customer data — your own analytics, your source control — are deliberately excluded by default.
+
+**Adding a sub-processor re-prompted every visitor.**
+It should not: `subprocessorsVersion` is separate from `policyVersion`. If it did, check whether you also bumped a legal page's effective date in the same change.
+
 **Markdown tables render as literal `| --- |` text.**
 The content was created before table support, or by an editor that does not have the table feature. Re-seed into an empty collection, or run the markdown back through `markdownToLegalContent`. Confirm the frontend spreads `legalPageConverters`.
 

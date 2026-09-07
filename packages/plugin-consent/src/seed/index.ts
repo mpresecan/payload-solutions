@@ -2,10 +2,11 @@ import type { Payload } from 'payload'
 
 import { DEFAULT_CATEGORIES } from '@payload-solutions/consent-core'
 
-import type { AnyDoc, ResolvedConsentPluginOptions, SeedOptions, TrackerPresetOptions } from '../types.js'
-import { recomputeVersions } from '../versions.js'
+import type { AnyDoc, ProcessorPresetOptions, ResolvedConsentPluginOptions, SeedOptions, TrackerPresetOptions } from '../types.js'
+import { recomputeSubprocessorsVersion, recomputeVersions } from '../versions.js'
 import { seedLegalPages } from './legal.js'
 import { TRACKER_PRESETS, substituteVars } from './presets.js'
+import { PROCESSOR_PRESETS } from './processor-presets.js'
 
 export async function runSeeds(payload: Payload, options: ResolvedConsentPluginOptions) {
   if (options.seed === false) return
@@ -32,6 +33,14 @@ export async function runSeeds(payload: Payload, options: ResolvedConsentPluginO
     }
   }
 
+  if (options.processors && seed.processors?.length) {
+    const count = await payload.count({ collection: slugs.processors, overrideAccess: true })
+    if (count.totalDocs === 0) {
+      await seedProcessors(payload, options, seed.processors)
+      changed = true
+    }
+  }
+
   if (options.legalPages && seed.legalPages !== false && seed.company) {
     const count = await payload.count({ collection: slugs.legalPages, overrideAccess: true })
     if (count.totalDocs === 0) {
@@ -40,7 +49,57 @@ export async function runSeeds(payload: Payload, options: ResolvedConsentPluginO
     }
   }
 
-  if (changed) await recomputeVersions(payload, options)
+  if (changed) {
+    await recomputeVersions(payload, options)
+    if (options.processors) await recomputeSubprocessorsVersion(payload, options)
+  }
+}
+
+/**
+ * Creates processors from presets. Rows arrive **unverified**: the legal entity and DPA link a
+ * vendor publishes for self-serve customers is often not the one you contracted with, so an
+ * editor has to confirm each row before the documents that render it are trustworthy.
+ */
+export async function seedProcessors(
+  payload: Payload,
+  options: ResolvedConsentPluginOptions,
+  entries: NonNullable<SeedOptions['processors']>,
+  addedAt = new Date().toISOString(),
+) {
+  for (const entry of entries) {
+    const preset: ProcessorPresetOptions = typeof entry === 'string' ? { key: entry } : entry
+    const definition = PROCESSOR_PRESETS[preset.key]
+    if (!definition) {
+      payload.logger.warn(`[plugin-consent] unknown processor preset "${preset.key}"`)
+      continue
+    }
+    await payload.create({
+      collection: options.slugs.processors,
+      data: {
+        name: definition.name,
+        legalName: definition.legalName,
+        role: definition.role,
+        country: definition.country,
+        purpose: definition.purpose,
+        dataCategories: definition.dataCategories,
+        transfer: {
+          mechanism: definition.mechanism,
+          fallback: definition.mechanism === 'dpf' || definition.mechanism === 'adequacy' ? 'scc' : undefined,
+        },
+        privacyUrl: definition.privacyUrl,
+        dpaUrl: definition.dpaUrl,
+        subprocessorsUrl: definition.subprocessorsUrl,
+        subprocessor: definition.subprocessor !== false,
+        showInPrivacyPolicy: true,
+        verified: false,
+        status: 'active',
+        addedAt,
+        presetKey: definition.key,
+        ...(preset.overrides ?? {}),
+      } as never,
+      overrideAccess: true,
+    })
+  }
 }
 
 export async function seedTrackers(

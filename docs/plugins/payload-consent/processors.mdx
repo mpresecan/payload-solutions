@@ -1,0 +1,210 @@
+---
+title: Processors & DPA
+description: The recipients you disclose under Art. 13(1)(e), the transfers under Art. 13(1)(f), and the sub-processor list and DPA your own customers need under Art. 28.
+---
+
+A consent banner answers one question: may we run this script? Two others sit next to it in every privacy notice and neither is a consent question.
+
+**Who receives the data.** GDPR Art. 13(1)(e) requires you to disclose "the recipients or categories of recipients", and Art. 13(1)(f) requires each transfer outside your jurisdiction to name its safeguard. Most policies discharge this with a paragraph of categories and a placeholder nobody ever fills in.
+
+**Who you engage on your customers' behalf.** If you are B2B SaaS, your customers are controllers and you are their processor. Art. 28(2) lets you engage sub-processors only with their authorisation; in practice that means *general written authorisation* — a public sub-processor list, advance notice of changes, and a right to object. Every DPA you sign will assume the page exists.
+
+The register feeds both, plus the DPA annex, from one collection.
+
+| Output | Where it appears |
+| --- | --- |
+| Recipients table | privacy policy §4 |
+| Transfers table | privacy policy §5 |
+| Public sub-processor list + change log | `/legal/subprocessors` |
+| Annex III | the DPA |
+| `GET /api/consent/subprocessors` | for customers and trust-centre tooling |
+
+<Callout type="warn">
+This is not legal advice. The seeded DPA in particular is a contract that creates real obligations and a real liability position — have a lawyer read it before you offer it to customers.
+</Callout>
+
+## Processors are not trackers
+
+The two collections describe overlapping vendors on different axes, and confusing them is the mistake to avoid.
+
+**Cookies & scripts** is the browser: what runs on the page, what storage it sets, what the visitor may refuse. **Processors** is everyone who touches personal data at all — your host, your database, your email sender, your error tracker, your LLM provider. None of those go near the consent banner, so a tracker list is not a processor register and never will be.
+
+Some vendors are in both. PostHog is a tracker (it runs in the browser and needs consent) *and* a processor (it stores personal data for you). The `tracker` relationship on a processor links the two, and the dashboard warns when a declared tracker has no matching processor row — which is exactly how these two lists drift apart in real projects.
+
+## Roles
+
+The `role` field is the one people get wrong, and getting it wrong misstates your legal position in a published document.
+
+| Role | Means | Typical |
+| --- | --- | --- |
+| `processor` | acts only on your instructions | hosting, database, email, error tracking |
+| `sub-processor` | a processor you engage to serve your own customers | the same vendors, seen from your customer's side |
+| `independent-controller` | decides its own purposes and has its own duties | payment providers, merchants of record |
+| `joint-controller` | you decide purposes together | some ad platforms, some embedded services |
+
+Stripe is the canonical example: it is not your processor for payments. It has its own anti-fraud and anti-money-laundering obligations and acts as an independent controller, which is why the seeded row says so and why the recipients table shows the role rather than implying everything is a processor.
+
+## Transfers
+
+Each row carries a Chapter V basis:
+
+| Mechanism | When |
+| --- | --- |
+| `none` | processed inside your own jurisdiction |
+| `adequacy` | the destination has an adequacy decision |
+| `dpf` | EU–US Data Privacy Framework |
+| `scc` | Standard Contractual Clauses, with the UK Addendum where relevant |
+| `bcr` | Binding Corporate Rules |
+| `derogation` | Art. 49, which should be rare and deliberate |
+
+`adequacy` and `dpf` rows also take a **fallback**, defaulted to SCCs. That is not belt-and-braces pedantry. The EU–US Data Privacy Framework is valid law today, but the [Latombe challenge was dismissed by the General Court in September 2025 and appealed to the CJEU in October 2025](https://iapp.org/news/a/european-general-court-dismisses-latombe-challenge-upholds-eu-us-data-privacy-framework), with no hearing date, and the EDPB has flagged the depleted PCLOB as a live adequacy risk. Schrems II invalidated Privacy Shield overnight; anyone whose only stated basis was Privacy Shield had an unlawful transfer the same morning. A fallback in the published table means a struck-down adequacy decision is a documentation change, not an incident.
+
+The seeded privacy policy says this in a sentence, and the transfers table renders the fallback in its Safeguards column.
+
+## Fields
+
+| Field | Notes |
+| --- | --- |
+| **Name**, **Legal name** | The contracting entity is what belongs in a DPA annex. Left blank in presets where it genuinely depends on who you signed with. |
+| **Role** | See above. |
+| **Country** | Where processing happens. ISO code, or a region like `EEA`. |
+| **Purpose** | What they do for you, in a sentence a visitor can follow. |
+| **Data categories** | Which categories they receive. Required for the DPA annex. |
+| **International transfer** | Mechanism, fallback and free-text safeguards (EU-only region, encryption at rest…). |
+| **Privacy URL**, **DPA URL**, **Sub-processors URL** | Their policy, the contract you rely on, and their own sub-processor list. |
+| **Publish as a sub-processor** | Show on the public list and in Annex III. Off for vendors that never touch customer data — your analytics tool, your source control. |
+| **Show in privacy policy** | Show in the recipients and transfers tables. |
+| **Verified** | Someone has checked this row against the signed contract. Seeded rows arrive unverified. |
+| **Status**, **Since**, **Removed** | Drive the change log. Removed rows stay on record. |
+| **Tracker** | The browser-side script this vendor is behind, if any. |
+
+### Why "verified" exists
+
+Every preset ships with the entity and DPA link a self-serve customer normally gets. But vendors contract through regional entities — Google Ireland Limited, AWS Europe, Stripe Payments Europe — and which one applies depends on who *you* signed with. A published Annex III naming the wrong legal entity is worse than a short one.
+
+So presets seed `verified: false`, the dashboard counts them, and the intended workflow is: seed the list, then walk it once against your actual contracts and tick each row.
+
+## Versioning: not a consent event
+
+The sub-processor list has its own hash, `subprocessorsVersion`, stored under Consent settings → Processors alongside `changedAt`. It is deliberately **not** part of `policyVersion`.
+
+Mixing them would mean that swapping your transactional email provider makes every visitor answer the cookie banner again. Changing sub-processors is a notice obligation to your B2B customers, not a consent question for your visitors, and the plugin keeps the two on separate clocks.
+
+Consent settings → Processors also holds the advance notice period (30 days by default, the market norm), the address customers object to, and an optional subscribe URL. The seeded sub-processor page renders all three.
+
+## Seeding
+
+```ts
+consentPlugin({
+  seed: {
+    company: { /* … */ },
+    trackers: [{ key: 'ga4', vars: { measurementId: 'G-XXXXXXX' } }, 'stripe'],
+    processors: ['vercel', 'neon', 'resend', 'stripe', 'posthog', 'sentry', 'ga4'],
+  },
+})
+```
+
+With the register on and `seed.company` set, five documents are seeded rather than three: the privacy policy (with real recipients and transfers tables), cookie policy, terms, **Sub-processors** and a **DPA**. `seed.documents` narrows the set.
+
+### Presets
+
+Twenty-eight vendors common in a Payload application, with role, country, transfer basis, purpose, data categories and links: `vercel`, `aws`, `cloudflare`, `mongodb-atlas`, `neon`, `supabase`, `railway`, `digitalocean`, `hetzner`, `resend`, `postmark`, `sendgrid`, `stripe`, `paddle`, `sentry`, `posthog`, `posthog-eu`, `ga4`, `google-workspace`, `intercom`, `crisp`, `slack`, `openai`, `anthropic`, `uploadthing`, `cloudinary`, `better-stack`, `github`.
+
+Override any field at seed time, or add rows later:
+
+```ts
+processors: [
+  'vercel',
+  { key: 'aws', overrides: { legalName: 'AWS Europe (Luxembourg) S.à r.l.', country: 'LU', transfer: { mechanism: 'none' } } },
+]
+```
+
+```ts
+import { getPluginOptions } from '@payload-solutions/plugin-consent'
+import { seedProcessors } from '@payload-solutions/plugin-consent/server'
+
+await seedProcessors(payload, getPluginOptions(payload), ['openai'])
+```
+
+`PROCESSOR_PRESETS` exports the raw definitions.
+
+## The block
+
+**Processor table**, available in the legal-pages editor, with five modes:
+
+| Mode | Columns | Belongs in |
+| --- | --- | --- |
+| `recipients` | provider, role, purpose, data, location | privacy policy |
+| `transfers` | provider, location, transfer basis, safeguards | privacy policy |
+| `subprocessors` | provider, role, purpose, location, since, DPA | the public list |
+| `annex` | provider, legal entity, role, purpose, data, location | the DPA |
+| `changes` | date, provider, added/removed | the public list |
+
+`recipients` and `transfers` respect **Show in privacy policy**; `subprocessors` and `annex` respect **Publish as a sub-processor**. In markdown, the marker is `{{processor-table:recipients}}` and friends, which `markdownToLegalContent` converts.
+
+## Rendering
+
+Pass the register alongside the consent data:
+
+```tsx
+import { legalPageConverters } from '@payload-solutions/plugin-consent/rsc'
+import { getConsentConfig, getProcessorTableData } from '@payload-solutions/plugin-consent/server'
+
+const consent = await getConsentConfig(payload, { headers: await headers() })
+const processors = await getProcessorTableData(payload)
+
+<RichText
+  converters={({ defaultConverters }) => ({
+    ...defaultConverters,
+    ...legalPageConverters({
+      categories: consent.categories,
+      trackers: consent.trackers,
+      documentsVersion: consent.versions.documentsVersion,
+      effectiveDate: effective,
+      ...processors,
+    }),
+  })}
+  data={page.content}
+/>
+```
+
+Omit `processors` and the block renders nothing rather than throwing — so a page that does not need it costs nothing. Outside rich text, `<ProcessorTable processors={…} mode="subprocessors" />` renders the same markup, and `<ProcessorTableFromPayload payload={payload} mode="annex" />` loads its own data. Style through `[data-consent-processors="<mode>"]`.
+
+## The endpoint
+
+```
+GET /api/consent/subprocessors
+```
+
+```json
+{
+  "version": "3f9a1c7e",
+  "changedAt": "2026-02-04T09:12:00.000Z",
+  "noticeDays": 30,
+  "noticeEmail": "privacy@acme.com",
+  "processors": [{ "name": "Vercel", "role": "processor", "country": "US", "…": "…" }],
+  "changes": [{ "name": "Resend", "change": "added", "date": "2026-02-04" }]
+}
+```
+
+Public, CORS-checked against `allowedOrigins`, cached for five minutes at the browser and an hour at the edge, with an `etag` built from the version. A customer's own compliance tooling can poll it and diff on `version` rather than scraping your page. `404` when the register is disabled.
+
+## Turning it off
+
+```ts
+consentPlugin({ processors: false })
+```
+
+No collection, no endpoint, no Processors tab, and the seeded privacy policy falls back to the categories-only paragraph. Do this if you already maintain a register elsewhere — but the disclosure obligation does not go away with the collection.
+
+## What is still yours to do
+
+The register is not a compliance programme. Three things it deliberately does not do:
+
+- **Email notifications.** The change log and the endpoint are there; sending the 30-day notice is on your side, and the objection address is a settings field, not a mailbox the plugin manages.
+- **Art. 30 records of processing.** The register holds most of the input, but a RoPA is internal, covers your own activities rather than your vendors, and is never published. An export is on the roadmap.
+- **Annex II.** The technical and organisational measures in the seeded DPA are a checklist in brackets. An inaccurate Annex II is a false contractual representation — replace every line with what you actually do, or delete it.
+
+## Attribution
+
+The seeded DPA is modelled on the [Common Paper Data Processing Agreement](https://commonpaper.com/standards/data-processing-agreement/) (CC BY 4.0) and the annex structure of the EU Standard Contractual Clauses (Implementing Decision 2021/914).

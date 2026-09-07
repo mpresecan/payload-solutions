@@ -9,3 +9,11 @@ export {
 } from '../components/CookieTable.js'
 export { RichTextTable, consentTableConverters } from '../components/RichTextTable.js'
 export { CookieTableFromPayload } from '../components/CookieTableFromPayload.js'
+export {
+  DEFAULT_PROCESSOR_TABLE_LABELS,
+  ProcessorTable,
+  type ProcessorTableLabels,
+  type ProcessorTableMode,
+  type ProcessorTableProps,
+} from '../components/ProcessorTable.js'
+export { ProcessorTableFromPayload } from '../components/ProcessorTableFromPayload.js'

@@ -9,6 +9,7 @@ export type ConsentPluginSlugs = {
   trackers: CollectionSlug
   records: CollectionSlug
   legalPages: CollectionSlug
+  processors: CollectionSlug
 }
 export type ConsentPluginSlugInput = Partial<Record<keyof ConsentPluginSlugs, string>>
 
@@ -27,6 +28,44 @@ export type CompanyInfo = {
   governingLaw?: string
   dpo?: { name?: string; email: string } | false
 }
+
+/** How a recipient acts on the personal data. Getting this wrong is the classic disclosure error. */
+export type ProcessorRole = 'processor' | 'sub-processor' | 'independent-controller' | 'joint-controller'
+
+/** Chapter V basis for sending data outside the exporter's jurisdiction. */
+export type TransferMechanism = 'none' | 'adequacy' | 'dpf' | 'scc' | 'bcr' | 'derogation'
+
+export type ProcessorPresetKey =
+  | 'vercel'
+  | 'aws'
+  | 'cloudflare'
+  | 'mongodb-atlas'
+  | 'neon'
+  | 'supabase'
+  | 'railway'
+  | 'digitalocean'
+  | 'hetzner'
+  | 'resend'
+  | 'postmark'
+  | 'sendgrid'
+  | 'stripe'
+  | 'paddle'
+  | 'sentry'
+  | 'posthog'
+  | 'posthog-eu'
+  | 'ga4'
+  | 'google-workspace'
+  | 'intercom'
+  | 'crisp'
+  | 'slack'
+  | 'openai'
+  | 'anthropic'
+  | 'uploadthing'
+  | 'cloudinary'
+  | 'better-stack'
+  | 'github'
+
+export type ProcessorPresetOptions = { key: ProcessorPresetKey; overrides?: Record<string, unknown> }
 
 export type TrackerPresetKey =
   | 'posthog'
@@ -58,8 +97,10 @@ export type SeedOptions = {
   trackers?: Array<TrackerPresetKey | TrackerPresetOptions>
   /** Seed privacy, terms and cookie policy when legal pages are enabled and empty. Default true when `company` is given. */
   legalPages?: boolean
-  /** Which documents to seed. Default all three. */
-  documents?: Array<'privacy' | 'terms' | 'cookies'>
+  /** Which documents to seed. Default all five (or all three when processors are off). */
+  documents?: Array<'privacy' | 'terms' | 'cookies' | 'subprocessors' | 'dpa'>
+  /** Processors to create when the processors collection is empty. */
+  processors?: Array<ProcessorPresetKey | ProcessorPresetOptions>
 }
 
 export type ConsentPluginOptions = {
@@ -75,6 +116,12 @@ export type ConsentPluginOptions = {
   usersSlug?: string | false
   /** Enable the legal pages collection (privacy, terms, cookies…). Default true. */
   legalPages?: boolean
+  /**
+   * Enable the processor register: the recipients you disclose under GDPR Art. 13(1)(e), the
+   * transfers under Art. 13(1)(f), and the sub-processor list your own customers rely on under
+   * Art. 28(2). Default true.
+   */
+  processors?: boolean
   /** Who may manage consent settings, categories, trackers and read records. Default: any authenticated user. */
   access?: { manage?: Access }
   cookie?: { name?: string; domain?: string; sameSite?: 'lax' | 'strict' }
@@ -102,16 +149,19 @@ export type ConsentPluginOptions = {
   trackerFields?: Field[]
   /** Extra fields appended to legal pages. */
   legalPageFields?: Field[]
+  /** Extra fields appended to the processors collection. */
+  processorFields?: Field[]
 }
 
 export type ResolvedConsentPluginOptions = Required<
-  Omit<ConsentPluginOptions, 'seed' | 'trackerFields' | 'legalPageFields' | 'access'>
+  Omit<ConsentPluginOptions, 'seed' | 'trackerFields' | 'legalPageFields' | 'processorFields' | 'access'>
 > & {
   slugs: ConsentPluginSlugs
   seed: false | SeedOptions
   access: { manage: Access }
   trackerFields: Field[]
   legalPageFields: Field[]
+  processorFields: Field[]
   cookie: { name: string; domain?: string; sameSite: 'lax' | 'strict' }
   jurisdiction: Required<Omit<NonNullable<ConsentPluginOptions['jurisdiction']>, 'overrides'>> & {
     overrides: JurisdictionOverride[]
@@ -127,6 +177,7 @@ export const DEFAULT_SLUGS: ConsentPluginSlugs = {
   trackers: 'consent-trackers' as CollectionSlug,
   records: 'consent-records' as CollectionSlug,
   legalPages: 'legal-pages' as CollectionSlug,
+  processors: 'consent-processors' as CollectionSlug,
 }
 
 export function resolveOptions(options: ConsentPluginOptions = {}): ResolvedConsentPluginOptions {
@@ -138,6 +189,7 @@ export function resolveOptions(options: ConsentPluginOptions = {}): ResolvedCons
     slugs: { ...DEFAULT_SLUGS, ...(options.slugs as Partial<ConsentPluginSlugs>) },
     usersSlug: options.usersSlug === undefined ? 'users' : options.usersSlug,
     legalPages: options.legalPages ?? true,
+    processors: options.processors ?? true,
     access: { manage },
     cookie: { name: options.cookie?.name ?? 'pl-consent', domain: options.cookie?.domain, sameSite: options.cookie?.sameSite ?? 'lax' },
     jurisdiction: {
@@ -160,5 +212,6 @@ export function resolveOptions(options: ConsentPluginOptions = {}): ResolvedCons
     jobs: { purge },
     trackerFields: options.trackerFields ?? [],
     legalPageFields: options.legalPageFields ?? [],
+    processorFields: options.processorFields ?? [],
   }
 }

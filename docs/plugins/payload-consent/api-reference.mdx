@@ -28,6 +28,10 @@ Records one decision. Rate limited per IP. See [Records](/docs/plugins/payload-c
 
 The signed-in user's last 50 consent records. `401` without a session, or when `usersSlug` is `false`. `cache-control: no-store`.
 
+### `GET /api/consent/subprocessors`
+
+The published sub-processor list, its version and its change log. Public, CORS-checked, `cache-control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400`, `etag` built from the version. `404` when the register is disabled. See [Processors](/docs/plugins/payload-consent/processors#the-endpoint).
+
 ### `OPTIONS /api/consent/*`
 
 CORS preflight, `204`.
@@ -80,7 +84,35 @@ type ConsentTracker = {
 }
 ```
 
-The recording **mode** is deliberately not in the public config — clients only need to know whether to post.
+The recording **mode** is deliberately not in the public config — clients only need to know whether to post. Processors are not in it either: they are not a consent decision, and every visitor would download them for nothing. They have their own endpoint.
+
+## `ProcessorEntry`
+
+```ts
+type ProcessorEntry = {
+  id: string
+  name: string
+  legalName?: string
+  role: 'processor' | 'sub-processor' | 'independent-controller' | 'joint-controller'
+  purpose: string
+  dataCategories: string[]
+  country: string
+  transfer: {
+    mechanism: 'none' | 'adequacy' | 'dpf' | 'scc' | 'bcr' | 'derogation'
+    fallback?: 'scc' | 'bcr'
+    notes?: string
+  }
+  privacyUrl?: string
+  dpaUrl?: string
+  subprocessorsUrl?: string
+  subprocessor: boolean
+  showInPrivacyPolicy: boolean
+  verified: boolean
+  status: 'active' | 'removed'
+  addedAt?: string
+  removedAt?: string
+}
+```
 
 ## `ConsentState`
 
@@ -136,12 +168,12 @@ import { consentPlugin, getPluginOptions, DEFAULT_SLUGS, resolveOptions,
 | `getPluginOptions(payload?)` | resolved options, for helpers that only receive `payload` |
 | `resolveOptions(options)` | apply defaults without installing the plugin |
 | `DEFAULT_SLUGS` | the five default slugs |
-| `legalPagesEditor()` | the Lexical editor with tables and both blocks — reuse it in another collection |
-| `CookieTableBlock`, `PolicyVersionBlock` | the two blocks |
-| `TRACKER_PRESETS` | the raw preset definitions |
+| `legalPagesEditor()` | the Lexical editor with tables and all three blocks — reuse it in another collection |
+| `CookieTableBlock`, `ProcessorTableBlock`, `PolicyVersionBlock` | the three blocks |
+| `TRACKER_PRESETS`, `PROCESSOR_PRESETS` | the raw preset definitions |
 | `PURGE_TASK_SLUG` | `'consentPurgeRecords'` |
 
-Types: `ConsentPluginOptions`, `ResolvedConsentPluginOptions`, `ConsentPluginSlugs`, `CompanyInfo`, `SeedOptions`, `TrackerPresetKey`.
+Types: `ConsentPluginOptions`, `ResolvedConsentPluginOptions`, `ConsentPluginSlugs`, `CompanyInfo`, `SeedOptions`, `TrackerPresetKey`, `ProcessorPresetKey`, `ProcessorRole`, `TransferMechanism`.
 
 ### `/server`
 
@@ -153,6 +185,10 @@ Server-only helpers. Safe in Server Components, route handlers, scripts and test
 | `readConsent(cookies, config, gpc?)` | resolve what is granted; accepts a `Cookie` header string, Next's `cookies()`, or a `Headers` object |
 | `cookieValue(source, name)` | read one cookie from any of those shapes |
 | `getCookieTableData(payload, input?)` | just `{ categories, trackers }` |
+| `getProcessors(payload, options, input?)` | the register, sorted by name |
+| `getSubprocessors(payload, options, input?)` | the published list, its version, the notice settings and the change log |
+| `getProcessorTableData(payload, input?)` | `{ processors, processorChanges }`, ready to spread into the converters |
+| `computeSubprocessorsVersion`, `recomputeSubprocessorsVersion` | the sub-processor hash |
 | `getConsentOverview(payload, options?)` | the dashboard widget's numbers and warnings |
 | `purgeExpiredRecords(payload, options, now?)` | run the retention purge directly |
 | `computeVersions`, `recomputeVersions` | the version hashes |
@@ -160,6 +196,7 @@ Server-only helpers. Safe in Server Components, route handlers, scripts and test
 | `buildLegalDocuments(company, effectiveDate, kinds)` | the seeded markdown |
 | `markdownToLegalContent(payload, markdown)` | markdown → Lexical, with tables and the marker blocks |
 | `seedTrackers(payload, options, entries)` | create trackers from presets after first boot |
+| `seedProcessors(payload, options, entries, addedAt?)` | create processors from presets after first boot |
 | `getPluginOptions` | re-exported for convenience |
 
 ### `/rsc`
@@ -168,16 +205,19 @@ React Server Components and Lexical converters.
 
 | Export | What |
 | --- | --- |
-| `legalPageConverters(data)` | tables **and** both blocks — the one to spread in `RichText` |
-| `consentBlockConverters(data)` | the two blocks only |
+| `legalPageConverters(data)` | tables **and** all three blocks — the one to spread in `RichText` |
+| `consentBlockConverters(data)` | the three blocks only |
 | `consentTableConverters` | the semantic table converters only |
 | `RichTextTable` | the table renderer, if you want it directly |
 | `CookieTable` | the presentational cookie table |
 | `CookieTableFromPayload` | async Server Component that loads its own data |
+| `ProcessorTable` | the processor table, in any of its five modes |
+| `ProcessorTableFromPayload` | async Server Component that loads the register itself |
+| `DEFAULT_PROCESSOR_TABLE_LABELS` | its label strings |
 | `DEFAULT_COOKIE_TABLE_LABELS` | the label strings, for overriding |
 | `ConsentOverview` | the dashboard widget |
 
-`data` for the converters is `{ categories, trackers, documentsVersion?, effectiveDate?, labels? }`.
+`data` for the converters is `{ categories, trackers, documentsVersion?, effectiveDate?, labels?, processors?, processorChanges? }`. Omit `processors` and the processor block renders nothing rather than throwing.
 
 ## `@payload-solutions/consent-react`
 
@@ -245,6 +285,7 @@ Markup the plugin emits carries stable hooks, which is what end-to-end tests sho
 | `data-consent-mode` | the Consent Mode default script |
 | `data-consent-manage` | `ManageConsentButton` |
 | `data-consent-cookie-table`, `data-consent-group` | `CookieTable` |
+| `data-consent-processors="<mode>"` | `ProcessorTable` |
 | `data-consent-policy-version` | the policy version block |
 | `data-lexical-table`, `data-lexical-table-container` | rich text tables |
 

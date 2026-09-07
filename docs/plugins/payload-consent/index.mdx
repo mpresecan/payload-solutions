@@ -9,6 +9,8 @@ Payload Consent is a consent management platform that lives inside your Payload 
 - **which scripts actually load** after which decision,
 - the **"cookies we use" table** inside the cookie policy.
 
+A second register does the same for everyone who receives personal data at all — your host, your database, your email sender — and drives the recipients and transfers tables in the privacy policy, your public sub-processor list and your DPA annex.
+
 Every decision is stored as a minimal, immutable consent record, which is the audit trail hosted consent tools sell as a paid tier. Nothing is fetched from a third-party CDN at runtime, so there is no extra vendor in your privacy policy and no consent banner that blocks rendering while it phones home.
 
 <Callout type="warn">
@@ -30,6 +32,7 @@ Payload Consent removes the drift by making the tracker list the source of truth
 | `getConsentConfig(payload)` | Server Component | the same document through the local API, with no HTTP round trip |
 | `ConsentProvider` | browser | holds the store, writes the cookie, injects allowed scripts, emits Consent Mode updates |
 | `consent-banner` | your project | the banner and preferences dialog, copied in from the shadcn registry and yours to restyle |
+| `GET /api/consent/subprocessors` | your Payload API | the published sub-processor list, its version and its change log |
 | `pl-consent` cookie | browser | ~180 bytes: the decisions plus the versions they were given for |
 
 The provider is given the config **and the cookie value read on the server**, so the first client render matches the server render exactly: no banner flash, no hydration mismatch, no layout shift.
@@ -67,18 +70,20 @@ export default buildConfig({
           governingLaw: 'Ireland',
         },
         trackers: [{ key: 'ga4', vars: { measurementId: 'G-XXXXXXX' } }, 'stripe'],
+        processors: ['vercel', 'neon', 'resend', 'stripe', 'sentry', 'ga4'],
       },
     }),
   ],
 })
 ```
 
-On first boot the plugin seeds four categories, the trackers you listed, and three legal pages — privacy policy, cookie policy with a live cookie table, and terms of service. From then on everything is edited in the admin under **Privacy**.
+On first boot the plugin seeds four categories, the trackers and processors you listed, and five legal pages — privacy policy, cookie policy with a live cookie table, terms of service, a public sub-processor list and a DPA. From then on everything is edited in the admin under **Privacy**.
 
 <Cards>
   <Card title="Installation" href="/docs/plugins/payload-consent/installation" description="Install, wire the frontend, add the banner, avoid the flash." />
   <Card title="Admin guide" href="/docs/plugins/payload-consent/admin" description="What every screen and field does, written for whoever maintains the site." />
   <Card title="Cookies & scripts" href="/docs/plugins/payload-consent/trackers" description="Tracker kinds, the loader, Consent Mode v2 and the built-in presets." />
+  <Card title="Processors & DPA" href="/docs/plugins/payload-consent/processors" description="Recipients, transfers, the sub-processor list and the DPA annex." />
   <Card title="Configuration" href="/docs/plugins/payload-consent/configuration" description="Every plugin option with its default." />
 </Cards>
 
@@ -91,7 +96,8 @@ On first boot the plugin seeds four categories, the trackers you listed, and thr
 - Google Consent Mode v2 defaults emitted before any Google tag, and updates on every change.
 - Re-consent when your categories, trackers or legal documents change, driven by content hashes rather than a version number you have to remember to bump.
 - Anonymous consent records with a retention job, and per-user consent history when you want it.
-- Three seeded legal documents in Lexical, with tables, that editors can actually edit.
+- Twenty-eight processor presets with role, country and transfer basis, feeding the recipients and transfers tables, a public sub-processor page and a DPA annex.
+- Five seeded legal documents in Lexical, with tables, that editors can actually edit.
 
 ## Requirements
 

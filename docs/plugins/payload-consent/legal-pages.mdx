@@ -15,7 +15,7 @@ Turn the whole collection off with `legalPages: false` if you already have one; 
 | --- | --- |
 | **Title** | Localized. |
 | **Slug** | URL segment. The banner links to `/legal/<slug>`; render that route yourself. |
-| **Kind** | `privacy`, `terms`, `cookies`, `dpa`, `other`. Only `privacy` and `cookies` feed `documentsVersion`. |
+| **Kind** | `privacy`, `terms`, `cookies`, `subprocessors`, `dpa`, `other`. Only `privacy` and `cookies` feed `documentsVersion`. |
 | **Effective date** | Publishing a privacy or cookie policy with a new effective date is what re-prompts visitors. |
 | **Show in footer** | A convenience flag for your own footer query. |
 | **Content** | Lexical, with tables and two custom blocks. |
@@ -24,13 +24,15 @@ Read is public; create, update and delete follow `access.manage`.
 
 ## What gets seeded
 
-With `legalPages` on and `seed.company` set, three documents are created into an empty collection and published:
+With `legalPages` on and `seed.company` set, five documents are created into an empty collection and published — three, when the processor register is off:
 
 | Document | Based on |
 | --- | --- |
 | **Privacy Policy** | GDPR Article 13/14 structure: what we collect and why with a legal-basis table, retention table, recipients, transfers, your rights, contact and DPO. |
 | **Cookie Policy** | structure adapted from [General Legal](https://github.com/General-Legal/legal-templates) (CC0), with the live cookie table block in place of a hand-written list. |
 | **Terms of Service** | the [Common Paper](https://commonpaper.com) Cloud Service Agreement model (CC BY 4.0): key terms, order form terms, the usual service, payment, liability and termination clauses. |
+| **Sub-processors** | the public list your customers rely on under Art. 28(2), with the notice period, the objection route and a change log. |
+| **Data Processing Agreement** | modelled on the [Common Paper DPA](https://commonpaper.com/standards/data-processing-agreement/) (CC BY 4.0) and the EU SCC annex structure: cover page, nine clauses, Annex I, Annex II (TOMs) and Annex III generated from the register. |
 
 `seed.documents` narrows which of the three you get. `seed.locale` seeds them into one locale.
 
@@ -44,13 +46,15 @@ Legal documents are made of tables — what we collect, how long we keep it, who
 
 Rendering is handled by `legalPageConverters` (below). It replaces Lexical's built-in table converter with a semantic one: a `<thead>` and `<tbody>` split by header state, `scope`-annotated `<th>`, `colSpan`/`rowSpan`, and a horizontally scrollable wrapper so a five-column retention table cannot break a narrow layout. It sets no colours or padding of its own, so the table inherits your typography and works in dark mode. Style it through `[data-lexical-table]`; the wrapper carries `[data-lexical-table-container]`.
 
-## The two blocks
+## The three blocks
 
 **Cookie table** renders the current trackers, grouped by category or by vendor, with an optional duration column. This is the block that keeps the cookie policy honest: add a tracker in the admin and the policy gains a row, with no editing.
 
 **Policy version line** renders `Version <documentsVersion>, effective <date>` — a small thing that makes it possible to answer "which version of your policy did I agree to?".
 
-Both are exported as `CookieTableBlock` and `PolicyVersionBlock` if you want them in another collection's editor.
+**Processor table** renders the register in one of five shapes — recipients, transfers, sub-processors, Annex III or a change log. See [Processors & DPA](/docs/plugins/payload-consent/processors#the-block).
+
+All three are exported as `CookieTableBlock`, `ProcessorTableBlock` and `PolicyVersionBlock` if you want them in another collection's editor.
 
 ## Rendering a legal page
 
@@ -61,7 +65,7 @@ import { notFound } from 'next/navigation'
 import { RichText } from '@payloadcms/richtext-lexical/react'
 import config from '@payload-config'
 import { legalPageConverters } from '@payload-solutions/plugin-consent/rsc'
-import { getConsentConfig } from '@payload-solutions/plugin-consent/server'
+import { getConsentConfig, getProcessorTableData } from '@payload-solutions/plugin-consent/server'
 
 export default async function LegalPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -71,6 +75,7 @@ export default async function LegalPage({ params }: { params: Promise<{ slug: st
   if (!page) notFound()
 
   const consent = await getConsentConfig(payload, { headers: await headers() })
+  const processors = await getProcessorTableData(payload)
   const effective = new Date(page.effectiveDate).toLocaleDateString('en-GB', { dateStyle: 'long' })
 
   return (
@@ -84,6 +89,7 @@ export default async function LegalPage({ params }: { params: Promise<{ slug: st
             trackers: consent.trackers,
             documentsVersion: consent.versions.documentsVersion,
             effectiveDate: effective,
+            ...processors,
           }),
         })}
         data={page.content}
@@ -93,7 +99,7 @@ export default async function LegalPage({ params }: { params: Promise<{ slug: st
 }
 ```
 
-`legalPageConverters` is the one to spread: it covers tables and both blocks. If you already have a table converter you are happy with, spread `consentBlockConverters` instead and keep yours. `getCookieTableData(payload)` is a lighter alternative to `getConsentConfig` when all you need is the table's data.
+`legalPageConverters` is the one to spread: it covers tables and all three blocks. If you already have a table converter you are happy with, spread `consentBlockConverters` instead and keep yours. `getCookieTableData(payload)` is a lighter alternative to `getConsentConfig` when all you need is the table's data.
 
 Outside a rich text field, `<CookieTable categories={…} trackers={…} />` renders the same markup anywhere, and `<CookieTableFromPayload payload={payload} />` is an async Server Component that loads its own data.
 
@@ -125,7 +131,7 @@ const [privacy] = buildLegalDocuments(company, '2026-01-01', ['privacy'])
 const content = await markdownToLegalContent(payload, privacy.markdown)
 ```
 
-`markdownToLegalContent` runs any markdown through the legal-pages editor config — tables included — and swaps the `{{cookie-table}}` and `{{policy-version}}` marker paragraphs for the corresponding blocks. It is the supported way to import an existing policy from markdown.
+`markdownToLegalContent` runs any markdown through the legal-pages editor config — tables included — and swaps the `{{cookie-table}}` and `{{policy-version}}` marker paragraphs for the corresponding blocks. It also handles `{{processor-table:recipients}}` and its four siblings. It is the supported way to import an existing policy from markdown.
 
 ## Extra fields
 

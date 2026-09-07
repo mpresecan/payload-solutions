@@ -3,7 +3,7 @@ title: Admin guide
 description: What every screen and field under Privacy does, written for whoever maintains the site.
 ---
 
-Everything the plugin adds lives in one admin group, **Privacy** by default (`admin.group` renames it). Five entries: Consent settings, Cookie categories, Cookies & scripts, Consent records and Legal pages.
+Everything the plugin adds lives in one admin group, **Privacy** by default (`admin.group` renames it). Six entries: Consent settings, Cookie categories, Cookies & scripts, Processors, Consent records and Legal pages.
 
 ## The dashboard widget
 
@@ -12,7 +12,11 @@ Above the collection cards, Payload Consent shows the current state at a glance:
 Warnings are the useful part. The widget flags:
 
 - a tracker with no link to its vendor's privacy policy — you generally have to name the recipient of the data,
-- a category with no trackers in it — visitors are being asked to decide something that does nothing.
+- a category with no trackers in it — visitors are being asked to decide something that does nothing,
+- a processor nobody has checked against a signed contract,
+- a processor with no DPA link, when Art. 28(3) requires a written contract,
+- a sub-processor with no "since" date, so it cannot appear in the change log,
+- **a declared tracker that is missing from the processor register** — the way those two lists silently drift apart.
 
 Turn the widget off with `admin.dashboardWidget: false`.
 
@@ -62,6 +66,10 @@ At the bottom, **Privacy page** and **Cookie page** point at documents in Legal 
 
 See [Consent Mode](/docs/plugins/payload-consent/jurisdictions#google-consent-mode-v2) for what actually gets emitted.
 
+### Processors
+
+Settings for the public sub-processor list: the advance notice period (30 days by default), the address customers object to, an optional subscribe URL, and the read-only `subprocessorsVersion` and its timestamp. Present only when the register is on. See [Processors & DPA](/docs/plugins/payload-consent/processors).
+
 ### Versions
 
 Four read-only hashes and the timestamp of the last change. You never edit these; they are recomputed whenever a category, tracker or published legal document changes. They exist so a visitor's stored decision can be compared against what you are asking today.
@@ -74,6 +82,8 @@ Four read-only hashes and the timestamp of the last change. You never edit these
 | `policyVersion` | the three above, combined |
 
 Because they are content hashes, renaming a button label or fixing a typo in a cookie description does **not** re-prompt anyone. Moving a tracker to a different category does.
+
+The sub-processor list has a fifth hash of its own, on the Processors tab, and it is deliberately outside this set: changing your email provider is a notice obligation to your customers, not a reason to make every visitor answer the banner again.
 
 ## Cookie categories
 
@@ -97,6 +107,10 @@ The heart of the plugin: one document per third-party script, pixel, embed, SDK 
 
 [Cookies & scripts](/docs/plugins/payload-consent/trackers) covers the fields and the presets in full.
 
+## Processors
+
+Everyone who receives personal data on your behalf, which is a superset of the tracker list: hosting, database, email, error tracking and payments never touch the consent banner. Drives the recipients and transfers tables in the privacy policy, the public sub-processor page and the DPA annex. See [Processors & DPA](/docs/plugins/payload-consent/processors).
+
 ## Consent records
 
 Read-only proof of each decision. They are created only through the consent endpoint, cannot be edited or deleted through the admin, and are purged after the retention period.
@@ -117,7 +131,7 @@ consentPlugin({
 })
 ```
 
-That single function is applied to create, update and delete on all three editable collections, to updating the settings global, and to reading consent records. Consent records are never creatable, updatable or deletable through the API regardless.
+That single function is applied to create, update and delete on all four editable collections, to updating the settings global, and to reading consent records. Consent records are never creatable, updatable or deletable through the API regardless.
 
 <Callout type="warn">
 A tracker can carry an inline JavaScript snippet that runs on every page of your site. Whoever can edit **Cookies & scripts** can therefore run code on your frontend. Treat that permission like deploy access.

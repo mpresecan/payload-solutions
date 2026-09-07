@@ -2,6 +2,7 @@ import type { Config, Plugin } from 'payload'
 
 import { createCategoriesCollection } from './collections/categories.js'
 import { createLegalPagesCollection } from './collections/legal-pages.js'
+import { createProcessorsCollection } from './collections/processors.js'
 import { createRecordsCollection } from './collections/records.js'
 import { createTrackersCollection } from './collections/trackers.js'
 import { createEndpoints } from './endpoints.js'
@@ -10,10 +11,21 @@ import { createPurgeTask, PURGE_TASK_SLUG } from './jobs.js'
 import { runSeeds } from './seed/index.js'
 import { resolveOptions, type ConsentPluginOptions, type ResolvedConsentPluginOptions } from './types.js'
 
-export type { CompanyInfo, ConsentPluginOptions, ConsentPluginSlugs, ResolvedConsentPluginOptions, SeedOptions, TrackerPresetKey } from './types.js'
+export type {
+  CompanyInfo,
+  ConsentPluginOptions,
+  ConsentPluginSlugs,
+  ProcessorPresetKey,
+  ProcessorRole,
+  ResolvedConsentPluginOptions,
+  SeedOptions,
+  TrackerPresetKey,
+  TransferMechanism,
+} from './types.js'
 export { DEFAULT_SLUGS, resolveOptions } from './types.js'
-export { CookieTableBlock, PolicyVersionBlock } from './blocks.js'
+export { CookieTableBlock, PolicyVersionBlock, ProcessorTableBlock } from './blocks.js'
 export { TRACKER_PRESETS } from './seed/presets.js'
+export { PROCESSOR_PRESETS } from './seed/processor-presets.js'
 export { legalPagesEditor } from './collections/legal-pages.js'
 export { PURGE_TASK_SLUG }
 
@@ -45,6 +57,7 @@ export const consentPlugin =
       createTrackersCollection(options, localized),
       createRecordsCollection(options),
       ...(options.legalPages ? [createLegalPagesCollection(options, localized)] : []),
+      ...(options.processors ? [createProcessorsCollection(options, localized)] : []),
     ]
 
     const jobs = config.jobs ?? {}

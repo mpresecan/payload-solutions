@@ -18,6 +18,7 @@ export default buildConfig({
       seed: {
         company: { name: 'Acme', legalName: 'Acme Ltd', address: '1 Main St, Dublin', email: 'privacy@acme.com', url: 'https://acme.com' },
         trackers: ['posthog-eu', 'stripe'],
+        processors: ['vercel', 'neon', 'resend', 'stripe', 'posthog-eu', 'sentry'],
       },
     }),
   ],
@@ -32,10 +33,12 @@ export default buildConfig({
 | `consent-categories` | collection | the choices visitors see (`necessary`, `functional`, `analytics`, `marketing`, …) |
 | `consent-trackers` | collection | every script, pixel, embed or cookie, with its category, loader and cookie rows |
 | `consent-records` | collection | immutable proof of decisions (no IP), purged after the retention period |
-| `legal-pages` | collection (optional) | privacy, terms, cookie policy with the live **cookie table** block |
+| `consent-processors` | collection (optional) | everyone who receives personal data: recipients, transfers, sub-processors, DPA annex |
+| `legal-pages` | collection (optional) | privacy, terms, cookie policy, sub-processors, DPA — with live **cookie table** and **processor table** blocks |
 | `GET /api/consent/config` | endpoint | everything a client needs, jurisdiction resolved from CDN headers |
 | `POST /api/consent/records` | endpoint | records a decision (zod-validated, rate limited) |
 | `GET /api/consent/records/me` | endpoint | the logged-in user's consent history |
+| `GET /api/consent/subprocessors` | endpoint | the published sub-processor list, its version and change log |
 | `consentPurgeRecords` | job task | retention purge |
 | `ConsentOverview` | admin component | dashboard widget (`@payload-solutions/plugin-consent/rsc#ConsentOverview`) |
 
@@ -62,7 +65,7 @@ const cookie = (await cookies()).get(consent.cookie.name)?.value
 ```
 
 Legal pages render with the plugin's converters, which add the cookie-table and
-policy-version blocks and replace Lexical's inline-styled tables with semantic,
+policy-version and processor-table blocks and replace Lexical's inline-styled tables with semantic,
 unstyled ones (`<thead>`/`<tbody>`, `scope`d `<th>`, a scroll wrapper):
 
 ```tsx
@@ -97,7 +100,7 @@ pnpm generate:types                # after changing collections
 pnpm generate:importmap            # after adding admin components
 ```
 
-The dev app seeds four categories, PostHog / GA4 / Stripe / YouTube trackers and three legal pages on first boot. Send an `x-vercel-ip-country` header (or `?consent_jurisdiction=US` on the config endpoint) to try other jurisdictions; without a header the opt-in fallback applies. `pnpm dev` runs webpack because Turbopack does not resolve the template's `.js → .tsx` import convention across the workspace; `pnpm dev:turbo` is there if that changes.
+The dev app seeds four categories, PostHog / GA4 / Stripe / YouTube trackers, seven processors and five legal pages on first boot. Send an `x-vercel-ip-country` header (or `?consent_jurisdiction=US` on the config endpoint) to try other jurisdictions; without a header the opt-in fallback applies. `pnpm dev` runs webpack because Turbopack does not resolve the template's `.js → .tsx` import convention across the workspace; `pnpm dev:turbo` is there if that changes.
 
 ## Not legal advice
 

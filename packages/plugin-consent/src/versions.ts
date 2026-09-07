@@ -89,6 +89,77 @@ export async function recomputeVersions(
   return next
 }
 
+/**
+ * Hash of the published sub-processor list. Deliberately **not** part of `policyVersion`:
+ * swapping an email provider is a notice event for your B2B customers, not a reason to make
+ * every visitor answer the cookie banner again.
+ */
+export async function computeSubprocessorsVersion(
+  payload: Payload,
+  options: ResolvedConsentPluginOptions,
+  req?: PayloadRequest,
+): Promise<string> {
+  if (!options.processors) return shortHash([])
+  const rows = (await payload.find({
+    collection: options.slugs.processors,
+    where: { and: [{ subprocessor: { equals: true } }, { status: { equals: 'active' } }] },
+    depth: 0,
+    limit: 500,
+    pagination: false,
+    overrideAccess: true,
+    req,
+  })) as unknown as { docs: AnyDoc[] }
+  return shortHash(
+    sortBy(
+      rows.docs.map((d) => ({
+        name: String(d.name),
+        role: String(d.role),
+        country: String(d.country),
+        mechanism: String((d.transfer as { mechanism?: unknown } | undefined)?.mechanism ?? ''),
+      })),
+      (r) => r.name.toLowerCase(),
+    ),
+  )
+}
+
+/** Recomputes and stores the sub-processor version when it changed. Returns it. */
+export async function recomputeSubprocessorsVersion(
+  payload: Payload,
+  options: ResolvedConsentPluginOptions,
+  req?: PayloadRequest,
+): Promise<string> {
+  const next = await computeSubprocessorsVersion(payload, options, req)
+  const settings = (await payload.findGlobal({ slug: options.slugs.settings, depth: 0, overrideAccess: true, req })) as AnyDoc
+  const current = (settings.processors ?? {}) as { subprocessorsVersion?: string }
+  if (current.subprocessorsVersion !== next) {
+    await payload.updateGlobal({
+      slug: options.slugs.settings,
+      data: { processors: { ...current, subprocessorsVersion: next, changedAt: new Date().toISOString() } } as never,
+      overrideAccess: true,
+      req,
+      context: { [SKIP]: true },
+    })
+  }
+  invalidateConfigCache()
+  return next
+}
+
+/** afterChange/afterDelete hooks for the processors collection. */
+export function subprocessorVersionHooks(options: ResolvedConsentPluginOptions): NonNullable<CollectionConfig['hooks']> {
+  const run = async ({ req }: { req: PayloadRequest }) => {
+    if (req.context?.[SKIP]) return
+    try {
+      await recomputeSubprocessorsVersion(req.payload, options, req)
+    } catch (error) {
+      req.payload.logger.warn({ err: error }, '[plugin-consent] could not recompute the sub-processor version')
+    }
+  }
+  return {
+    afterChange: [async ({ req }) => run({ req })],
+    afterDelete: [async ({ req }) => run({ req })],
+  }
+}
+
 /** afterChange/afterDelete hooks shared by the three version-bearing collections. */
 export function versionHooks(options: ResolvedConsentPluginOptions): NonNullable<CollectionConfig['hooks']> {
   const run = async ({ req }: { req: PayloadRequest }) => {

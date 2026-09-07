@@ -73,6 +73,7 @@ export interface Config {
     'consent-trackers': ConsentTracker;
     'consent-records': ConsentRecord;
     'legal-pages': LegalPage;
+    'consent-processors': ConsentProcessor;
     'payload-kv': PayloadKv;
     users: User;
     'payload-jobs': PayloadJob;
@@ -88,6 +89,7 @@ export interface Config {
     'consent-trackers': ConsentTrackersSelect<false> | ConsentTrackersSelect<true>;
     'consent-records': ConsentRecordsSelect<false> | ConsentRecordsSelect<true>;
     'legal-pages': LegalPagesSelect<false> | LegalPagesSelect<true>;
+    'consent-processors': ConsentProcessorsSelect<false> | ConsentProcessorsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
@@ -350,7 +352,7 @@ export interface LegalPage {
    * URL segment, e.g. privacy
    */
   slug: string;
-  kind: 'privacy' | 'terms' | 'cookies' | 'dpa' | 'other';
+  kind: 'privacy' | 'terms' | 'cookies' | 'subprocessors' | 'dpa' | 'other';
   effectiveDate: string;
   showInFooter?: boolean | null;
   content: {
@@ -371,6 +373,80 @@ export interface LegalPage {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * Everyone who receives personal data on our behalf. Feeds the recipients and transfers tables in the privacy policy, the public sub-processor list and the DPA annex. Confirm each row against the contract you actually signed — vendors contract through regional entities and the right one depends on you.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-processors".
+ */
+export interface ConsentProcessor {
+  id: number;
+  name: string;
+  /**
+   * Contracting entity, e.g. Google Ireland Limited.
+   */
+  legalName?: string | null;
+  role: 'processor' | 'sub-processor' | 'independent-controller' | 'joint-controller';
+  /**
+   * Where processing happens. ISO code (US, DE) or a region (EEA).
+   */
+  country: string;
+  /**
+   * What they do for us, in a sentence a visitor can follow. This is the text a regulator reads.
+   */
+  purpose: string;
+  /**
+   * Categories of personal data they receive. Needed for the DPA annex.
+   */
+  dataCategories: (
+    'account' | 'contact' | 'billing' | 'content' | 'usage' | 'technical' | 'support' | 'marketing' | 'special'
+  )[];
+  transfer: {
+    mechanism: 'none' | 'adequacy' | 'dpf' | 'scc' | 'bcr' | 'derogation';
+    /**
+     * What you fall back on if the adequacy decision is struck down.
+     */
+    fallback?: ('scc' | 'bcr') | null;
+    /**
+     * Additional safeguards, e.g. encryption at rest, EU-only region.
+     */
+    notes?: string | null;
+  };
+  privacyUrl?: string | null;
+  dpaUrl?: string | null;
+  /**
+   * Their own sub-processor list.
+   */
+  subprocessorsUrl?: string | null;
+  /**
+   * Show on the public sub-processor page and in the DPA annex.
+   */
+  subprocessor?: boolean | null;
+  /**
+   * Show in the recipients and transfers tables.
+   */
+  showInPrivacyPolicy?: boolean | null;
+  /**
+   * Someone has checked this row against the signed contract.
+   */
+  verified?: boolean | null;
+  /**
+   * Removed rows stay on record and appear in the change log.
+   */
+  status: 'active' | 'removed';
+  /**
+   * Announced from this date.
+   */
+  addedAt?: string | null;
+  removedAt?: string | null;
+  /**
+   * The browser-side script this vendor is behind, if any.
+   */
+  tracker?: (number | null) | ConsentTracker;
+  presetKey?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -511,6 +587,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'legal-pages';
         value: number | LegalPage;
+      } | null)
+    | ({
+        relationTo: 'consent-processors';
+        value: number | ConsentProcessor;
       } | null)
     | ({
         relationTo: 'users';
@@ -679,6 +759,38 @@ export interface LegalPagesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-processors_select".
+ */
+export interface ConsentProcessorsSelect<T extends boolean = true> {
+  name?: T;
+  legalName?: T;
+  role?: T;
+  country?: T;
+  purpose?: T;
+  dataCategories?: T;
+  transfer?:
+    | T
+    | {
+        mechanism?: T;
+        fallback?: T;
+        notes?: T;
+      };
+  privacyUrl?: T;
+  dpaUrl?: T;
+  subprocessorsUrl?: T;
+  subprocessor?: T;
+  showInPrivacyPolicy?: T;
+  verified?: T;
+  status?: T;
+  addedAt?: T;
+  removedAt?: T;
+  tracker?: T;
+  presetKey?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -840,6 +952,25 @@ export interface ConsentSetting {
     waitForUpdateMs?: number | null;
   };
   /**
+   * Settings for the public sub-processor list. Changing your sub-processors is a notice obligation to your own customers, not a consent event — it never re-prompts visitors.
+   */
+  processors?: {
+    /**
+     * How long before a new sub-processor starts. 30 is the market norm.
+     */
+    noticeDays?: number | null;
+    /**
+     * Where customers object to a new sub-processor.
+     */
+    noticeEmail?: string | null;
+    /**
+     * Where customers subscribe to changes, if you offer that.
+     */
+    subscribeUrl?: string | null;
+    subprocessorsVersion?: string | null;
+    changedAt?: string | null;
+  };
+  /**
    * Maintained automatically. A change here re-prompts visitors according to "Ask again when these change".
    */
   versions?: {
@@ -910,6 +1041,15 @@ export interface ConsentSettingsSelect<T extends boolean = true> {
         urlPassthrough?: T;
         waitForUpdateMs?: T;
       };
+  processors?:
+    | T
+    | {
+        noticeDays?: T;
+        noticeEmail?: T;
+        subscribeUrl?: T;
+        subprocessorsVersion?: T;
+        changedAt?: T;
+      };
   versions?:
     | T
     | {
@@ -954,6 +1094,20 @@ export interface ConsentCookieTableBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'cookieTable';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ConsentProcessorTableBlock".
+ */
+export interface ConsentProcessorTableBlock {
+  mode: 'recipients' | 'transfers' | 'subprocessors' | 'annex' | 'changes';
+  /**
+   * Show whether each recipient is a processor or an independent controller.
+   */
+  showRole?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'processorTable';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

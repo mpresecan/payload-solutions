@@ -39,8 +39,12 @@ afterAll(() => rmSync(root, { recursive: true, force: true }))
 function plain(text: string): string {
   return text
     .replace(/\u001b\[[0-9;?]*[A-Za-z]/g, '')
-    .replace(/[│┌┐└┘├┤─┬┴┼◆◇▲■□●○◐◑◒◓◔◕◻◼⚠✔✘✓]/g, ' ')
-    .replace(/^\s*[|+o]\s?/gm, ' ')
+    .replace(/[│┌┐└┘├┤─┬┴┼╭╮╰╯◆◇▲■□●○◐◑◒◓◔◕◻◼⚠✔✘✓]/g, ' ')
+    .replace(/^\s*[|+]\s?/gm, ' ')
+    // clack's ASCII step symbol (`◇` on a TTY) sits at column 0 followed by two spaces. Anchor it
+    // there: a loose `o` in the class above ate the `o` of `open http://localhost:3000/admin`,
+    // whose bar had already become a space.
+    .replace(/^o {2}/gm, ' ')
     .replace(/\s[|+]\s*$/gm, ' ')
     .replace(/-{3,}/g, ' ')
     .replace(/\s+/g, ' ')

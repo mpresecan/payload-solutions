@@ -13,6 +13,57 @@ export const MODEL_OPTIONS = [
   { label: 'None (no banner, everything on)', value: 'none' },
 ]
 
+/** The sub-processor notice settings tab, added only when the processor register is on. */
+const processorsTab: NonNullable<GlobalConfig['fields'][number] & { type: 'tabs' }>['tabs'][number] = {
+  label: 'Processors',
+  fields: [
+    {
+      name: 'processors',
+      type: 'group',
+      label: false,
+      admin: {
+        description:
+          'Settings for the public sub-processor list. Changing your sub-processors is a notice obligation to your own customers, not a consent event — it never re-prompts visitors.',
+      },
+      fields: [
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'noticeDays',
+              label: 'Advance notice (days)',
+              type: 'number',
+              min: 0,
+              max: 180,
+              defaultValue: 30,
+              admin: { width: '30%', description: 'How long before a new sub-processor starts. 30 is the market norm.' },
+            },
+            {
+              name: 'noticeEmail',
+              label: 'Objection contact',
+              type: 'text',
+              admin: { width: '35%', description: 'Where customers object to a new sub-processor.' },
+            },
+            {
+              name: 'subscribeUrl',
+              label: 'Change notifications URL',
+              type: 'text',
+              admin: { width: '35%', description: 'Where customers subscribe to changes, if you offer that.' },
+            },
+          ],
+        },
+        {
+          type: 'row',
+          fields: [
+            { name: 'subprocessorsVersion', type: 'text', admin: { readOnly: true, width: '50%' } },
+            { name: 'changedAt', type: 'date', admin: { readOnly: true, width: '50%' } },
+          ],
+        },
+      ],
+    },
+  ],
+}
+
 export function createSettingsGlobal(options: ResolvedConsentPluginOptions, localized: boolean): GlobalConfig {
   const { slugs, access, admin } = options
   return {
@@ -233,6 +284,7 @@ export function createSettingsGlobal(options: ResolvedConsentPluginOptions, loca
               },
             ],
           },
+          ...(options.processors ? [processorsTab] : []),
           {
             label: 'Versions',
             fields: [

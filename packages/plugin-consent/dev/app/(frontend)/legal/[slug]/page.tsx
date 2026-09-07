@@ -1,7 +1,7 @@
 import config from '@payload-config'
 import { RichText } from '@payloadcms/richtext-lexical/react'
 import { legalPageConverters } from '@payload-solutions/plugin-consent/rsc'
-import { getConsentConfig } from '@payload-solutions/plugin-consent/server'
+import { getConsentConfig, getProcessorTableData } from '@payload-solutions/plugin-consent/server'
 import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
@@ -20,6 +20,7 @@ export default async function LegalPage({ params }: { params: Promise<{ slug: st
     notFound()
   }
   const consent = await getConsentConfig(payload, { headers: await headers() })
+  const processors = await getProcessorTableData(payload)
   const effective = new Date(page.effectiveDate).toLocaleDateString('en-GB', { dateStyle: 'long' })
 
   return (
@@ -34,6 +35,7 @@ export default async function LegalPage({ params }: { params: Promise<{ slug: st
             trackers: consent.trackers,
             documentsVersion: consent.versions.documentsVersion,
             effectiveDate: effective,
+            ...processors,
           }),
         })}
         data={page.content}

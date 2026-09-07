@@ -2,6 +2,7 @@ import { headersWithCors, type Endpoint, type PayloadRequest } from 'payload'
 import { z } from 'zod'
 
 import { getConsentConfig } from './config.js'
+import { getSubprocessors } from './processors.js'
 import { allowRequest, clientIp } from './rate-limit.js'
 import type { AnyDoc, ResolvedConsentPluginOptions } from './types.js'
 
@@ -159,13 +160,29 @@ export function createEndpoints(options: ResolvedConsentPluginOptions): Endpoint
     },
   }
 
+  const subprocessorsEndpoint: Endpoint = {
+    path: `${base}/subprocessors`,
+    method: 'get',
+    handler: async (req) => {
+      if (!corsAllowed(req, options)) return json(req, { error: 'origin not allowed' }, { status: 403 })
+      if (!options.processors) return json(req, { error: 'processor register disabled' }, { status: 404 })
+      const list = await getSubprocessors(req.payload, options, { locale: req.locale ?? undefined, req })
+      return json(req, list, {
+        headers: {
+          'cache-control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+          etag: `"${list.version}:${req.locale ?? 'en'}"`,
+        },
+      })
+    },
+  }
+
   const preflight: Endpoint = {
     path: `${base}/:any`,
     method: 'options',
     handler: (req) => new Response(null, { status: 204, headers: headersWithCors({ headers: new Headers(), req }) }),
   }
 
-  return [configEndpoint, recordsEndpoint, meEndpoint, preflight]
+  return [configEndpoint, recordsEndpoint, meEndpoint, ...(options.processors ? [subprocessorsEndpoint] : []), preflight]
 }
 
 async function readBody(req: PayloadRequest): Promise<unknown | null> {

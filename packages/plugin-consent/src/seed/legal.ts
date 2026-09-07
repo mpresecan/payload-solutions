@@ -6,18 +6,25 @@ import { legalPagesEditor } from '../collections/legal-pages.js'
 import type { CompanyInfo, ResolvedConsentPluginOptions, SeedOptions } from '../types.js'
 import { cookiePolicyMarkdown } from './templates/cookies.js'
 import { privacyPolicyMarkdown } from './templates/privacy.js'
+import { dpaMarkdown } from './templates/dpa.js'
+import { subprocessorsMarkdown } from './templates/subprocessors.js'
 import { termsOfServiceMarkdown } from './templates/terms.js'
 
 export const COOKIE_TABLE_MARKER = '{{cookie-table}}'
 export const POLICY_VERSION_MARKER = '{{policy-version}}'
+/** `{{processor-table:recipients|transfers|subprocessors|annex|changes}}` */
+export const PROCESSOR_TABLE_MARKER = /^\{\{processor-table:(recipients|transfers|subprocessors|annex|changes)\}\}$/
 
-type Doc = { kind: 'privacy' | 'terms' | 'cookies'; slug: string; title: string; markdown: string }
+type DocKind = 'privacy' | 'terms' | 'cookies' | 'subprocessors' | 'dpa'
+type Doc = { kind: DocKind; slug: string; title: string; markdown: string }
 
-export function buildLegalDocuments(company: CompanyInfo, effectiveDate: string, which: Array<Doc['kind']>): Doc[] {
+export function buildLegalDocuments(company: CompanyInfo, effectiveDate: string, which: DocKind[]): Doc[] {
   const docs: Doc[] = [
     { kind: 'privacy', slug: 'privacy', title: 'Privacy Policy', markdown: privacyPolicyMarkdown(company, effectiveDate) },
     { kind: 'terms', slug: 'terms', title: 'Terms of Service', markdown: termsOfServiceMarkdown(company, effectiveDate) },
     { kind: 'cookies', slug: 'cookies', title: 'Cookie Policy', markdown: cookiePolicyMarkdown(company, effectiveDate) },
+    { kind: 'subprocessors', slug: 'subprocessors', title: 'Sub-processors', markdown: subprocessorsMarkdown(company, effectiveDate) },
+    { kind: 'dpa', slug: 'dpa', title: 'Data Processing Agreement', markdown: dpaMarkdown(company, effectiveDate) },
   ]
   return docs.filter((d) => which.includes(d.kind))
 }
@@ -32,6 +39,8 @@ export async function markdownToLegalContent(payload: Payload, markdown: string)
     const text = paragraphText(node)
     if (text === COOKIE_TABLE_MARKER) return lexicalBlockNode('cookieTable', { groupBy: 'category', showDurations: true })
     if (text === POLICY_VERSION_MARKER) return lexicalBlockNode('policyVersion', { prefix: 'Version' })
+    const processor = text ? PROCESSOR_TABLE_MARKER.exec(text) : null
+    if (processor) return lexicalBlockNode('processorTable', { mode: processor[1], showRole: true })
     return node
   })
   return state
@@ -51,7 +60,10 @@ export async function seedLegalPages(
   seed: SeedOptions & { company: CompanyInfo },
 ) {
   const effectiveDate = new Date().toISOString().slice(0, 10)
-  const docs = buildLegalDocuments(seed.company, effectiveDate, seed.documents ?? ['privacy', 'terms', 'cookies'])
+  const defaults: DocKind[] = options.processors
+    ? ['privacy', 'terms', 'cookies', 'subprocessors', 'dpa']
+    : ['privacy', 'terms', 'cookies']
+  const docs = buildLegalDocuments(seed.company, effectiveDate, seed.documents ?? defaults)
   const created: Array<{ kind: string; id: string | number }> = []
   for (const doc of docs) {
     const content = await markdownToLegalContent(payload, doc.markdown)

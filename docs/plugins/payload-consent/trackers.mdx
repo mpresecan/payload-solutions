@@ -138,6 +138,12 @@ Nothing about the presets is privileged — a hand-made tracker document behaves
 - **List the storage, not just the cookies.** `localStorage` and `indexedDB` are covered by the same ePrivacy rule as cookies. The `storage` field exists for exactly this.
 - **Use `cookie-only` for your own cookies.** Session, CSRF and consent cookies belong in the cookie policy too, and the seeded cookie policy's table will list them.
 
+## Trackers are not the processor register
+
+A tracker is a browser concern: what runs on the page and what the visitor may refuse. Your host, database, email sender and error tracker never touch the banner, so they are not here — they belong in [Processors](/docs/plugins/payload-consent/processors), which is what the privacy policy's recipients table and your sub-processor list are built from.
+
+Vendors that are both — PostHog, Intercom, GA4 — get a row in each, linked by the `tracker` relationship on the processor. The dashboard warns when a declared tracker has no matching processor row, which is how the two lists drift apart in practice.
+
 ## Extra fields
 
 Multi-tenant setups usually need a relationship on the tracker:

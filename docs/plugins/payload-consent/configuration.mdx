@@ -12,16 +12,18 @@ consentPlugin({
   slugs: { settings, categories, trackers, records, legalPages },
   usersSlug: 'users',
   legalPages: true,
+  processors: true,
   access: { manage: ({ req }) => Boolean(req.user) },
   cookie: { name: 'pl-consent', domain: undefined, sameSite: 'lax' },
   jurisdiction: { headers, regionHeaders, overrides: [], fallback: 'opt-in', trustProxy: true },
   recording: { mode: 'anonymous', retentionMonths: 36, rateLimitPerMinute: 20, implicit: false, userAgent: false },
   allowedOrigins: [],
-  seed: { company, locale, categories: true, trackers: [], legalPages: true, documents },
+  seed: { company, locale, categories: true, trackers: [], processors: [], legalPages: true, documents },
   admin: { group: 'Privacy', dashboardWidget: true },
   jobs: { purge: {} },
   trackerFields: [],
   legalPageFields: [],
+  processorFields: [],
 })
 ```
 
@@ -32,6 +34,7 @@ consentPlugin({
 | `enabled` | `true` | `false` registers nothing at all — no collections, no endpoints. For feature flags and for test configs that should not carry the plugin. Not the same as the **Enabled** switch in Consent settings, which keeps the data and only silences the banner. |
 | `basePath` | `'/consent'` | Endpoint prefix under `/api`. Changing it changes `recording.endpoint` in the config, so clients follow automatically. |
 | `legalPages` | `true` | `false` drops the legal-pages collection and turns the banner's page relationships into plain URL fields. |
+| `processors` | `true` | The processor register. `false` drops the collection, the `/subprocessors` endpoint and the Processors settings tab, and the seeded privacy policy falls back to a categories-only paragraph. |
 | `usersSlug` | `'users'` | Auth collection used for `linked` records and for `records/me`. `false` disables user linking entirely and removes the relationship field. |
 | `allowedOrigins` | `[]` | Extra origins allowed to read the config endpoint and post records. Same-origin is always allowed. Needed for a frontend on a different domain from Payload. |
 
@@ -44,6 +47,7 @@ slugs: {
   trackers: 'consent-trackers',
   records: 'consent-records',
   legalPages: 'legal-pages',
+  processors: 'consent-processors',
 }
 ```
 
@@ -59,9 +63,9 @@ Slugs are baked into the database. Renaming one after data exists means migratin
 access: { manage: ({ req }) => req.user?.role === 'admin' }
 ```
 
-One Payload `Access` function, applied to create/update/delete on categories, trackers and legal pages, to updating the settings global, and to reading consent records. Default: any authenticated user.
+One Payload `Access` function, applied to create/update/delete on categories, trackers, processors and legal pages, to updating the settings global, and to reading consent records. Default: any authenticated user.
 
-Read access on categories, trackers, settings and legal pages is public and not configurable — the banner needs it from an unauthenticated browser. Consent records are never publicly readable, and are never creatable, updatable or deletable through the API by anyone.
+Read access on categories, trackers, processors, settings and legal pages is public and not configurable — the banner needs it from an unauthenticated browser. Consent records are never publicly readable, and are never creatable, updatable or deletable through the API by anyone.
 
 ## `cookie`
 
@@ -104,8 +108,9 @@ Runs on `onInit`, only into empty collections, and never overwrites anything. `s
 | `company` | — | Required for legal pages. `name`, `legalName`, `address`, `email`, and optionally `url`, `jurisdictions`, `governingLaw`, `dpo`. |
 | `categories` | `true` | Seed the four default categories. |
 | `trackers` | `[]` | Preset keys or `{ key, vars, enabled }`. See [the preset table](/docs/plugins/payload-consent/trackers#presets). |
+| `processors` | `[]` | Preset keys or `{ key, overrides }`. See [Processors](/docs/plugins/payload-consent/processors#presets). Rows are seeded unverified. |
 | `legalPages` | `true` | Seed the three documents. Requires `company` and `legalPages: true`. |
-| `documents` | all three | Narrow to `['privacy', 'cookies']` if you have your own terms. |
+| `documents` | all five | `privacy`, `terms`, `cookies`, `subprocessors`, `dpa` — the last two only when the register is on. Narrow to `['privacy', 'cookies']` if you have your own terms. |
 | `locale` | — | Which locale to seed into, on a localized config. |
 
 ```ts
@@ -141,7 +146,7 @@ seed: {
 | `{ purge: { cron: '0 3 * * *', queue: 'default' } }` | Also appends an `autoRun` entry so Payload runs it. |
 | `{ purge: false }` | Registers no task. |
 
-## `trackerFields` / `legalPageFields`
+## `trackerFields` / `legalPageFields` / `processorFields`
 
 Payload `Field[]` appended to those collections. Used mostly for multi-tenancy:
 
@@ -153,7 +158,7 @@ Extra fields are stored and editable but do not reach the client config. Filter 
 
 ## Localization
 
-No option — the plugin detects `config.localization` and localizes the visitor-facing fields: category labels and descriptions, tracker names, purposes and cookie descriptions, banner copy, and legal page titles and content. Stable identifiers (keys, slugs, URLs, cookie names) stay shared.
+No option — the plugin detects `config.localization` and localizes the visitor-facing fields: category labels and descriptions, tracker names, purposes and cookie descriptions, banner copy, processor purposes, and legal page titles and content. Stable identifiers (keys, slugs, URLs, cookie names) stay shared.
 
 `getConsentConfig(payload, { locale })` returns the config in that locale; the endpoint uses `req.locale`. Version hashes are locale-independent, so translating never re-prompts anyone.
 

@@ -69,6 +69,7 @@ export default buildConfig({
           'stripe',
           'youtube',
         ],
+        processors: ['vercel', 'neon', 'resend', 'stripe', 'posthog', 'sentry', 'ga4'],
       },
       jobs: { purge: { cron: '0 3 * * *' } },
     }),
