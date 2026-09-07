@@ -1,0 +1,123 @@
+---
+title: Records & retention
+description: What a consent record contains, what it deliberately does not, how decisions are posted, and how they are purged.
+---
+
+Under GDPR you have to be able to demonstrate consent (Article 7(1)). That means keeping something, which sits awkwardly against data minimisation: the proof must not itself become a tracking database. Payload Consent's answer is a record with a random id, no IP address and no user agent by default, plus the version hashes that say *what* was consented to.
+
+## Modes
+
+Set in Consent settings → General → Recording, with the plugin option as its default.
+
+| Mode | What is stored |
+| --- | --- |
+| `none` | nothing; the endpoint returns 204 and the cookie still works |
+| `anonymous` (default) | a record with a random consent id, unlinked to any user |
+| `linked` | the same record, plus a relationship to the logged-in user when there is one |
+
+`linked` is what powers a "your privacy choices" history screen in an account area. It also makes the record personal data, so it belongs in your own privacy policy's retention table.
+
+## What a record contains
+
+| Field | Example | Why |
+| --- | --- | --- |
+| `consentId` | `6b1f7e0e-…` | random UUID generated in the browser, also stored in the cookie — this is what ties a record to a later withdrawal |
+| `user` | relationship | only in `linked` mode, only when signed in |
+| `decisions` | `{ "analytics": true, "marketing": false }` | non-required categories only |
+| `grantedCategories` | `["analytics"]` | indexed, for counting |
+| `source` | `banner` | `banner`, `preferences`, `api`, `gpc`, `withdraw`, `implicit` |
+| `country`, `model` | `DE`, `opt-in` | which legal regime applied |
+| `locale` | `en` | which translation was shown |
+| `versions` | four hashes | which categories, trackers and documents the visitor was shown |
+| `userAgentFamily` | `Chrome` | **off by default**; the family only, never the full string |
+| `expiresAt` | date | when this consent lapses under the current validity period |
+
+And what is deliberately absent: **no IP address**, no full user agent, no fingerprint, no referrer, no page URL. The country is a two-letter code derived from a header your CDN already computed; it is never the address itself.
+
+Records are immutable by construction. The collection's access rules deny create, update and delete outright — the endpoint writes with `overrideAccess`, and nothing else can.
+
+## Posting a decision
+
+The browser store posts automatically after every committed decision. The contract:
+
+```
+POST /api/consent/records
+content-type: application/json
+
+{
+  "consentId": "6b1f7e0e-9a1c-4a4a-9c1e-2f9f0f7a1b2c",
+  "decisions": { "analytics": true, "marketing": false },
+  "versions": { "policyVersion": "…", "categoriesVersion": "…", "trackersVersion": "…", "documentsVersion": "…" },
+  "source": "banner",
+  "locale": "en"
+}
+```
+
+| Status | Meaning |
+| --- | --- |
+| `201` | recorded; body is `{ "id": … }` |
+| `204` | recording is off, or an `implicit` decision arrived with `recording.implicit` off |
+| `400` | body failed validation |
+| `409` | the policy version changed between load and submit; body carries the current versions |
+| `429` | rate limited; `retry-after: 60` |
+
+The body is validated with zod and capped at 4 KB and 50 categories. Category keys that are not in the current config are dropped rather than rejected, so a stale tab cannot invent categories. Rate limiting is per client IP, 20 requests per minute by default, and `jurisdiction.trustProxy` controls whether `x-forwarded-for` is believed.
+
+A `409` is the correct outcome when someone had the page open while you changed a policy: the store's next load sees a version mismatch and re-prompts.
+
+### Implicit decisions
+
+Under `opt-out` and `notice` models the visitor is granted things without acting. Recording those is off by default (`recording.implicit: false`) because it produces a record per visitor rather than per decision. Turn it on if your counsel wants the non-decision logged too.
+
+## User consent history
+
+```
+GET /api/consent/records/me
+```
+
+Returns the last 50 records for the signed-in user — id, consent id, decisions, source, timestamps and versions — or `401` when there is no session. Only useful in `linked` mode.
+
+```tsx
+const res = await fetch('/api/consent/records/me', { credentials: 'same-origin' })
+const { docs } = await res.json()
+```
+
+## Retention
+
+The plugin registers a Payload job task, `consentPurgeRecords`, which deletes records older than the retention period (36 months by default, editable in Consent settings without a deploy).
+
+Schedule it with Payload's own cron:
+
+```ts
+consentPlugin({
+  jobs: { purge: { cron: '0 3 * * *' } },
+})
+```
+
+That appends an entry to `jobs.autoRun` alongside anything you already have. On serverless, where `autoRun` is unreliable, drop the cron and trigger the task from your own scheduler — or call the function directly:
+
+```ts
+import { purgeExpiredRecords, getPluginOptions } from '@payload-solutions/plugin-consent/server'
+
+const { deleted, cutoff } = await purgeExpiredRecords(payload, getPluginOptions(payload))
+```
+
+`jobs: { purge: false }` registers no task at all.
+
+## Answering a data subject request
+
+A record is only reachable three ways, which is the point:
+
+- **By user**, in `linked` mode — a relationship query, or `GET /api/consent/records/me`.
+- **By consent id**, if the person can produce it. It is in their `pl-consent` cookie, and a good preferences dialog shows it.
+- **Not at all**, otherwise. An anonymous record has nothing to match a person against, which is what makes it defensible to keep for three years.
+
+For an erasure request in `linked` mode, delete through the local API with `overrideAccess: true`; the collection's public delete access is `false` by design.
+
+## Turning recording off
+
+```ts
+consentPlugin({ recording: { mode: 'none' } })
+```
+
+Everything else keeps working: the cookie is still written, scripts are still gated, Consent Mode still fires. You simply have no server-side proof — acceptable for an internal tool, less so for a public site under GDPR.

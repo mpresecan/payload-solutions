@@ -31,4 +31,4 @@ This project was scaffolded with `npx create-payload-stack`. It is a SaaS on Pay
 - Mutations are server actions next to their page (`actions.ts`), validated with zod.
 - Secrets live in `.env` and are read only via `src/lib/env.ts`. Never import `env` from client components.
 - After changing collections: `pnpm generate:types`. After changing admin components or plugins: `pnpm generate:importmap`.
-- Tests: `pnpm test:int` (Vitest, needs DATABASE_URL), `pnpm test:e2e` (Playwright against `pnpm dev`).
+- Tests: `pnpm test:unit` (Vitest, no database; every `stack.config.ts` option through `tests/helpers/stack-fixtures.ts` presets and `loadWithStack()`), `pnpm test:int` (Vitest against a real PostgreSQL: auth, organizations, tenant isolation), `pnpm test:e2e` (Playwright journeys against a dev server it starts on `E2E_PORT` with its own database, see `test.env`; `tests/e2e/global-setup.ts` creates the site admin). When a feature flag, plan, route or email changes, extend the matching spec and preset rather than deleting assertions. Guide: https://payload.solutions/docs/payload-stack/testing

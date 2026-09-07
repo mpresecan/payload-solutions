@@ -61,7 +61,19 @@ export function AcceptInvitation({ className }: AcceptInvitationProps) {
 
   const { mutate: acceptInvitation, isPending: isAccepting } =
     useAcceptInvitation(organizationAuthClient, {
-      onSuccess: returnToApplication
+      onSuccess: async (data) => {
+        // Better Auth activates the accepted organization in the database but does not refresh
+        // the session cookie cache, so server components would keep seeing no active
+        // organization for up to `session.cookieCache.maxAge`. Setting it explicitly rewrites the
+        // cookie (see tests/e2e/auth.e2e.spec.ts).
+        const organizationId =
+          (data as { member?: { organizationId?: string } } | null)?.member
+            ?.organizationId ?? invitation?.organizationId
+        if (organizationId) {
+          await organizationAuthClient.organization.setActive({ organizationId })
+        }
+        returnToApplication()
+      }
     })
   const { mutate: rejectInvitation, isPending: isRejecting } =
     useRejectInvitation(organizationAuthClient, {

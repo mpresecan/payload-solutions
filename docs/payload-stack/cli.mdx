@@ -16,6 +16,7 @@ npx create-payload-stack@latest [name] [options]
 | `--social <list>` | Comma-separated: `google`, `github` | prompt |
 | `--organizations` / `--no-organizations` | Enable teams | prompt (on) |
 | `--billing <mode>` | `organization`, `user`, `none` | prompt |
+| `--storage <adapter>` | `none`, `vercel-blob`, `s3`, `r2`, `azure`, `gcs`, `uploadthing` | prompt (none = local disk) |
 | `--use-pnpm`, `--use-npm`, `--use-yarn`, `--use-bun` | Package manager | detected |
 | `--no-install` | Skip dependency installation | install |
 | `--no-git` | Skip `git init` | init |
@@ -32,14 +33,15 @@ npx create-payload-stack@latest ridgeline \
   --auth email-password,magic-link,passkey \
   --social github \
   --billing organization \
+  --storage vercel-blob \
   -y
 ```
 
 ## What the CLI writes
 
 - `src/stack.config.ts` from your answers.
-- `src/payload.config.ts` with the chosen database adapter (between the `database-adapter` markers).
-- `package.json` with the matching `@payloadcms/db-*` dependency and your project name.
+- `src/payload.config.ts` with the chosen database adapter (between the `database-adapter` markers) and the chosen [storage adapter](/docs/payload-stack/storage) (between the `storage-adapter` markers; local disk when skipped).
+- `package.json` with the matching `@payloadcms/db-*` and `@payloadcms/storage-*` dependencies and your project name.
 - `.env` from `.env.example`, with `DATABASE_URL`, a generated `PAYLOAD_SECRET` and `BETTER_AUTH_SECRET`, and `NEXT_PUBLIC_APP_URL`.
 
 The template itself is downloaded from the `templates/payload-stack` directory of the [payload-solutions repository](https://github.com/mpresecan/payload-solutions), exactly like `create-payload-app` downloads Payload's templates.

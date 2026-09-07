@@ -38,6 +38,28 @@ const schema = z.object({
   APPLE_CLIENT_SECRET: optionalString,
   DISCORD_CLIENT_ID: optionalString,
   DISCORD_CLIENT_SECRET: optionalString,
+
+  // Media storage. Only the adapter wired into payload.config.ts reads its variables; without them
+  // uploads stay on local disk (./media).
+  BLOB_READ_WRITE_TOKEN: optionalString,
+  S3_BUCKET: optionalString,
+  S3_REGION: optionalString,
+  S3_ACCESS_KEY_ID: optionalString,
+  S3_SECRET_ACCESS_KEY: optionalString,
+  S3_ENDPOINT: optionalString,
+  R2_BUCKET: optionalString,
+  R2_ENDPOINT: optionalString,
+  R2_ACCESS_KEY_ID: optionalString,
+  R2_SECRET_ACCESS_KEY: optionalString,
+  R2_PUBLIC_URL: optionalString,
+  AZURE_STORAGE_CONNECTION_STRING: optionalString,
+  AZURE_STORAGE_CONTAINER_NAME: optionalString,
+  AZURE_STORAGE_ACCOUNT_BASEURL: optionalString,
+  AZURE_STORAGE_ALLOW_CONTAINER_CREATE: optionalString,
+  GCS_BUCKET: optionalString,
+  GCS_PROJECT_ID: optionalString,
+  GCS_SERVICE_ACCOUNT_KEY: optionalString,
+  UPLOADTHING_TOKEN: optionalString,
 })
 
 function load() {
@@ -60,3 +82,10 @@ export function requireEnv<K extends keyof Env>(key: K, why: string): NonNullabl
   }
   return value as NonNullable<Env[K]>
 }
+
+/**
+ * Stripe billing is only wired up when both keys are present. stack.config.ts may enable billing
+ * without them (builds, previews, a fresh clone): the plugin is then skipped on the server and the
+ * client, and the billing pages explain what is missing instead of rendering the checkout UI.
+ */
+export const billingReady = Boolean(env.STRIPE_SECRET_KEY && env.STRIPE_WEBHOOK_SECRET)

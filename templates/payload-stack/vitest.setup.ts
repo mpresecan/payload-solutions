@@ -1,4 +1,7 @@
-// Any setup scripts you might need go here
+/**
+ * Setup for the `int` Vitest project (see vitest.config.mts). The environment rules, including how
+ * CI overrides them, live in tests/helpers/test-env.ts.
+ */
+import { loadTestEnv } from './tests/helpers/test-env'
 
-// Load .env files
-import 'dotenv/config'
+loadTestEnv('int')

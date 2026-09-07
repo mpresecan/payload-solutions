@@ -1,0 +1,128 @@
+---
+title: Jurisdictions & Consent Mode
+description: The four consent models, how a visitor's model is resolved, Global Privacy Control, and Google Consent Mode v2.
+---
+
+Consent law is not one rule. The EEA requires opt-in for anything non-essential; most US state laws require an opt-out and honour a browser signal; some jurisdictions want a notice and nothing more. Showing every visitor the strictest banner is legal but costs you data; showing everyone the loosest one is not legal. Payload Consent resolves a **model** per request and behaves accordingly.
+
+## The four models
+
+| Model | Before the visitor chooses | Banner | Typical for |
+| --- | --- | --- | --- |
+| `opt-in` | non-required categories **off** | Accept all / Reject all / Customize, equally prominent | EEA, UK, Switzerland, Brazil, Canada, and anywhere unknown |
+| `opt-out` | on, except categories switched off by GPC | notice with Customize | United States |
+| `notice` | on | dismissable notice | jurisdictions with disclosure-only rules |
+| `none` | on | nothing at all | internal tools, jurisdictions you have decided need no banner |
+
+Under `opt-in` the banner enforces that refusing is as easy as accepting, regardless of the **Show "Reject all"** setting. That is EDPB Guidelines 05/2020, and it is the single most common reason a banner fails an audit.
+
+## How the model is resolved
+
+1. An explicit `model` passed to `getConsentConfig` wins — used for previews and tests.
+2. Otherwise a **country** is determined: from Consent settings → Resolution, which is either the CDN header, one fixed region, or nothing.
+3. The country (and US state, when known) is looked up in the override table, most specific first.
+4. If nothing matches, the fallback model applies.
+
+### Country headers
+
+With `header` resolution the plugin reads the first of these that is present:
+
+```
+cf-ipcountry, x-vercel-ip-country, x-country, cloudfront-viewer-country
+```
+
+and for the US state:
+
+```
+x-vercel-ip-country-region, cloudfront-viewer-country-region
+```
+
+Both lists are configurable through `jurisdiction.headers` and `jurisdiction.regionHeaders`. Cloudflare, Vercel and CloudFront set these for you; behind another proxy you may need to add your own header name.
+
+`XX` and `T1` (Cloudflare's codes for unknown and Tor) are treated as unknown and fall through to the fallback.
+
+### Override precedence
+
+Most specific wins:
+
+```
+US-CA  →  US  →  EEA  →  fallback
+```
+
+The built-in table is:
+
+| Region | Model |
+| --- | --- |
+| `EEA` (all 30 EEA countries) | opt-in |
+| `GB`, `CH`, `BR`, `CA` | opt-in |
+| `US` | opt-out |
+
+Your overrides — first from the `jurisdiction.overrides` plugin option, then from Consent settings → Jurisdictions — are appended on top, and later entries win. So an editor can add `US-CA → opt-in` without a deploy, and `EEA → opt-out` is possible if you ever needed it (you do not).
+
+`EEA` is a pseudo-region: any of the 30 EEA countries matches it unless a more specific row exists for that country.
+
+<Callout>
+The country is used to pick a legal model, nothing else. It is not stored in the cookie, and in a consent record it is kept as a two-letter code alongside the decision — which is what makes the record useful as proof, and still not personal data on its own.
+</Callout>
+
+## Global Privacy Control
+
+GPC is a browser-level "do not sell or share" signal, legally binding in California and several other US states. The plugin honours it in both places it can be seen:
+
+- **Client**: `navigator.globalPrivacyControl`, read by the store.
+- **Server**: the `sec-gpc: 1` header, via `gpcFromHeaders(await headers())`, so the very first server render already reflects it.
+
+When GPC is present and the model is **not** `opt-in`, every category with **Respect GPC** on is forced off — before the visitor sees anything, and regardless of what a previous cookie said. Under `opt-in` nothing is granted by default anyway, so GPC changes nothing there.
+
+A decision that came from GPC is recorded with `source: 'gpc'`, which is exactly the evidence a regulator asks for.
+
+## Google Consent Mode v2
+
+Consent Mode is Google's protocol for running its tags with storage denied. It is orthogonal to the model: it does not decide *whether* the visitor consented, it communicates the answer to Google's tags.
+
+The seven signals and their default mapping:
+
+| Signal | Granted by |
+| --- | --- |
+| `security_storage` | `necessary` (always granted) |
+| `functionality_storage`, `personalization_storage` | `functional` |
+| `analytics_storage` | `analytics` |
+| `ad_storage`, `ad_user_data`, `ad_personalization` | `marketing` |
+
+`<ConsentModeScript>` renders an inline script in `<head>` that calls `gtag('consent', 'default', …)` with the state computed from the cookie that is already in the request, plus `wait_for_update` (500 ms by default), `ads_data_redaction` and optionally `url_passthrough`. Every later change emits `gtag('consent', 'update', …)`.
+
+Turn it on for a tracker by ticking **Consent Mode managed** on its loader. Consent settings → Google Consent Mode has a global `auto` / `on` / `off` switch; `auto` means "on when at least one tracker is Consent-Mode managed".
+
+<Callout type="warn">
+Order matters. The Consent Mode script must be in `<head>` before any Google tag. If Google's tag runs first, it fires one page view under its own defaults before yours arrive.
+</Callout>
+
+## Testing other jurisdictions
+
+In development the config endpoint accepts a query override:
+
+```
+GET /api/consent/config?consent_jurisdiction=US
+```
+
+It is ignored when `NODE_ENV === 'production'`.
+
+Everywhere else, send the header — which is also what end-to-end tests should do, because it exercises the real path:
+
+```ts
+test.use({ extraHTTPHeaders: { 'x-vercel-ip-country': 'DE' } })
+```
+
+To simulate GPC, send `sec-gpc: 1`, or set `navigator.globalPrivacyControl` before the store is created. `createConsentStore({ config, gpc: true })` forces it directly in unit tests.
+
+## Caching
+
+The config endpoint sets `cache-control: public, max-age=60, s-maxage=300, stale-while-revalidate=86400`, an `etag` built from the policy version, the locale and the resolved model, and:
+
+```
+vary: Accept-Language, Origin, cf-ipcountry, x-vercel-ip-country
+```
+
+The `vary` header is what keeps a German visitor from being served a US-cached response. If your CDN normalises or drops country headers, either add your header name to the `vary` list at the edge or switch Resolution to `manual`.
+
+Server-rendered pages that call `getConsentConfig(payload, { headers })` are per-request by definition, and Next will treat the route as dynamic because you read `headers()`. The plugin's own 30-second in-process cache sits underneath and is invalidated the moment an editor saves.

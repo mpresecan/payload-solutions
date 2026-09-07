@@ -4,7 +4,7 @@ import { GeistSans } from 'geist/font/sans'
 import type { ReactNode } from 'react'
 
 import { Providers } from '@/components/providers'
-import { env } from '@/lib/env'
+import { billingReady } from '@/lib/env'
 import stack from '@/stack.config'
 import './globals.css'
 
@@ -43,7 +43,7 @@ export default function FrontendLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
       <body className="min-h-dvh font-sans">
-        <Providers billingReady={Boolean(env.STRIPE_SECRET_KEY && env.STRIPE_WEBHOOK_SECRET)}>{children}</Providers>
+        <Providers billingReady={billingReady}>{children}</Providers>
       </body>
     </html>
   )

@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { paths } from '@/lib/paths'
 import { formatPrice, type StackPlan } from '@/lib/stack'
 import { cn } from '@/lib/utils'
+import stack from '@/stack.config'
 
 /**
  * Pricing table driven by stack.config.ts. Checkout itself happens in the dashboard (billing
@@ -18,6 +19,7 @@ import { cn } from '@/lib/utils'
 export function PricingTable({ plans, signedIn }: { plans: StackPlan[]; signedIn: boolean }) {
   const hasYearly = plans.some((p) => p.prices.some((price) => price.interval === 'year'))
   const [interval, setInterval] = useState<'month' | 'year'>('month')
+  const billingPath = stack.features.billingAttachedTo === 'organization' ? paths.dashboard.organizationBilling : paths.dashboard.billing
 
   return (
     <div className="space-y-8">
@@ -35,7 +37,7 @@ export function PricingTable({ plans, signedIn }: { plans: StackPlan[]; signedIn
       <div className={cn('grid gap-6', plans.length > 1 ? 'md:grid-cols-2' : 'max-w-md mx-auto', plans.length > 2 ? 'lg:grid-cols-3' : '')}>
         {plans.map((plan) => {
           const price = plan.prices.find((p) => p.interval === interval) ?? plan.prices[0]!
-          const target = signedIn ? paths.dashboard.billing : `${paths.auth.signUp}?redirectTo=${encodeURIComponent(paths.dashboard.billing)}`
+          const target = signedIn ? billingPath : `${paths.auth.signUp}?redirectTo=${encodeURIComponent(billingPath)}`
           return (
             <Card key={plan.id} className={cn('flex flex-col', plan.highlighted && 'border-primary shadow-md')}>
               <CardHeader>

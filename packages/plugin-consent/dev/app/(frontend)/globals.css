@@ -1,0 +1,158 @@
+:root {
+  color-scheme: light dark;
+  --bg: #fafafa;
+  --fg: #111;
+  --muted: #666;
+  --line: #ddd;
+  --accent: #c2410c;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111;
+    --fg: #eee;
+    --muted: #999;
+    --line: #333;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.5;
+}
+a {
+  color: inherit;
+}
+.site-header,
+.site-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--line);
+}
+.site-footer {
+  border-bottom: 0;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.site-header nav {
+  display: flex;
+  gap: 1rem;
+}
+.site-main {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 6rem;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.875rem;
+}
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--line);
+}
+thead th {
+  border-bottom: 2px solid var(--line);
+  font-weight: 600;
+}
+/* Rich-text tables: the plugin ships a scroll wrapper and no colours, so they
+   inherit the rules above. */
+[data-lexical-table-container] {
+  margin: 1.5rem 0;
+}
+[data-lexical-table] p {
+  margin: 0;
+}
+[data-lexical-table] th,
+[data-lexical-table] td {
+  min-width: 8rem;
+}
+button {
+  font: inherit;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--fg);
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+}
+button.primary {
+  background: var(--fg);
+  color: var(--bg);
+}
+button.link {
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  color: var(--muted);
+}
+.consent-banner {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 -8px 24px rgb(0 0 0 / 0.08);
+}
+.consent-banner p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  max-width: 40rem;
+}
+.consent-banner .actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+dialog.consent-preferences {
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--fg);
+  max-width: 32rem;
+  width: calc(100% - 2rem);
+  padding: 1.5rem;
+}
+dialog.consent-preferences::backdrop {
+  background: rgb(0 0 0 / 0.4);
+}
+.category {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--line);
+}
+.category small {
+  color: var(--muted);
+  grid-column: 1 / -1;
+}
+.gate {
+  border: 1px dashed var(--line);
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--muted);
+}
+.state {
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+  background: rgb(127 127 127 / 0.1);
+  padding: 1rem;
+  overflow-x: auto;
+}

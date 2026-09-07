@@ -1,0 +1,210 @@
+---
+title: Recipes & troubleshooting
+description: Common tasks, from building your own banner to gating server-side analytics, and the handful of things that usually go wrong.
+---
+
+## Build your own banner
+
+Everything the registry component does is available from `useConsent()`. A working banner is about forty lines:
+
+```tsx title="components/consent-banner.tsx"
+'use client'
+import { useConsent, useCategory } from '@payload-solutions/consent-react'
+
+function Row({ categoryKey }: { categoryKey: string }) {
+  const { category, draft, required, toggle } = useCategory(categoryKey)
+  if (!category) return null
+  return (
+    <label>
+      <input type="checkbox" checked={draft} disabled={required} onChange={(e) => toggle(e.target.checked)} />
+      <strong>{category.label}</strong>
+      <small>{category.description}</small>
+    </label>
+  )
+}
+
+export function ConsentBanner() {
+  const { ready, state, config, acceptAll, rejectAll, save, open, close } = useConsent()
+  if (!ready || !state || !config || state.ui === 'closed') return null
+
+  const optIn = state.model === 'opt-in'
+  const labels = config.banner.labels
+
+  if (state.ui === 'preferences') {
+    return (
+      <dialog open>
+        {config.categories.map((c) => <Row key={c.key} categoryKey={c.key} />)}
+        <button onClick={save}>{labels.save}</button>
+        <button onClick={close}>{labels.close}</button>
+      </dialog>
+    )
+  }
+
+  return (
+    <div role="dialog" aria-label={config.banner.title}>
+      <h2>{config.banner.title}</h2>
+      <p>{config.banner.description}</p>
+      {state.repromptReason === 'documents' && <p>Our privacy documents have been updated.</p>}
+      <button onClick={() => open('preferences')}>{labels.customize}</button>
+      {(optIn || config.banner.showRejectAll) && <button onClick={rejectAll}>{labels.rejectAll}</button>}
+      <button onClick={acceptAll}>{labels.acceptAll}</button>
+    </div>
+  )
+}
+```
+
+Three rules the store cannot enforce for you:
+
+- Under `opt-in`, **Reject all** must be as visually prominent as **Accept all** — same size, same weight, same level of contrast. A grey text link next to a solid button is the classic finding in an enforcement decision.
+- The banner must not block the page in a way that makes refusing harder than accepting.
+- `state.needsReload` means scripts that already ran can no longer be stopped. Say so, and offer a reload.
+
+## Gate an embed
+
+```tsx
+<ConsentGate
+  category="functional"
+  fallback={
+    <div className="placeholder">
+      <p>This video needs functional cookies.</p>
+      <button onClick={() => open('preferences')}>Allow and play</button>
+    </div>
+  }
+>
+  <iframe src="https://www.youtube-nocookie.com/embed/xyz" />
+</ConsentGate>
+```
+
+`ConsentGate` renders children while the store is not ready, so server-rendered content is not hidden and then revealed. If you would rather render the fallback first, check `ready` yourself.
+
+## Initialise an SDK
+
+```tsx
+'use client'
+import { useEffect } from 'react'
+import posthog from 'posthog-js'
+import { useHasConsent } from '@payload-solutions/consent-react'
+
+export function PostHogInit() {
+  const allowed = useHasConsent('analytics')
+  useEffect(() => {
+    posthog.init('phc_…', { api_host: 'https://eu.i.posthog.com', persistence: allowed ? 'localStorage+cookie' : 'memory' })
+    if (allowed) posthog.opt_in_capturing()
+    else posthog.opt_out_capturing()
+  }, [allowed])
+  return null
+}
+```
+
+Declare it as an `sdk` tracker so it still appears in the banner and the cookie policy.
+
+## Gate server-side analytics
+
+```ts
+import { cookies, headers } from 'next/headers'
+import { readConsent, gpcFromHeaders } from '@payload-solutions/consent-react/next'
+
+export async function trackServerSide(event: string, config: ConsentConfig) {
+  const consent = readConsent(await cookies(), config, gpcFromHeaders(await headers()))
+  if (!consent.has('analytics')) return
+  await fetch('https://eu.i.posthog.com/capture/', { /* … */ })
+}
+```
+
+Server-side capture is not a loophole. If the visitor refused analytics, the fact that the request came from your server rather than their browser changes nothing about the legal basis.
+
+## A frontend on a different domain
+
+```ts
+consentPlugin({ allowedOrigins: ['https://www.example.com'] })
+```
+
+Then let the provider fetch the config, with credentials so the record endpoint can see the session:
+
+```tsx
+<ConsentProvider configUrl="https://cms.example.com/api/consent/config">
+```
+
+The cookie is written by the browser on the frontend's own domain, so set `cookie.domain` only if the frontend spans subdomains.
+
+## Add a category
+
+Create it in **Cookie categories** with a stable key, pick its Consent Mode signals, then reassign trackers to it. `categoriesVersion` changes, which re-prompts visitors by default — that is correct behaviour, since you are asking a question they have not answered.
+
+To add a category *without* re-prompting, remove `categories` from **Ask again when these change** first. Existing visitors then get your model's default for the new category until they next open preferences. Only do that when the new category is a rename or a split of one they already answered.
+
+## Per-tenant trackers
+
+```ts
+consentPlugin({
+  trackerFields: [{ name: 'tenant', type: 'relationship', relationTo: 'organizations', index: true }],
+  access: { manage: ({ req }) => Boolean(req.user) },
+})
+```
+
+The plugin's config builder does not know about your tenant field, so build the per-tenant config yourself: call `getCookieTableData` / `getConsentConfig` and filter `trackers` by tenant before passing it to the provider. Categories and banner copy are usually shared.
+
+## Test it
+
+Unit tests need no Payload at all:
+
+```ts
+import { createConsentStore, createTestConfig, memoryStorage } from '@payload-solutions/consent-core'
+
+const config = createTestConfig({ jurisdiction: { country: 'DE', model: 'opt-in' } })
+const store = createConsentStore({ config, storage: memoryStorage(), record: () => {} })
+
+expect(store.has('analytics')).toBe(false)
+store.acceptAll()
+expect(store.has('analytics')).toBe(true)
+```
+
+End-to-end, drive the jurisdiction with a header and assert on the data attributes:
+
+```ts
+test.use({ extraHTTPHeaders: { 'x-vercel-ip-country': 'DE' } })
+
+await expect(page.locator('[data-consent-banner]')).toBeVisible()
+await expect(page.locator('script[data-consent-tracker]')).toHaveCount(1) // Consent-Mode-managed only
+await page.getByRole('button', { name: 'Accept all' }).click()
+```
+
+---
+
+## Troubleshooting
+
+**The banner flashes on every page load.**
+The provider is not getting `initialCookie`. Read the cookie on the server and pass it — see [Installation](/docs/plugins/payload-consent/installation#wire-the-frontend-nextjs-app-router). Without it the store starts from "no decision" and corrects itself after hydration.
+
+**The banner never appears.**
+Check, in order: **Enabled** in Consent settings; the resolved model (`none` shows nothing); whether a valid `pl-consent` cookie is already there; and whether `ConsentProvider` actually received a config — it renders children unwrapped when `config.enabled` is false or the config failed to load.
+
+**A tracker is not being loaded.**
+Only `script` and `pixel` kinds are injected by the loader, and only with a `src` or inline code. Check that it is **Enabled**, that the current environment is in **Environments**, and that its category is granted. `document.querySelectorAll('script[data-consent-tracker]')` shows what did get injected.
+
+**Turning a category off does not stop the script.**
+It cannot. A script that already executed owns the page. The store sets `needsReload` and your banner should offer a reload.
+
+**`POST /api/consent/records` returns 409.**
+The policy version changed while the page was open. The response carries the current versions; the next page load will re-prompt. Nothing to fix.
+
+**`POST /api/consent/records` returns 403.**
+The request's `Origin` is neither same-origin nor in `allowedOrigins`.
+
+**Markdown tables render as literal `| --- |` text.**
+The content was created before table support, or by an editor that does not have the table feature. Re-seed into an empty collection, or run the markdown back through `markdownToLegalContent`. Confirm the frontend spreads `legalPageConverters`.
+
+**The admin errors on a legal page after upgrading.**
+Run `pnpm payload generate:importmap`. The table feature's client component has to be in the import map.
+
+**Jurisdiction is always the fallback.**
+Your host is not setting a country header, or your CDN strips it. Check what actually arrives, add the header name to `jurisdiction.headers`, or switch Resolution to `manual`.
+
+**A German visitor gets a US response.**
+A cache in front of Payload is ignoring the `vary` header. Add the country header to the cache key at the edge.
+
+**Consent Mode fires after Google's tag.**
+`<ConsentModeScript>` must be inside `<head>` and before the tag. In the App Router that means the root layout's `<head>`, not a component rendered inside `<body>`.
+
+**Dev server cannot resolve `./types.js` and friends.**
+Turbopack does not follow the plugin template's `.js` → `.tsx` import convention across a workspace. Run the dev app with `next dev dev --webpack`, which honours `resolve.extensionAlias`.

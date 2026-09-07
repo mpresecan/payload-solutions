@@ -14,6 +14,10 @@ const STEPS: Array<{ title: string; body: string }> = [
     body: 'Turn organizations and Stripe on or off. Every screen, plugin and collection follows the flags in stack.config.ts.',
   },
   {
+    title: 'Pick where uploads live',
+    body: 'Skip for local disk, or Vercel Blob, S3, Cloudflare R2, Azure, Google Cloud Storage or Uploadthing, wired into payload.config.ts and switched on by environment variables.',
+  },
+  {
     title: 'Sign in at /admin',
     body: 'The first visit creates your admin account. From there, everything is a normal Payload project.',
   },
@@ -41,6 +45,8 @@ const TRANSCRIPT = [
   { t: 'ui', v: '│' },
   { t: 'q', k: '◇  Billing', v: '│  Stripe subscriptions, per organization' },
   { t: 'ui', v: '│' },
+  { t: 'q', k: '◇  Media storage', v: '│  Vercel Blob' },
+  { t: 'ui', v: '│' },
   { t: 'q', k: '◇  Installed dependencies with pnpm', v: null },
   { t: 'ui', v: '│' },
   { t: 'ui', v: '└  Done. Next steps:' },
@@ -64,7 +70,7 @@ export function OneCommand() {
               id="how-heading"
               className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl lg:text-5xl"
             >
-              From zero to a running product in six prompts.
+              From zero to a running product in seven prompts.
             </h2>
           </Reveal>
           <ol className="mt-10 space-y-6">

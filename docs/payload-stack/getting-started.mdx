@@ -15,7 +15,7 @@ description: From an empty directory to a signed-in dashboard.
 npx create-payload-stack@latest
 ```
 
-The CLI asks six questions:
+The CLI asks seven questions:
 
 1. **Project name**, also the directory it creates.
 2. **Database**: PostgreSQL, MongoDB, SQLite or Vercel Postgres. The matching Payload adapter is written into `payload.config.ts` and `package.json`.
@@ -23,6 +23,7 @@ The CLI asks six questions:
 4. **Sign-in methods**: email + password, magic link, passkeys, Google, GitHub.
 5. **Organizations**: whether users work in teams.
 6. **Billing**: Stripe subscriptions per organization, per user, or none for now.
+7. **Media storage**: skip for now (local disk), or Vercel Blob, AWS S3, Cloudflare R2, Azure Blob Storage, Google Cloud Storage or Uploadthing. The adapter is written into `payload.config.ts` and switches on when its environment variables are set.
 
 It then installs dependencies and initializes a git repository. Every answer can be passed as a flag; see the [CLI reference](/docs/payload-stack/cli).
 
@@ -55,4 +56,5 @@ Without `RESEND_API_KEY`, Payload logs every email (magic links, verification, i
 
 - [Configuration](/docs/payload-stack/configuration): rename the product, pick auth methods, define plans.
 - [Billing](/docs/payload-stack/billing): connect Stripe.
+- [Media storage](/docs/payload-stack/storage): move uploads off local disk before deploying.
 - [Deployment](/docs/payload-stack/deployment): migrations and environment variables.

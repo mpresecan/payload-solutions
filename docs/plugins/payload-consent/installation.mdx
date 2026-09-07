@@ -1,0 +1,204 @@
+---
+title: Installation
+description: Install the plugin, wire the frontend, add the banner, and get consent right on the first render.
+---
+
+## Install
+
+```bash
+pnpm add @payload-solutions/plugin-consent @payload-solutions/consent-react
+```
+
+`@payload-solutions/consent-core` comes along as a dependency. Payload 3.79+ and React 18 or 19 are peer dependencies you already have.
+
+## Add the plugin
+
+```ts title="payload.config.ts"
+import { consentPlugin } from '@payload-solutions/plugin-consent'
+
+export default buildConfig({
+  // …
+  plugins: [
+    consentPlugin({
+      seed: {
+        company: {
+          name: 'Acme',
+          legalName: 'Acme Ltd',
+          address: '1 Main Street, Dublin, Ireland',
+          email: 'privacy@acme.com',
+          url: 'https://acme.com',
+          governingLaw: 'Ireland',
+        },
+        trackers: [{ key: 'ga4', vars: { measurementId: 'G-XXXXXXX' } }, 'youtube', 'stripe'],
+      },
+    }),
+  ],
+})
+```
+
+Every option has a default; `seed` is the only one most projects set. See [Configuration](/docs/plugins/payload-consent/configuration) for the full list.
+
+Then regenerate the two files Payload derives from your config:
+
+```bash
+pnpm payload generate:types
+pnpm payload generate:importmap
+```
+
+`generate:importmap` matters: legal pages use a Lexical editor with tables and two custom blocks, and the admin needs their client components in the map.
+
+## First boot
+
+Start the app. On `onInit` the plugin seeds, once, and only into empty collections:
+
+1. the four default categories,
+2. the trackers you listed, from the built-in presets,
+3. privacy policy, cookie policy and terms of service, if `legalPages` is on and `seed.company` is set.
+
+It then computes the initial policy versions. Seeding never touches a collection that already has documents, so it is safe on every boot and it will not fight your editors.
+
+<Callout>
+Presets that need a value — a GA4 measurement id, a PostHog project key — are created with the `{{placeholder}}` still in place and a warning in the log. Fill them in under **Cookies & scripts** before going live, or pass them as `vars` at seed time.
+</Callout>
+
+You now have, under **Privacy** in the admin: Consent settings, Cookie categories, Cookies & scripts, Consent records and Legal pages. The dashboard shows a Payload Consent widget with your versions, decision counts and a list of things that look wrong.
+
+## Add the banner
+
+The banner is not shipped as a component you import; it is copied into your project so you can restyle it without fighting the plugin.
+
+```bash
+npx shadcn@latest add https://payload.solutions/r/consent-banner.json
+```
+
+That writes `components/consent/consent-banner.tsx` (banner + preferences dialog) and `components/consent/consent-settings-link.tsx`. Both are ordinary client components built on `useConsent()`; edit them freely. If you would rather write your own, [Recipes](/docs/plugins/payload-consent/recipes#build-your-own-banner) has a 40-line version.
+
+## Wire the frontend (Next.js App Router)
+
+```tsx title="app/layout.tsx"
+import { cookies, headers } from 'next/headers'
+import { getPayload } from 'payload'
+import config from '@payload-config'
+import { getConsentConfig } from '@payload-solutions/plugin-consent/server'
+import { ConsentModeScript, ConsentProvider } from '@payload-solutions/consent-react'
+import { consentCookieValue, gpcFromHeaders } from '@payload-solutions/consent-react/next'
+import { ConsentBanner } from '@/components/consent/consent-banner'
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const payload = await getPayload({ config })
+  const requestHeaders = await headers()
+  const consent = await getConsentConfig(payload, { headers: requestHeaders })
+  const cookie = consentCookieValue(await cookies(), consent.cookie.name)
+
+  return (
+    <html lang="en">
+      <head>
+        <ConsentModeScript config={consent} cookie={cookie} gpc={gpcFromHeaders(requestHeaders)} />
+      </head>
+      <body>
+        <ConsentProvider config={consent} initialCookie={cookie}>
+          {children}
+          <ConsentBanner />
+        </ConsentProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+Four things are happening, and each one matters:
+
+**`getConsentConfig(payload, { headers })`** builds the config through the local API — no HTTP request to your own server. The headers are what let it resolve the visitor's jurisdiction from the CDN country header. The result is cached in-process for 30 seconds per locale, and invalidated immediately when an editor saves.
+
+**`consentCookieValue(await cookies(), …)`** reads the decision the browser already made. Passing it to the provider as `initialCookie` is what makes the first client render identical to the server render: no flash of a banner that should not be there, no hydration warning.
+
+**`<ConsentModeScript>`** emits the inline `gtag('consent', 'default', …)` call computed from that same cookie. It must be in `<head>` and it must come before any Google tag; otherwise Google's tags run one page view before your defaults arrive. It renders nothing when Consent Mode is off.
+
+**`<ConsentProvider>`** creates the store, injects the scripts whose categories are granted, and emits `gtag('consent', 'update', …)` on every change. Outside a provider — or when consent is switched off globally — `useConsent()` degrades to `ready: false` and no-op actions, so pages that use it still render.
+
+### Add the footer link
+
+Withdrawing consent has to be as easy as giving it, which in practice means a permanent link:
+
+```tsx title="app/components/footer.tsx"
+import { ConsentSettingsLink } from '@/components/consent/consent-settings-link'
+
+<footer>
+  <a href="/legal/privacy">Privacy</a>
+  <a href="/legal/cookies">Cookies</a>
+  <ConsentSettingsLink />
+</footer>
+```
+
+The registry component wraps `ManageConsentButton` from `@payload-solutions/consent-react`, which reopens the preferences dialog.
+
+## Read consent on the server
+
+Anywhere you have the request cookies:
+
+```ts
+import { cookies, headers } from 'next/headers'
+import { readConsent, gpcFromHeaders } from '@payload-solutions/consent-react/next'
+
+const consent = readConsent(await cookies(), config, gpcFromHeaders(await headers()))
+if (consent.has('analytics')) {
+  // server-side capture, personalised content, whatever the category covers
+}
+```
+
+`readConsent` runs the same pure resolver the browser store uses, so the server and the client never disagree about what is granted. The plugin's `/server` export has an identical `readConsent` that also accepts a raw `Cookie` header string or a `Headers` object, for non-Next runtimes.
+
+## Content Security Policy
+
+Pass a nonce and it is applied to every script the plugin injects, including the Consent Mode script:
+
+```tsx
+<ConsentModeScript config={consent} cookie={cookie} nonce={nonce} />
+<ConsentProvider config={consent} initialCookie={cookie} nonce={nonce}>
+```
+
+Trackers with an inline snippet execute on your site. Admin write access to **Cookies & scripts** is therefore a trust boundary equivalent to deploy access — restrict it with the `access.manage` option if your editors and your developers are not the same people.
+
+## React without Next.js
+
+Let the provider fetch its own config:
+
+```tsx
+<ConsentProvider configUrl="/api/consent/config">
+  <App />
+  <ConsentBanner />
+</ConsentProvider>
+```
+
+There is no server render to match, so the banner appears once the fetch resolves. If the frontend is on a different origin from Payload, list it in `allowedOrigins` so the config and records endpoints accept it, and make sure your fetch sends credentials.
+
+## No React at all
+
+`@payload-solutions/consent-core` is framework-agnostic and has no dependencies:
+
+```ts
+import { createConsentStore } from '@payload-solutions/consent-core'
+
+const config = await fetch('/api/consent/config').then((r) => r.json())
+const store = createConsentStore({ config })
+
+store.subscribe((state) => renderBanner(state))
+store.has('analytics') // boolean
+store.acceptAll()
+```
+
+`attachLoader(store, config.trackers)` gives you the same script injection the React provider does. The store's `subscribe` is compatible with `useSyncExternalStore`, and everything else is plain functions.
+
+## Verify it works
+
+1. Open the site in a private window with a `cf-ipcountry: DE` header (or `?consent_jurisdiction=DE` on the config endpoint in development). The banner should appear with **Accept all** and **Reject all** equally prominent.
+2. Check `document.cookie` — nothing but your session cookie until a choice is made.
+3. Accept, reload. The banner should not come back, and `pl-consent` should be there.
+4. Open **Consent records** in the admin. There should be one record, with a random consent id and no IP address.
+5. Change a legal page's effective date and publish. Reload the site: the banner returns, with the previous choices pre-selected.
+
+## Next
+
+- [Admin guide](/docs/plugins/payload-consent/admin) — what every field does.
+- [Cookies & scripts](/docs/plugins/payload-consent/trackers) — declaring trackers so they are actually gated.
+- [Jurisdictions](/docs/plugins/payload-consent/jurisdictions) — testing other countries and models.

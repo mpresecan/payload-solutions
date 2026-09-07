@@ -61,11 +61,21 @@ export function OrganizationProfile({
         toast.success(organizationLocalization.organizationUpdatedSuccess)
     })
 
+  // Default values follow the loaded organization. TanStack Form re-applies `defaultValues` on
+  // every render while the form is untouched, so values set only through `form.reset()` in an
+  // effect would be cleared by the next render (see tests/e2e/organization.e2e.spec.ts).
   const form = useAuthForm({
     defaultValues: {
-      additionalFields: getAdditionalFieldDefaultValues(additionalFields),
-      name: "",
-      slug: ""
+      additionalFields: getAdditionalFieldDefaultValues(
+        activeOrganization
+          ? fieldsWithModelValues(
+              additionalFields,
+              activeOrganization as Record<string, unknown>
+            )
+          : additionalFields
+      ),
+      name: activeOrganization?.name ?? "",
+      slug: activeOrganization?.slug ?? ""
     },
     onSubmit: async ({ value }) => {
       if (!activeOrganization || !canUpdate.data?.success) return

@@ -1,0 +1,117 @@
+---
+title: Testing
+description: Unit, integration and end-to-end suites that cover every stack.config.ts option, and how to extend them.
+---
+
+Payload Stack ships with three suites in `tests/`, plus a suite for the CLI in the monorepo. Together they are meant to answer one question after any change: does every option in `src/stack.config.ts` still produce a working product?
+
+| Suite | Command | Needs | Covers |
+| --- | --- | --- | --- |
+| Unit | `pnpm test:unit` | nothing | `defineStack` schema and defaults, plans, `env.ts`, navigation and route tables, Better Auth options and plugins, providers, emails, seeding, tenancy helpers, server actions, `payload.config.ts` assembly, marketing pages and client components — each under every configuration |
+| Integration | `pnpm test:int` | PostgreSQL (`DATABASE_URL`) | Real Payload + Better Auth: sign-up/in/out, verification, password reset, magic links, two-factor, passkeys, API keys, sessions, organizations, invitations, roles, membership sync into `users.tenants[]`, tenant isolation, access control, media, emails |
+| End-to-end | `pnpm test:e2e` | PostgreSQL + Chromium | Browser journeys through the real app: marketing pages, sign-up, onboarding, dashboard, projects, organizations and invitations, settings, site admin |
+| CLI | `pnpm --filter create-payload-stack test` | nothing | Every flag, prompt path, database and storage adapter; scaffolds real projects from the local template and checks them with the template's own `defineStack` |
+
+`pnpm test` runs the three template suites in order. The monorepo's GitHub Actions workflow (`.github/workflows/ci.yml`) runs typecheck, lint, unit and CLI tests on every push and pull request, and the integration and end-to-end suites against a PostgreSQL service container.
+
+## Unit tests: every option, without a database
+
+Most of the template reads `stack.features.*` at import time. To test a module under a different configuration, the unit suite replaces `src/stack.config.ts` and re-imports the module:
+
+```ts
+import { loadWithStack } from '../helpers/with-stack'
+import { presets } from '../helpers/stack-fixtures'
+
+const { mainNav } = await loadWithStack(presets['orgs-off'], () => import('@/components/dashboard/nav-config'))
+expect(mainNav.map((item) => item.href)).not.toContain('/dashboard/organization')
+```
+
+Use the value `loadWithStack` returns, never a top-level import of the same module; the module graph is reset for each call.
+
+`tests/helpers/stack-fixtures.ts` holds the configurations the suite iterates over:
+
+- `presets`: twelve named products (`defaults`, `orgs-off`, `billing-user-no-orgs`, `billing-user-with-orgs`, `billing-org`, `teams`, `all-auth`, `magic-link-only`, `passkey-only`, `invite-only`, `custom-roles`, `custom-nav`). Use `presetEntries` with `it.each` when a module should behave sensibly under each one.
+- `configMatrix()`: the cross product of the discrete options — every non-empty subset of the auth methods, two-factor on and off, organizations off, on and on with teams, billing none, user and organization. 112 combinations. Use it for modules whose output is cheap to compute (the schema, navigation, plugin lists).
+- `socialEnv(input)`: the `<PROVIDER>_CLIENT_ID` / `_SECRET` pairs a configuration's social providers require, for `loadWithEnv`.
+
+`tests/unit/setup.ts` runs before every unit file: it clears Stripe, Resend and social provider variables so a developer's `.env` cannot leak into assertions, sets `NODE_ENV=test`, and polyfills what jsdom lacks for the shadcn components (`matchMedia`, `ResizeObserver`, pointer capture).
+
+## Integration tests: Payload and Better Auth against PostgreSQL
+
+Integration files end in `.int.spec.ts`, run one file at a time, and share one Payload instance per file through `getTestPayload()` from `tests/helpers/int.ts`. Every auth call goes through Better Auth's server API with real cookies, the same path the browser takes:
+
+```ts
+const payload = await getTestPayload()
+const owner = await signUp(payload) // { id, email, name, cookie, headers }
+const org = await createOrganization(payload, owner)
+const invited = await signUp(payload)
+const invitation = await api(payload).createInvitation!({
+  headers: owner.headers,
+  body: { email: invited.email, role: 'member', organizationId: org.id },
+})
+```
+
+Helpers worth knowing: `cookieHeader(headers)` turns a `set-cookie` response into a request cookie and drops Better Auth's five-minute session cache so a revoked or updated session is read from the database; `tokenFromUrl` extracts verification and reset tokens from the links in captured emails; `captureEmails(payload)` spies on `payload.sendEmail` so a test can assert the recipient, subject and link of every message without an email provider; `makeAdmin` promotes a user to site admin; `expectApiError(promise, /pattern/)` asserts Better Auth's error shape.
+
+The suite runs against its own database, separate from the one you develop on. `docker-compose.yml` publishes a second PostgreSQL service, `postgres-test`, on port 5433, and `test.env` already points `DATABASE_URL` at it:
+
+```bash
+docker compose up -d   # postgres (5432), postgres-test (5433), mailpit
+pnpm test:int
+```
+
+`vitest.setup.ts` loads `.env` first and then `test.env` with override, so the integration tests never reach your development data or your real secrets no matter what `.env` holds. A variable exported in the real environment still wins over both files, which is how CI points the same command at its own PostgreSQL service container. `postgres-test` keeps its data directory in tmpfs: every `docker compose up` starts empty and Payload pushes the schema on boot. That matters because the suite creates users, organizations, projects and media and never deletes them — a fresh database per run is the arrangement it expects, and the one CI uses.
+
+To run against a different database (a managed instance, or a second local one), change `DATABASE_URL` in `test.env` rather than in `.env`.
+
+## End-to-end journeys: Playwright
+
+`tests/e2e/global-setup.ts` starts by creating a site admin through the HTTP API and promoting it with Payload's local API; its credentials reach the specs through `adminCredentials()`. `tests/e2e/fixtures.ts` provides the `member` fixture — a signed-in user with one active organization — plus API helpers (`signUpViaApi`, `createOrgViaApi`, `inviteViaApi`, `acceptInvitationViaApi`) that use `page.request`, so they share the browser's cookie jar and a journey can begin on the screen it is about:
+
+```ts
+test('renames the active organization and the sidebar follows', async ({ page, member }) => {
+  await page.goto(`${BASE}/dashboard/organization/settings`)
+  const name = page.locator('input[name="name"]').first()
+  await expect(name).toHaveValue(member.org.name)
+  await name.fill('Renamed Org')
+  await page.getByRole('button', { name: /save/i }).first().click()
+  await expect(page.getByText(/organization updated/i)).toBeVisible()
+  const orgs = await listOrganizationsViaApi(page)
+  expect(orgs.find((o) => o.id === member.org.id)?.name).toBe('Renamed Org')
+})
+```
+
+`playwright.config.ts` starts `pnpm dev` itself, on `E2E_PORT` (3456 by default) against the `payload-stack-e2e` database — both set in `test.env`, both served by the same `postgres-test` container as the integration suite:
+
+```bash
+docker compose up -d
+pnpm exec playwright install chromium   # once
+pnpm test:e2e
+```
+
+The journeys deliberately do not run on :3000. Playwright reuses a server it finds already listening, and on a development machine that is often another project — the journeys would then sign their users up into *that* project's database while `global-setup.ts` looks for them in this one, and fail with the admin "not found after sign-up". Change `E2E_PORT` if 3456 is taken on your machine.
+
+Failures leave a trace and screenshot in `test-results/`, and `playwright-report/` on CI.
+
+## When you change something
+
+The suites are arranged so that a change fails in the place that describes it:
+
+- A new option in `src/lib/stack.ts`: add its default and validation to `tests/unit/stack-schema.spec.ts`, add a preset that turns it on to `stack-fixtures.ts`, and extend `configMatrix()` if the option is discrete. Every `presetEntries` test then runs under it.
+- A new route or navigation entry: `tests/unit/nav-and-routes.spec.tsx` and `lib.spec.ts` (paths); an end-to-end journey if a user can reach it.
+- A new Better Auth plugin or option: `tests/unit/auth-options.spec.ts` (server) and `providers.spec.tsx` (client plugin list), then a flow in `tests/int/auth.int.spec.ts`.
+- A new collection: `tests/unit/payload-config.spec.ts` asserts the collections, access functions and tenant wiring; add the slug to `TENANT_SCOPED_COLLECTIONS` in `src/tenancy/cleanup.ts` if it is tenant-scoped, and a case in `tests/int/tenancy-access.int.spec.ts` that a member of another organization cannot read or write it.
+- A new email: `tests/unit/emails.spec.ts` renders it; the integration flow that sends it asserts on `captureEmails`.
+- A new plan or price field: `tests/unit/stack-plans.spec.ts` and the pricing table cases in `client-components.spec.tsx`.
+
+Prefer extending a preset over adding a one-off configuration inside a test, and prefer an assertion on behaviour a user sees (a route that is absent, a plugin that is not registered, a document that is not returned) over one on internal shape.
+
+## Bugs the suites guard against
+
+The integration and end-to-end suites were written against the running template and caught real defects, now fixed and covered:
+
+- Deleting an organization left its projects and media behind with `tenant: null` (the database cleared the foreign key before the multi-tenant plugin's cleanup ran). `withTenantCleanup` in `src/tenancy/cleanup.ts` removes tenant-scoped documents first.
+- Any signed-in user could create a document in an organization they did not belong to by posting a foreign `tenant` id. `validateTenantMembership` in `src/tenancy/validate-tenant.ts` checks membership on write.
+- After accepting an invitation, the new member's session still pointed at no organization; the accept flow now calls `setActive` before returning to the app.
+- The organization profile, account and change-email forms rendered empty because their default values were applied before the data arrived.
+- Stripe's `authorizeReference` hook is extracted to `authorizeSubscriptionReference` so the owner/admin rule is unit tested.

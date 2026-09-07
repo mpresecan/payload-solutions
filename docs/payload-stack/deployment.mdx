@@ -18,6 +18,7 @@ From `.env.example`:
 | `RESEND_API_KEY`, `EMAIL_FROM` | for email | Without them, emails are logged, not sent |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PRICE_*` | for billing | See [Billing](/docs/payload-stack/billing) |
 | `<PROVIDER>_CLIENT_ID`, `<PROVIDER>_CLIENT_SECRET` | per social provider | |
+| `BLOB_READ_WRITE_TOKEN`, `S3_*`, `R2_*`, `AZURE_STORAGE_*`, `GCS_*`, `UPLOADTHING_TOKEN` | for the storage adapter you chose | Without them uploads stay on local disk. See [Media storage](/docs/payload-stack/storage) |
 
 `src/lib/env.ts` validates them at boot and fails with the missing name.
 
@@ -32,7 +33,7 @@ pnpm db:migrate && pnpm build
 
 ## Vercel
 
-Import the repository, set the variables above, use a managed PostgreSQL (Vercel Postgres, Neon, Supabase) and set the build command to `pnpm db:migrate && pnpm build`. Add the Stripe webhook endpoint after the first deploy.
+Import the repository, set the variables above, use a managed PostgreSQL (Vercel Postgres, Neon, Supabase) and set the build command to `pnpm db:migrate && pnpm build`. Vercel's filesystem is ephemeral, so configure a [storage adapter](/docs/payload-stack/storage) (Vercel Blob is the shortest path) or uploads vanish on the next deploy. Add the Stripe webhook endpoint after the first deploy.
 
 ## Docker
 
@@ -45,3 +46,4 @@ The included `Dockerfile` builds a standalone Next.js image. Provide the environ
 - Legal pages reviewed in the admin (they are seeded placeholders).
 - Stripe webhook endpoint created for production and the portal enabled.
 - `NEXT_PUBLIC_APP_URL` is the final domain (passkeys are bound to it).
+- Uploads go to a storage adapter, not local disk, unless the host has a persistent volume.

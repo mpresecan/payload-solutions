@@ -1,0 +1,84 @@
+---
+title: Media storage
+description: Local disk, Vercel Blob, S3, Cloudflare R2, Azure, Google Cloud Storage or Uploadthing.
+---
+
+Uploads (avatars, organization logos, anything in the `media` collection) are written to `./media` on local disk unless a storage adapter is configured. Local disk is fine in development. On Vercel and other hosts with an ephemeral filesystem the files disappear on the next deploy, so pick an adapter before you go live.
+
+The CLI asks which adapter you want (or **Skip for now**) and writes it into `src/payload.config.ts` between two markers, the way it writes the [database](/docs/payload-stack/database) adapter:
+
+```ts
+// storage-adapter-import
+import { s3Storage } from '@payloadcms/storage-s3'
+...
+// storage-adapter-config-start
+// AWS S3, or any S3-compatible service. Without S3_BUCKET uploads stay on local disk (./media).
+if (env.S3_BUCKET) {
+  plugins.push(
+    s3Storage({
+      collections: { media: true },
+      bucket: env.S3_BUCKET,
+      config: { ... },
+    }),
+  )
+}
+// storage-adapter-config-end
+```
+
+Every adapter sits behind an `if (env.…)` guard: without its variables the project keeps using local disk, so `pnpm dev` works before you have a bucket, and production switches to cloud storage the moment the variables are set. None of the adapters add fields to the database, so switching needs no migration.
+
+Storage, like the database, is infrastructure rather than product configuration, which is why it lives in `payload.config.ts` and not in `stack.config.ts`.
+
+## Adapters
+
+Every adapter Payload ships for Node hosts is offered ([Payload docs](https://payloadcms.com/docs/upload/storage-adapters)). All are pinned to the same version as `payload`.
+
+| `--storage` | Package | Variables |
+| --- | --- | --- |
+| `none` (default) | local disk | |
+| `vercel-blob` | `@payloadcms/storage-vercel-blob` | `BLOB_READ_WRITE_TOKEN` |
+| `s3` | `@payloadcms/storage-s3` | `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, optional `S3_ENDPOINT` |
+| `r2` | `@payloadcms/storage-s3` | `R2_BUCKET`, `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, optional `R2_PUBLIC_URL` |
+| `azure` | `@payloadcms/storage-azure` | `AZURE_STORAGE_CONNECTION_STRING`, `AZURE_STORAGE_CONTAINER_NAME`, `AZURE_STORAGE_ACCOUNT_BASEURL`, optional `AZURE_STORAGE_ALLOW_CONTAINER_CREATE` |
+| `gcs` | `@payloadcms/storage-gcs` | `GCS_BUCKET`, `GCS_PROJECT_ID`, and `GOOGLE_APPLICATION_CREDENTIALS` or `GCS_SERVICE_ACCOUNT_KEY` |
+| `uploadthing` | `@payloadcms/storage-uploadthing` | `UPLOADTHING_TOKEN` |
+
+`.env.example` lists every variable with a comment; `src/lib/env.ts` declares them all as optional, so you can switch adapters without touching it.
+
+### Vercel Blob
+
+Enable Blob storage on your Vercel project; Vercel sets `BLOB_READ_WRITE_TOKEN` for you. Files are public by default (Vercel Blob has no private mode yet). Vercel functions accept request bodies up to 4.5 MB: for larger uploads set `clientUploads: true` in the adapter options so the browser uploads straight to Blob, then run `pnpm generate:importmap`.
+
+### AWS S3 and S3-compatible services
+
+Set the bucket, region and an access key pair. Leave the keys unset on AWS infrastructure to use the default credential chain (IAM roles, instance profiles). For MinIO, DigitalOcean Spaces, Backblaze B2 and other S3-compatible services set `S3_ENDPOINT`; the config switches to path-style addressing when it is present. Your bucket needs a CORS rule allowing `PUT` from your domain only if you enable `clientUploads`.
+
+### Cloudflare R2
+
+R2 is used through its S3-compatible API, which is what Payload documents for Node deployments (`@payloadcms/storage-r2` targets Cloudflare Workers bucket bindings and is not offered). Create an R2 API token, then set `R2_ENDPOINT` to `https://<account-id>.r2.cloudflarestorage.com`. Region `auto` and path-style addressing are already set.
+
+R2 buckets are private by default and files are served through Payload (`/api/media/file/<name>`), which keeps Payload's access control. To serve files directly from a public bucket or a custom domain, enable public access in Cloudflare and set `R2_PUBLIC_URL` (no trailing slash): the config then sets `disablePayloadAccessControl` and generates URLs on that host.
+
+### Azure Blob Storage
+
+Use the storage account's connection string, the container name and the account base URL (`https://<account>.blob.core.windows.net`). `AZURE_STORAGE_ALLOW_CONTAINER_CREATE=true` lets the adapter create the container on first use.
+
+### Google Cloud Storage
+
+Set `GCS_BUCKET` and `GCS_PROJECT_ID`. Locally, point `GOOGLE_APPLICATION_CREDENTIALS` at a service-account key file. On hosts without a filesystem (Vercel), paste the key's JSON into `GCS_SERVICE_ACCOUNT_KEY` instead; the config parses it into `credentials`. Objects are private by default; the adapter serves them through Payload.
+
+### Uploadthing
+
+Create an app at uploadthing.com and set `UPLOADTHING_TOKEN`. Files are `public-read`; change `acl` in the adapter options for private files.
+
+## Switching later
+
+Re-run the CLI against your project as the template (`--local-template .` from the parent directory) or edit the block by hand: replace the import and the code between the markers with the adapter's call from the [Payload docs](https://payloadcms.com/docs/upload/storage-adapters), add the package pinned to your `payload` version, and add its variables to `.env`. To go back to local disk, delete the block and the package.
+
+## Access control and URLs
+
+By default every adapter keeps file URLs on your domain (`/api/media/file/<filename>`) and streams from the bucket, so the `media` collection's access control applies to files as well as documents. For public assets on a CDN, set `disablePayloadAccessControl: true` in the collection options and let the adapter (or `generateFileURL`) point URLs at the bucket, as the R2 example does.
+
+## Other upload collections
+
+The CLI wires only `media`. If you add another upload collection, list it in the adapter's `collections` option; `prefix` puts each collection in its own folder.

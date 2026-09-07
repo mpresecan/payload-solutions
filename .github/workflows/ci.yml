@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: 10.28.0
+  NODE_VERSION: 22
+
+jobs:
+  # Fast feedback: type checks, lint, the template's database-free unit suite (every stack.config.ts
+  # option) and the CLI suite (every flag, database and storage adapter, real scaffold from the
+  # local template).
+  check:
+    name: Typecheck, lint, unit and CLI tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck and lint
+        run: pnpm turbo run typecheck lint --filter=payload-stack --filter=create-payload-stack
+        env:
+          # The template's env schema needs these to import; the values never reach a database here.
+          DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/ci
+          PAYLOAD_SECRET: ci-payload-secret
+      - name: Template unit tests
+        run: pnpm --filter payload-stack test:unit
+      - name: CLI tests (build + scaffold from the local template)
+        run: pnpm --filter create-payload-stack test
+
+  # Payload + Better Auth against a real PostgreSQL: auth flows, organizations, membership sync,
+  # tenant isolation, access control, emails.
+  integration:
+    name: Integration tests (Postgres)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: payload-stack
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/payload-stack
+      PAYLOAD_SECRET: ci-payload-secret
+      BETTER_AUTH_SECRET: ci-better-auth-secret
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter payload-stack test:int
+
+  # Browser journeys against `next dev`: marketing pages, sign-up/in/out, onboarding, dashboard,
+  # projects, organizations and invitations, settings, site admin.
+  e2e:
+    name: End-to-end journeys (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: payload-stack-e2e
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/payload-stack-e2e
+      PAYLOAD_SECRET: ci-payload-secret
+      BETTER_AUTH_SECRET: ci-better-auth-secret
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm --filter payload-stack exec playwright install --with-deps chromium
+      - name: Run journeys (starts `pnpm dev`)
+        run: pnpm --filter payload-stack test:e2e
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: templates/payload-stack/playwright-report
+          retention-days: 7

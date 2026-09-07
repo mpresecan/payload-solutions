@@ -1,4 +1,5 @@
 import type { DbKey } from './databases'
+import type { StorageKey } from './storage'
 
 export const AUTH_METHODS = ['email-password', 'magic-link', 'passkey'] as const
 export type AuthMethod = (typeof AUTH_METHODS)[number]
@@ -21,6 +22,8 @@ export interface ProjectOptions {
   social: SocialProvider[]
   organizations: boolean
   billing: BillingMode
+  /** Media storage adapter, or 'none' for local disk. */
+  storage: StorageKey
   packageManager: PackageManager
   install: boolean
   git: boolean
@@ -35,6 +38,7 @@ export interface CliFlags {
   social?: string
   organizations?: boolean
   billing?: string
+  storage?: string
   packageManager?: PackageManager
   install: boolean
   git: boolean

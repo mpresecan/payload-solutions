@@ -1,0 +1,69 @@
+{
+  "name": "@payload-solutions/consent-core",
+  "version": "0.1.0",
+  "description": "Framework-agnostic consent state machine, cookie codec, jurisdiction models, Google Consent Mode v2 bridge and consent-gated script loader. The client core of Payload Consent.",
+  "keywords": [
+    "consent",
+    "cookie-consent",
+    "gdpr",
+    "ccpa",
+    "consent-mode",
+    "gpc",
+    "privacy",
+    "payload",
+    "payloadcms"
+  ],
+  "license": "MIT",
+  "homepage": "https://payload.solutions/docs/plugins/payload-consent",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mpresecan/payload-solutions.git",
+    "directory": "packages/consent-core"
+  },
+  "bugs": "https://github.com/mpresecan/payload-solutions/issues",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist .turbo"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "jsdom": "^26.1.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "import": "./dist/index.js",
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./package.json": "./package.json"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts"
+  }
+}

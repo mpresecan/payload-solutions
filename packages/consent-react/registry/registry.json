@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "payload-solutions",
+  "homepage": "https://payload.solutions",
+  "items": [
+    {
+      "name": "consent-banner",
+      "type": "registry:block",
+      "title": "Consent banner",
+      "description": "Cookie consent banner, preferences dialog and footer link for Payload Consent. Non-modal, accept and reject equally prominent, copy from the Payload admin.",
+      "dependencies": ["@payload-solutions/consent-react", "@payload-solutions/consent-core"],
+      "registryDependencies": ["button", "dialog", "switch", "accordion", "badge", "label"],
+      "files": [
+        { "path": "registry/consent-banner/consent-banner.tsx", "type": "registry:component", "target": "components/consent/consent-banner.tsx" },
+        { "path": "registry/consent-banner/consent-preferences-dialog.tsx", "type": "registry:component", "target": "components/consent/consent-preferences-dialog.tsx" },
+        { "path": "registry/consent-banner/consent-settings-link.tsx", "type": "registry:component", "target": "components/consent/consent-settings-link.tsx" }
+      ]
+    }
+  ]
+}

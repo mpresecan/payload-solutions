@@ -1,0 +1,15 @@
+{
+  "title": "Payload Consent",
+  "pages": [
+    "index",
+    "installation",
+    "admin",
+    "trackers",
+    "legal-pages",
+    "jurisdictions",
+    "records",
+    "configuration",
+    "api-reference",
+    "recipes"
+  ]
+}

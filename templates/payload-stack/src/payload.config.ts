@@ -3,6 +3,7 @@ import { postgresAdapter } from '@payloadcms/db-postgres'
 import { resendAdapter } from '@payloadcms/email-resend'
 import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+// storage-adapter-import
 import path from 'path'
 import { buildConfig, type Field, type Plugin } from 'payload'
 import { betterAuthPlugin, type PayloadAuthOptions } from 'payload-auth/better-auth'
@@ -20,7 +21,9 @@ import { silenceKnownPayloadAuthWarnings } from '@/lib/auth/payload-auth-workaro
 import { env } from '@/lib/env'
 import { seedLegalPages } from '@/seed/legal'
 import stack from '@/stack.config'
+import { TENANT_SCOPED_COLLECTIONS, withTenantCleanup } from '@/tenancy/cleanup'
 import { withMembershipSync } from '@/tenancy/sync-memberships'
+import { validateTenantMembership } from '@/tenancy/validate-tenant'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -67,17 +70,18 @@ export const payloadAuthOptions = {
   pluginCollectionOverrides: stack.features.organizations
     ? {
         members: withMembershipSync,
-        organizations: ({ collection }) => ({
-          ...collection,
-          admin: { ...collection.admin, group: 'App' },
-          access: {
-            ...collection.access,
-            // payload-auth makes organizations admin-only. Members must be able to read their own
-            // organizations (the multi-tenant plugin narrows this to `id in user.tenants`), otherwise
-            // the admin's tenant selector throws for any non-admin visitor.
-            read: ({ req }) => Boolean(req.user),
-          },
-        }),
+        organizations: ({ collection }) =>
+          withTenantCleanup({
+            ...collection,
+            admin: { ...collection.admin, group: 'App' },
+            access: {
+              ...collection.access,
+              // payload-auth makes organizations admin-only. Members must be able to read their own
+              // organizations (the multi-tenant plugin narrows this to `id in user.tenants`), otherwise
+              // the admin's tenant selector throws for any non-admin visitor.
+              read: ({ req }) => Boolean(req.user),
+            },
+          }),
       }
     : undefined,
 } satisfies PayloadAuthOptions
@@ -92,11 +96,11 @@ if (stack.features.organizations) {
   plugins.push(
     multiTenantPlugin({
       tenantsSlug: 'organizations',
-      collections: {
-        projects: {},
-        media: {},
-      },
+      // Keep in step with TENANT_SCOPED_COLLECTIONS (src/tenancy/cleanup.ts).
+      collections: Object.fromEntries(TENANT_SCOPED_COLLECTIONS.map((slug) => [slug, {}])),
       userHasAccessToAllTenants: (user) => isAdmin(user),
+      // API callers may only file documents under organizations they belong to (admins: any).
+      tenantField: { validate: validateTenantMembership },
       tenantsArrayField: {
         includeDefaultField: true,
         arrayFieldName: 'tenants',
@@ -119,6 +123,12 @@ if (stack.features.organizations) {
     }),
   )
 }
+
+// 3. Media storage (the CLI writes your choice here; keep the markers so it can be swapped again).
+// storage-adapter-config-start
+// Local disk (./media): fine for development, lost on redeploy on Vercel and other ephemeral hosts.
+// Move uploads to Vercel Blob, S3, R2, Azure, GCS or Uploadthing: https://payload.solutions/docs/payload-stack/storage
+// storage-adapter-config-end
 
 export default buildConfig({
   admin: {

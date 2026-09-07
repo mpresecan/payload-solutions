@@ -1,0 +1,168 @@
+---
+title: Configuration
+description: Every consentPlugin() option, with its default and what changing it costs you.
+---
+
+Every option has a default; most projects set only `seed`. Options are read once, when the plugin builds the Payload config — settings an editor should be able to change without a deploy live in the **Consent settings** global instead, and override the matching option at runtime.
+
+```ts
+consentPlugin({
+  enabled: true,
+  basePath: '/consent',
+  slugs: { settings, categories, trackers, records, legalPages },
+  usersSlug: 'users',
+  legalPages: true,
+  access: { manage: ({ req }) => Boolean(req.user) },
+  cookie: { name: 'pl-consent', domain: undefined, sameSite: 'lax' },
+  jurisdiction: { headers, regionHeaders, overrides: [], fallback: 'opt-in', trustProxy: true },
+  recording: { mode: 'anonymous', retentionMonths: 36, rateLimitPerMinute: 20, implicit: false, userAgent: false },
+  allowedOrigins: [],
+  seed: { company, locale, categories: true, trackers: [], legalPages: true, documents },
+  admin: { group: 'Privacy', dashboardWidget: true },
+  jobs: { purge: {} },
+  trackerFields: [],
+  legalPageFields: [],
+})
+```
+
+## Top level
+
+| Option | Default | Notes |
+| --- | --- | --- |
+| `enabled` | `true` | `false` registers nothing at all — no collections, no endpoints. For feature flags and for test configs that should not carry the plugin. Not the same as the **Enabled** switch in Consent settings, which keeps the data and only silences the banner. |
+| `basePath` | `'/consent'` | Endpoint prefix under `/api`. Changing it changes `recording.endpoint` in the config, so clients follow automatically. |
+| `legalPages` | `true` | `false` drops the legal-pages collection and turns the banner's page relationships into plain URL fields. |
+| `usersSlug` | `'users'` | Auth collection used for `linked` records and for `records/me`. `false` disables user linking entirely and removes the relationship field. |
+| `allowedOrigins` | `[]` | Extra origins allowed to read the config endpoint and post records. Same-origin is always allowed. Needed for a frontend on a different domain from Payload. |
+
+## `slugs`
+
+```ts
+slugs: {
+  settings: 'consent-settings',
+  categories: 'consent-categories',
+  trackers: 'consent-trackers',
+  records: 'consent-records',
+  legalPages: 'legal-pages',
+}
+```
+
+Rename any of them to fit your naming convention. `legal-pages` is the one that most often collides with an existing collection — either rename it here or set `legalPages: false` and keep yours.
+
+<Callout type="warn">
+Slugs are baked into the database. Renaming one after data exists means migrating that table yourself; the plugin will happily create a new, empty collection under the new name.
+</Callout>
+
+## `access`
+
+```ts
+access: { manage: ({ req }) => req.user?.role === 'admin' }
+```
+
+One Payload `Access` function, applied to create/update/delete on categories, trackers and legal pages, to updating the settings global, and to reading consent records. Default: any authenticated user.
+
+Read access on categories, trackers, settings and legal pages is public and not configurable — the banner needs it from an unauthenticated browser. Consent records are never publicly readable, and are never creatable, updatable or deletable through the API by anyone.
+
+## `cookie`
+
+| Option | Default | Notes |
+| --- | --- | --- |
+| `name` | `'pl-consent'` | Rename to avoid a collision, or to keep a legacy name during a migration. |
+| `domain` | unset | Set to `.example.com` to share one decision across subdomains. Leave unset for host-only. |
+| `sameSite` | `'lax'` | `'strict'` breaks the cookie on cross-site navigation into your site; only use it if you know you want that. |
+
+Max-age is not an option here — it comes from **Consent valid for (months)** in Consent settings, so it can be changed without a deploy.
+
+## `jurisdiction`
+
+| Option | Default | Notes |
+| --- | --- | --- |
+| `headers` | `['cf-ipcountry', 'x-vercel-ip-country', 'x-country', 'cloudfront-viewer-country']` | Checked in order; the first present wins. |
+| `regionHeaders` | `['x-vercel-ip-country-region', 'cloudfront-viewer-country-region']` | US state, for `US-XX` overrides. |
+| `overrides` | `[]` | `{ region, model }` rows appended to the built-in table. Editors can add more in Consent settings. |
+| `fallback` | `'opt-in'` | Model when the country is unknown. Keep it as `opt-in` unless you have a reason. |
+| `trustProxy` | `true` | Whether `x-forwarded-for` is used as the client IP for rate limiting. Set `false` if you are not behind a proxy that sets it, so it cannot be spoofed. |
+
+See [Jurisdictions](/docs/plugins/payload-consent/jurisdictions) for precedence and the built-in table.
+
+## `recording`
+
+| Option | Default | Notes |
+| --- | --- | --- |
+| `mode` | `'anonymous'` | `'none'`, `'anonymous'`, `'linked'`. Overridden by Consent settings. |
+| `retentionMonths` | `36` | Overridden by Consent settings. |
+| `rateLimitPerMinute` | `20` | Per client IP, in-process. Behind multiple instances each has its own counter — put a real limiter at the edge if you need a hard guarantee. |
+| `implicit` | `false` | Whether to record decisions the visitor never made (opt-out and notice defaults). |
+| `userAgent` | `false` | When on, stores the browser **family** only (`Chrome`, `Safari`, …), never the full string. |
+
+## `seed`
+
+Runs on `onInit`, only into empty collections, and never overwrites anything. `seed: false` disables it entirely.
+
+| Option | Default | Notes |
+| --- | --- | --- |
+| `company` | — | Required for legal pages. `name`, `legalName`, `address`, `email`, and optionally `url`, `jurisdictions`, `governingLaw`, `dpo`. |
+| `categories` | `true` | Seed the four default categories. |
+| `trackers` | `[]` | Preset keys or `{ key, vars, enabled }`. See [the preset table](/docs/plugins/payload-consent/trackers#presets). |
+| `legalPages` | `true` | Seed the three documents. Requires `company` and `legalPages: true`. |
+| `documents` | all three | Narrow to `['privacy', 'cookies']` if you have your own terms. |
+| `locale` | — | Which locale to seed into, on a localized config. |
+
+```ts
+seed: {
+  company: {
+    name: 'Acme',
+    legalName: 'Acme Ltd',
+    address: '1 Main Street, Dublin, Ireland',
+    email: 'privacy@acme.com',
+    url: 'https://acme.com',
+    jurisdictions: ['EEA', 'GB'],
+    governingLaw: 'Ireland',
+    dpo: { name: 'Jane Roe', email: 'dpo@acme.com' },
+  },
+  trackers: [{ key: 'ga4', vars: { measurementId: 'G-XXXXXXX' } }, 'stripe'],
+}
+```
+
+`dpo: false` omits the data protection officer section from the seeded privacy policy.
+
+## `admin`
+
+| Option | Default | Notes |
+| --- | --- | --- |
+| `group` | `'Privacy'` | The admin sidebar group all five entries share. |
+| `dashboardWidget` | `true` | The `beforeDashboard` overview with versions, counts and warnings. |
+
+## `jobs`
+
+| Value | Effect |
+| --- | --- |
+| `{ purge: {} }` (default) | Registers the `consentPurgeRecords` task; you trigger it. |
+| `{ purge: { cron: '0 3 * * *', queue: 'default' } }` | Also appends an `autoRun` entry so Payload runs it. |
+| `{ purge: false }` | Registers no task. |
+
+## `trackerFields` / `legalPageFields`
+
+Payload `Field[]` appended to those collections. Used mostly for multi-tenancy:
+
+```ts
+trackerFields: [{ name: 'tenant', type: 'relationship', relationTo: 'organizations', index: true }],
+```
+
+Extra fields are stored and editable but do not reach the client config. Filter on them in your own queries.
+
+## Localization
+
+No option — the plugin detects `config.localization` and localizes the visitor-facing fields: category labels and descriptions, tracker names, purposes and cookie descriptions, banner copy, and legal page titles and content. Stable identifiers (keys, slugs, URLs, cookie names) stay shared.
+
+`getConsentConfig(payload, { locale })` returns the config in that locale; the endpoint uses `req.locale`. Version hashes are locale-independent, so translating never re-prompts anyone.
+
+## Reading the resolved options
+
+```ts
+import { getPluginOptions, resolveOptions, DEFAULT_SLUGS } from '@payload-solutions/plugin-consent'
+
+const options = getPluginOptions(payload) // everything, with defaults applied
+```
+
+`getPluginOptions` is what the server helpers use when you do not pass options explicitly. It throws if the plugin is not in the config — a clearer failure than a missing collection.

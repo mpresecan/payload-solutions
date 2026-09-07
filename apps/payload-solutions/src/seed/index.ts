@@ -49,6 +49,16 @@ export async function seed(payload: Payload) {
   if (plugins.totalDocs === 0) {
     for (const [order, data] of [
       {
+        name: 'Payload Consent',
+        slug: 'payload-consent',
+        packageName: '@payload-solutions/plugin-consent',
+        summary: 'Cookie categories, trackers, legal pages and consent records in the Payload admin.',
+        description:
+          'One source of truth for the consent banner, the script gating and the generated cookie table. Jurisdiction-aware (opt-in, opt-out with Global Privacy Control, notice), Google Consent Mode v2, immutable consent records without IP addresses, seeded privacy, terms and cookie policies. React bindings and a shadcn banner included.',
+        status: 'available',
+        docsPath: '/docs/plugins/payload-consent',
+      },
+      {
         name: 'Payload Emails',
         slug: 'payload-emails',
         packageName: '@payload-solutions/plugin-emails',
@@ -95,8 +105,9 @@ export async function seed(payload: Payload) {
   if (roadmap.totalDocs === 0) {
     for (const [order, data] of [
       { title: 'Payload Stack 0.1', description: 'Better Auth, organizations, Stripe, shadcn dashboard, CLI.', stage: 'shipped', quarter: 'Q3 2026' },
+      { title: 'Payload Consent plugin 0.1', description: 'Consent banner, script gating, cookie table and consent records managed in the Payload admin.', stage: 'shipped', quarter: 'Q3 2026' },
       { title: 'Payload Stack documentation', description: 'Guides for configuration, authentication, organizations, billing, deployment.', stage: 'in-progress', quarter: 'Q3 2026' },
-      { title: 'Payload Clock beta', description: 'Hosted scheduler for serverless Payload job queues, with the companion plugin.', stage: 'in-progress', quarter: 'Q4 2026' },
+      { title: 'Payload Clock beta', description: 'Hosted scheduler for serverless Payload job queues, with the companion plugin.', stage: 'planned', quarter: 'Q4 2026' },
       { title: 'Payload Emails plugin', description: 'Editable transactional email copy in the admin.', stage: 'planned', quarter: 'Q4 2026' },
       { title: 'Payload Action Scheduler plugin', description: 'Scheduled and recurring actions on top of job queues.', stage: 'planned', quarter: 'Q1 2027' },
       { title: 'Vercel Integration plugin', description: 'Deploy hooks and deployment status in the admin.', stage: 'planned', quarter: 'Q1 2027' },

@@ -46,10 +46,18 @@ export function UserProfile({ className }: UserProfileProps) {
     () => additionalFields?.filter((field) => field.profile !== false) ?? [],
     [additionalFields]
   )
+  // Default values follow the loaded session; see organization-profile.tsx for why.
   const form = useAuthForm({
     defaultValues: {
-      additionalFields: getAdditionalFieldDefaultValues(profileFields),
-      name: ""
+      additionalFields: getAdditionalFieldDefaultValues(
+        session
+          ? fieldsWithModelValues(
+              profileFields,
+              session.user as Record<string, unknown>
+            )
+          : profileFields
+      ),
+      name: session?.user.name ?? ""
     },
     onSubmit: async ({ value }) => {
       await updateUser({

@@ -3,14 +3,16 @@ import path from 'node:path'
 
 import { DB_CHOICES, type DbChoice } from './databases'
 import type { ProjectOptions } from './options'
+import { LOCAL_STORAGE_CONFIG, STORAGE_CHOICES, STORAGE_PACKAGES, type StorageChoice, type StorageKey } from './storage'
 import { generateSecret } from './utils'
 
 /**
  * Turns the downloaded template into the user's project:
  *   1. src/stack.config.ts written from their answers
  *   2. database adapter swapped in payload.config.ts and package.json
- *   3. .env generated from .env.example
- *   4. package.json renamed
+ *   3. media storage adapter written into payload.config.ts and package.json (or left on local disk)
+ *   4. .env generated from .env.example
+ *   5. package.json renamed
  * Every function is pure over file contents so it can be unit-tested without a filesystem.
  */
 
@@ -118,6 +120,53 @@ export function swapDatabaseAdapter(payloadConfigSource: string, db: DbChoice) {
   return `${withImport.slice(0, start)}${CONFIG_START}\n  ${db.config}\n  ${withImport.slice(end)}`
 }
 
+const STORAGE_IMPORT_MARKER = '// storage-adapter-import'
+const STORAGE_CONFIG_START = '// storage-adapter-config-start'
+const STORAGE_CONFIG_END = '// storage-adapter-config-end'
+const ENV_IMPORT = /^import \{ env(?:, requireEnv)? \} from '@\/lib\/env'$/m
+
+/**
+ * Writes the storage adapter (or the local-disk comment for `null`) between the storage markers of
+ * payload.config.ts, adds or removes the adapter import, and imports `requireEnv` when the adapter
+ * needs it. Repeatable: running it again with another choice replaces the previous one.
+ */
+export function swapStorageAdapter(payloadConfigSource: string, storage: StorageChoice | null) {
+  const importPattern = new RegExp(
+    `${escapeRegExp(STORAGE_IMPORT_MARKER)}\n(?:import \\{ \\w+ \\} from '@payloadcms\\/storage-[a-z0-9-]+'\n)?`,
+  )
+  if (!importPattern.test(payloadConfigSource)) {
+    throw new Error(`payload.config.ts is missing the "${STORAGE_IMPORT_MARKER}" marker`)
+  }
+  const importLines = storage
+    ? `${STORAGE_IMPORT_MARKER}\nimport { ${storage.importName} } from '${storage.packageName}'\n`
+    : `${STORAGE_IMPORT_MARKER}\n`
+  let out = payloadConfigSource.replace(importPattern, importLines)
+
+  if (!ENV_IMPORT.test(out)) throw new Error(`payload.config.ts is missing the "@/lib/env" import`)
+  out = out.replace(ENV_IMPORT, storage?.usesRequireEnv ? "import { env, requireEnv } from '@/lib/env'" : "import { env } from '@/lib/env'")
+
+  const start = out.indexOf(STORAGE_CONFIG_START)
+  const end = out.indexOf(STORAGE_CONFIG_END)
+  if (start === -1 || end === -1 || end < start) throw new Error(`payload.config.ts is missing the storage adapter markers`)
+  const body = storage ? storage.config : LOCAL_STORAGE_CONFIG
+  return `${out.slice(0, start)}${STORAGE_CONFIG_START}\n${body}\n${out.slice(end)}`
+}
+
+/** Adds the chosen storage package pinned to the payload version, and drops any other storage package. */
+export function swapStoragePackage(packageJson: Record<string, unknown>, storage: StorageChoice | null) {
+  const deps = { ...(packageJson.dependencies as Record<string, string>) }
+  const payloadVersion = deps.payload ?? 'latest'
+  for (const pkg of STORAGE_PACKAGES) {
+    if (pkg !== storage?.packageName) delete deps[pkg]
+  }
+  if (storage) deps[storage.packageName] = payloadVersion
+  return { ...packageJson, dependencies: sortKeys(deps) }
+}
+
+export function storageChoice(key: StorageKey): StorageChoice | null {
+  return key === 'none' ? null : STORAGE_CHOICES[key]
+}
+
 export function swapDatabasePackage(packageJson: Record<string, unknown>, db: DbChoice) {
   const deps = { ...(packageJson.dependencies as Record<string, string>) }
   const payloadVersion = deps.payload ?? 'latest'
@@ -169,11 +218,15 @@ export async function configureProject(o: ProjectOptions) {
 
   await write('src/stack.config.ts', renderStackConfig(o))
 
+  const storage = storageChoice(o.storage)
   const payloadConfig = await read('src/payload.config.ts')
-  await write('src/payload.config.ts', swapDatabaseAdapter(payloadConfig, db))
+  await write('src/payload.config.ts', swapStorageAdapter(swapDatabaseAdapter(payloadConfig, db), storage))
 
   const pkg = JSON.parse(await read('package.json')) as Record<string, unknown>
-  await write('package.json', JSON.stringify(renameProject(swapDatabasePackage(pkg, db), o.slug), null, 2) + '\n')
+  await write(
+    'package.json',
+    JSON.stringify(renameProject(swapStoragePackage(swapDatabasePackage(pkg, db), storage), o.slug), null, 2) + '\n',
+  )
 
   const example = await read('.env.example')
   await write('.env', renderEnv(example, { connectionString: o.connectionString }))

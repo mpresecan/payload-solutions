@@ -1,0 +1,251 @@
+---
+title: API reference
+description: Endpoints, the ConsentConfig contract, the cookie format, and every export of the three packages.
+---
+
+## HTTP endpoints
+
+All paths are relative to `/api` and to `basePath` (`/consent` by default).
+
+### `GET /api/consent/config`
+
+Everything a client needs, with the jurisdiction resolved for this request. Public, CORS-checked against `allowedOrigins`.
+
+| | |
+| --- | --- |
+| Query | `consent_jurisdiction=US` — development only, ignored in production |
+| Headers read | the configured country and region headers, `Accept-Language` via `req.locale` |
+| `cache-control` | `public, max-age=60, s-maxage=300, stale-while-revalidate=86400` |
+| `etag` | `"<policyVersion>:<locale>:<model>"` |
+| `vary` | `Accept-Language, Origin, cf-ipcountry, x-vercel-ip-country` |
+| `403` | origin not in `allowedOrigins` and not same-origin |
+
+### `POST /api/consent/records`
+
+Records one decision. Rate limited per IP. See [Records](/docs/plugins/payload-consent/records#posting-a-decision) for the body, the status codes and the validation rules.
+
+### `GET /api/consent/records/me`
+
+The signed-in user's last 50 consent records. `401` without a session, or when `usersSlug` is `false`. `cache-control: no-store`.
+
+### `OPTIONS /api/consent/*`
+
+CORS preflight, `204`.
+
+## `ConsentConfig`
+
+The contract between the plugin and every client. Identical whether you fetched it over HTTP or built it with `getConsentConfig`.
+
+```ts
+type ConsentConfig = {
+  enabled: boolean
+  versions: { policyVersion: string; categoriesVersion: string; trackersVersion: string; documentsVersion: string }
+  jurisdiction: { country: string | null; model: 'opt-in' | 'opt-out' | 'notice' | 'none' }
+  categories: ConsentCategory[]
+  trackers: ConsentTracker[]
+  banner: ConsentBannerConfig
+  reconsent: { on: ('documents' | 'categories' | 'trackers')[]; expiresAfterMonths: number }
+  recording: { enabled: boolean; endpoint: string }
+  consentMode: { enabled: boolean; adsDataRedaction: boolean; urlPassthrough: boolean; waitForUpdateMs: number }
+  cookie: { name: string; maxAgeDays: number; domain?: string; sameSite: 'lax' | 'strict' }
+  locale: string
+}
+
+type ConsentCategory = {
+  key: string
+  label: string
+  description: string
+  required: boolean
+  respectGPC: boolean
+  defaultInOptOut: boolean
+  consentModeSignals: ConsentModeSignal[]
+}
+
+type ConsentTracker = {
+  id: string
+  name: string
+  vendor?: string
+  vendorPrivacyUrl?: string
+  categoryKey: string
+  kind: 'script' | 'cookie-only' | 'pixel' | 'iframe' | 'sdk'
+  purpose?: string
+  cookies?: TrackerCookie[]
+  loader?: {
+    src?: string
+    inline?: string
+    strategy: 'afterDecision' | 'lazy'
+    attributes?: Record<string, string>
+    consentModeManaged: boolean
+  }
+}
+```
+
+The recording **mode** is deliberately not in the public config — clients only need to know whether to post.
+
+## `ConsentState`
+
+What `useConsent().state` and `store.getState()` return.
+
+```ts
+type ConsentState = {
+  status: 'undecided' | 'decided' | 'stale'
+  model: ConsentModel
+  decisions: Record<string, boolean>   // non-required categories only
+  draft: Record<string, boolean>       // edited by the preferences dialog, committed by save()
+  ui: 'banner' | 'preferences' | 'closed'
+  repromptReason: null | 'expired' | 'documents' | 'categories' | 'trackers'
+  gpc: boolean
+  needsReload: boolean                 // a category was revoked after its scripts had run
+  consentId: string
+  decidedAt: number | null             // unix seconds
+  source: ConsentSource | null
+}
+```
+
+`status: 'stale'` means there is a valid cookie but something it was given for has changed — show the banner again with `decisions` as the starting point, and use `repromptReason` to explain why.
+
+## The cookie
+
+`pl-consent`, base64url-encoded JSON, around 180 bytes. Short keys on purpose.
+
+```ts
+type ConsentCookieV1 = {
+  v: 1
+  id: string                      // consent id, matches the record
+  d: Record<string, 0 | 1>        // decisions
+  t: number                       // decided at, unix seconds
+  pv: string; cv: string; tv: string; dv: string   // the four version hashes
+  j: 'in' | 'out' | 'notice' | 'none'              // model at decision time
+  s: 'b' | 'p' | 'a' | 'g' | 'w' | 'i'             // source
+}
+```
+
+`encodeConsentCookie` and `decodeConsentCookie` are exported from `consent-core`; a malformed or truncated value decodes to `null` and is treated as no decision.
+
+## `@payload-solutions/plugin-consent`
+
+```ts
+import { consentPlugin, getPluginOptions, DEFAULT_SLUGS, resolveOptions,
+         legalPagesEditor, CookieTableBlock, PolicyVersionBlock,
+         TRACKER_PRESETS, PURGE_TASK_SLUG } from '@payload-solutions/plugin-consent'
+```
+
+| Export | What |
+| --- | --- |
+| `consentPlugin(options)` | the plugin; also the default export |
+| `getPluginOptions(payload?)` | resolved options, for helpers that only receive `payload` |
+| `resolveOptions(options)` | apply defaults without installing the plugin |
+| `DEFAULT_SLUGS` | the five default slugs |
+| `legalPagesEditor()` | the Lexical editor with tables and both blocks — reuse it in another collection |
+| `CookieTableBlock`, `PolicyVersionBlock` | the two blocks |
+| `TRACKER_PRESETS` | the raw preset definitions |
+| `PURGE_TASK_SLUG` | `'consentPurgeRecords'` |
+
+Types: `ConsentPluginOptions`, `ResolvedConsentPluginOptions`, `ConsentPluginSlugs`, `CompanyInfo`, `SeedOptions`, `TrackerPresetKey`.
+
+### `/server`
+
+Server-only helpers. Safe in Server Components, route handlers, scripts and tests.
+
+| Export | What |
+| --- | --- |
+| `getConsentConfig(payload, { headers?, locale?, country?, region?, model?, environment?, req? })` | the config for one request, through the local API |
+| `readConsent(cookies, config, gpc?)` | resolve what is granted; accepts a `Cookie` header string, Next's `cookies()`, or a `Headers` object |
+| `cookieValue(source, name)` | read one cookie from any of those shapes |
+| `getCookieTableData(payload, input?)` | just `{ categories, trackers }` |
+| `getConsentOverview(payload, options?)` | the dashboard widget's numbers and warnings |
+| `purgeExpiredRecords(payload, options, now?)` | run the retention purge directly |
+| `computeVersions`, `recomputeVersions` | the version hashes |
+| `invalidateConfigCache()` | drop the 30-second config cache |
+| `buildLegalDocuments(company, effectiveDate, kinds)` | the seeded markdown |
+| `markdownToLegalContent(payload, markdown)` | markdown → Lexical, with tables and the marker blocks |
+| `seedTrackers(payload, options, entries)` | create trackers from presets after first boot |
+| `getPluginOptions` | re-exported for convenience |
+
+### `/rsc`
+
+React Server Components and Lexical converters.
+
+| Export | What |
+| --- | --- |
+| `legalPageConverters(data)` | tables **and** both blocks — the one to spread in `RichText` |
+| `consentBlockConverters(data)` | the two blocks only |
+| `consentTableConverters` | the semantic table converters only |
+| `RichTextTable` | the table renderer, if you want it directly |
+| `CookieTable` | the presentational cookie table |
+| `CookieTableFromPayload` | async Server Component that loads its own data |
+| `DEFAULT_COOKIE_TABLE_LABELS` | the label strings, for overriding |
+| `ConsentOverview` | the dashboard widget |
+
+`data` for the converters is `{ categories, trackers, documentsVersion?, effectiveDate?, labels? }`.
+
+## `@payload-solutions/consent-react`
+
+| Export | What |
+| --- | --- |
+| `<ConsentProvider>` | `config` or `configUrl`, `initialCookie`, `nonce`, `loadScripts`, `storeOptions` |
+| `useConsent()` | `{ ready, config, state, has, acceptAll, rejectAll, withdraw, toggle, save, dismiss, open, close }` |
+| `useCategory(key)` | `{ category, granted, draft, required, toggle }` — for a preferences row |
+| `useHasConsent(expr)` | a boolean that re-renders on change |
+| `useConsentContext()` | the raw `{ store, config, nonce }`, or `null` |
+| `<ConsentGate category={expr} fallback={…}>` | renders children only when granted; no DOM wrapper |
+| `<ConsentModeScript config cookie gpc nonce>` | the inline Consent Mode default script, for `<head>` |
+| `<ManageConsentButton>` | reopens the preferences dialog |
+
+Outside a provider — or when consent is disabled — `useConsent()` returns `ready: false`, `has: () => false` and no-op actions, so nothing throws.
+
+`has()` takes a category key or an expression: `has({ and: ['analytics', 'functional'] })`, `has({ or: [...] })`, `has({ not: 'marketing' })`.
+
+### `/next`
+
+| Export | What |
+| --- | --- |
+| `readConsent(source, config, gpc?)` | same resolver, for `await cookies()` |
+| `consentCookieValue(source, name)` | the raw cookie value, for `initialCookie` |
+| `gpcFromHeaders(headers)` | `true` when `sec-gpc: 1` |
+
+No `next` import — you pass the objects in, so it works in any runtime that has the same shape.
+
+## `@payload-solutions/consent-core`
+
+Framework-agnostic, zero dependencies.
+
+| Export | What |
+| --- | --- |
+| `createConsentStore(options)` | the store: `getState`, `subscribe`, `onChange`, `has`, `isRequired`, `acceptAll`, `rejectAll`, `withdraw`, `toggle`, `save`, `dismiss`, `open`, `close`, `refresh`, `destroy` |
+| `resolveConsent(cookie, config, opts?)` | the pure cookie + config + GPC → state function used on both sides |
+| `defaultDecisions(config, gpc)`, `nonRequiredKeys(config)`, `hasConsent(cookie, config, key, gpc?)` | resolution helpers |
+| `attachLoader(store, trackers, opts?)`, `injectTracker(tracker, opts?)` | script injection |
+| `consentModeDefaultScript`, `consentModeStateFrom`, `emitConsentModeDefault`, `emitConsentModeUpdate`, `ALL_CONSENT_MODE_SIGNALS` | Consent Mode |
+| `encodeConsentCookie`, `decodeConsentCookie`, `getCookieValue` | the cookie codec |
+| `resolveJurisdictionModel`, `countryFromHeaders`, `EEA_COUNTRIES`, `US_STATES`, `DEFAULT_JURISDICTION_OVERRIDES`, `DEFAULT_COUNTRY_HEADERS`, `DEFAULT_REGION_HEADERS` | jurisdiction |
+| `evaluateExpr` | the `and` / `or` / `not` expression evaluator |
+| `cookieStorage`, `memoryStorage` | storage adapters; `memoryStorage` is what tests want |
+| `DEFAULT_CATEGORIES`, `DEFAULT_BANNER`, `createTestConfig` | fixtures |
+
+`createTestConfig(overrides)` builds a valid `ConsentConfig` in one line, which makes unit-testing your banner trivial.
+
+## Events and attributes
+
+The store dispatches a DOM event on every committed decision:
+
+```ts
+window.addEventListener('consentchange', (e) => {
+  const { decisions, previous, source } = (e as CustomEvent).detail
+})
+```
+
+`store.onChange(fn)` is the same signal without the DOM.
+
+Markup the plugin emits carries stable hooks, which is what end-to-end tests should select on:
+
+| Attribute | On |
+| --- | --- |
+| `data-consent-tracker="<id>"` | every injected script |
+| `data-consent-mode` | the Consent Mode default script |
+| `data-consent-manage` | `ManageConsentButton` |
+| `data-consent-cookie-table`, `data-consent-group` | `CookieTable` |
+| `data-consent-policy-version` | the policy version block |
+| `data-lexical-table`, `data-lexical-table-container` | rich text tables |
+
+The registry banner adds `data-consent-banner`, `data-consent-preferences` and `data-consent-gate`.

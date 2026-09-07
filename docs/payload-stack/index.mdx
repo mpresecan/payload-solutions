@@ -11,7 +11,7 @@ Payload Stack is an open-source SaaS boilerplate on [Payload CMS](https://payloa
 - **UI** with Tailwind v4, shadcn/ui and [Better Auth UI](https://better-auth-ui.com) for auth screens, account and security settings, organization management and billing. The dashboard shell is shadcn's `sidebar-08`.
 - **Back office**: Payload's admin at `/admin` for users, organizations, subscriptions, content and support, with a tenant selector.
 - **Email** with React Email templates sent through Payload's email adapter.
-- **Content**: legal pages as a collection (seeded), media, rich text.
+- **Content**: legal pages as a collection (seeded), media with a storage adapter of your choice (Vercel Blob, S3, R2, Azure, GCS, Uploadthing), rich text.
 
 Everything product-specific is declared once in `src/stack.config.ts` and validated with zod. Turn organizations or billing off and the related UI, plugins and collections disappear.
 

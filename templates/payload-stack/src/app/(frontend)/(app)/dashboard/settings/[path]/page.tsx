@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
+import { BillingNotConfigured } from '@/components/auth/billing/billing-not-configured'
 import { Settings } from '@/components/auth/settings/settings'
+import { billingReady } from '@/lib/env'
 import stack from '@/stack.config'
 
 /**
@@ -28,7 +30,7 @@ export default async function SettingsPage({ params }: Params) {
   return (
     <div className="mx-auto w-full max-w-4xl">
       <h1 className="mb-6 text-2xl font-semibold tracking-tight">Settings</h1>
-      <Settings path={path} />
+      {path === 'billing' && !billingReady ? <BillingNotConfigured /> : <Settings path={path} />}
     </div>
   )
 }

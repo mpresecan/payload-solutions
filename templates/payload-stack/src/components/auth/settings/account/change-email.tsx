@@ -34,8 +34,9 @@ export function ChangeEmail({ className }: ChangeEmailProps) {
     onSuccess: () => toast.success(localization.settings.changeEmailSuccess)
   })
 
+  // Default values follow the loaded session; see organization-profile.tsx for why.
   const form = useAuthForm({
-    defaultValues: { email: "" },
+    defaultValues: { email: session?.user.email ?? "" },
     onSubmit: async ({ value }) =>
       await changeEmail({
         callbackURL: getViewURL(

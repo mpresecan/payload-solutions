@@ -1,0 +1,37 @@
+{
+  "extends": "../tsconfig.json",
+  "exclude": [],
+  "include": [
+    "**/*.js",
+    "**/*.jsx",
+    "**/*.mjs",
+    "**/*.cjs",
+    "**/*.ts",
+    "**/*.tsx",
+    "../src/**/*.ts",
+    "../src/**/*.tsx",
+    "next.config.mjs",
+    ".next/types/**/*.ts"
+  ],
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@payload-config": [
+        "./payload.config.ts"
+      ],
+      "@payload-solutions/plugin-consent": [
+        "../src/index.ts"
+      ],
+      "@payload-solutions/plugin-consent/rsc": [
+        "../src/exports/rsc.ts"
+      ],
+      "@payload-solutions/plugin-consent/server": [
+        "../src/exports/server.ts"
+      ]
+    },
+    "noEmit": true,
+    "emitDeclarationOnly": false,
+    "module": "ESNext",
+    "moduleResolution": "bundler"
+  }
+}

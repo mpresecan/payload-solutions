@@ -19,6 +19,31 @@ services:
       timeout: 5s
       retries: 10
 
+  # Throwaway databases for the test suites, so they never touch your dev data:
+  # `payload-stack-test` for `pnpm test:int` and `payload-stack-e2e` for `pnpm test:e2e`.
+  # Both URLs are already set in test.env.
+  #
+  # The data directory is tmpfs, so every `docker compose up` starts empty: the init script below
+  # runs each time, and Payload pushes the schema on boot.
+  postgres-test:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: payload-stack-test
+    ports:
+      - '5433:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    volumes:
+      - ./docker/init-test-databases.sh:/docker-entrypoint-initdb.d/init-test-databases.sh:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   mailpit:
     image: axllent/mailpit:latest
     restart: unless-stopped

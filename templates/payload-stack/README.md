@@ -19,6 +19,7 @@ npx create-payload-stack@latest
 | Admin | Payload's admin at `/admin` for users, organizations, subscriptions, content and support, with a tenant selector. |
 | Email | React Email templates sent through Payload's email adapter (Resend in production, console in development). |
 | Content | Legal pages as a Payload collection (seeded), rich text with Lexical, media uploads. |
+| Storage | Uploads on local disk by default; the CLI wires Vercel Blob, S3 (and S3-compatible), Cloudflare R2, Azure Blob, Google Cloud Storage or Uploadthing into `payload.config.ts`, switched on by environment variables. |
 | Config | `src/stack.config.ts` validated with zod; `src/lib/env.ts` validates environment variables at boot. |
 
 ## Getting started
@@ -75,7 +76,7 @@ Checkout, the customer portal, cancel and restore are handled by Better Auth's S
 ```
 src/
   stack.config.ts          product config
-  payload.config.ts        Payload: collections, plugins, db, email
+  payload.config.ts        Payload: collections, plugins, db, media storage, email
   collections/             Users, Organizations, Projects (example), Media, LegalPages
   access/                  shared access-control helpers
   tenancy/                 Better Auth memberships -> users.tenants bridge
@@ -96,7 +97,7 @@ src/
 
 ## Deploying
 
-Any Node host or Vercel. Set the environment variables from `.env.example`, use a managed PostgreSQL (or the database you chose when scaffolding), and run `pnpm db:migrate` as part of your deploy instead of relying on schema push.
+Any Node host or Vercel. Set the environment variables from `.env.example`, use a managed PostgreSQL (or the database you chose when scaffolding), point uploads at a storage adapter (local disk does not survive a redeploy on Vercel), and run `pnpm db:migrate` as part of your deploy instead of relying on schema push.
 
 ## License
 

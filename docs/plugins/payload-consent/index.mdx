@@ -1,0 +1,110 @@
+---
+title: Payload Consent
+description: Cookie categories, trackers, legal pages and consent records managed in the Payload admin. One source of truth for the banner, the script gating and the cookie policy.
+---
+
+Payload Consent is a consent management platform that lives inside your Payload admin instead of inside someone else's SaaS. Editors maintain one list of the cookies and scripts the site uses, and the plugin derives from it the three things that normally drift apart:
+
+- the **categories and copy in the consent banner**,
+- **which scripts actually load** after which decision,
+- the **"cookies we use" table** inside the cookie policy.
+
+Every decision is stored as a minimal, immutable consent record, which is the audit trail hosted consent tools sell as a paid tier. Nothing is fetched from a third-party CDN at runtime, so there is no extra vendor in your privacy policy and no consent banner that blocks rendering while it phones home.
+
+<Callout type="warn">
+Payload Consent helps you publish and enforce your privacy choices. It is not legal advice, and the seeded documents are a starting point, not a compliance guarantee. Have them reviewed for your jurisdiction and your actual data flows.
+</Callout>
+
+## Why it is one plugin and not three
+
+A cookie banner is easy. Keeping it honest is not. In most projects the banner lists four categories, the analytics snippet sits hard-coded in the layout, and the cookie policy is a Word document somebody pasted into a CMS two years ago. Adding a chat widget touches none of them, so the banner promises something the site does not do — which is the part regulators actually fine.
+
+Payload Consent removes the drift by making the tracker list the source of truth. Add Intercom in **Cookies & scripts**, pick its category, list its cookies, and the banner, the loader and the policy table all update from that one document. The version hash of that list is stored in the visitor's consent cookie, so when the list changes in a way you said should matter, the visitor is asked again, automatically.
+
+## How it fits together
+
+| Piece | Where it runs | What it does |
+| --- | --- | --- |
+| `consentPlugin()` | Payload config | adds the collections, the global, the endpoints, the seeds and the retention job |
+| `GET /api/consent/config` | your Payload API | one JSON document: categories, trackers, banner copy, versions, resolved jurisdiction |
+| `getConsentConfig(payload)` | Server Component | the same document through the local API, with no HTTP round trip |
+| `ConsentProvider` | browser | holds the store, writes the cookie, injects allowed scripts, emits Consent Mode updates |
+| `consent-banner` | your project | the banner and preferences dialog, copied in from the shadcn registry and yours to restyle |
+| `pl-consent` cookie | browser | ~180 bytes: the decisions plus the versions they were given for |
+
+The provider is given the config **and the cookie value read on the server**, so the first client render matches the server render exactly: no banner flash, no hydration mismatch, no layout shift.
+
+## Packages
+
+| Package | What it is |
+| --- | --- |
+| `@payload-solutions/plugin-consent` | the Payload plugin: collections, global, endpoints, seeds, retention job, server helpers, RSC components |
+| `@payload-solutions/consent-react` | React provider, hooks, `ConsentGate`, the Consent Mode script, Next.js server helpers |
+| `@payload-solutions/consent-core` | framework-agnostic store, cookie codec, jurisdiction model, script loader — used by both, and on its own for non-React frontends |
+| `consent-banner` (shadcn registry) | banner, preferences dialog and footer link, copied into your project |
+
+Only the plugin is required. If your frontend is not React, install `consent-core`, fetch the config endpoint and drive the store yourself.
+
+## Quick start
+
+```bash
+pnpm add @payload-solutions/plugin-consent @payload-solutions/consent-react
+```
+
+```ts title="payload.config.ts"
+import { consentPlugin } from '@payload-solutions/plugin-consent'
+
+export default buildConfig({
+  plugins: [
+    consentPlugin({
+      seed: {
+        company: {
+          name: 'Acme',
+          legalName: 'Acme Ltd',
+          address: '1 Main Street, Dublin, Ireland',
+          email: 'privacy@acme.com',
+          url: 'https://acme.com',
+          governingLaw: 'Ireland',
+        },
+        trackers: [{ key: 'ga4', vars: { measurementId: 'G-XXXXXXX' } }, 'stripe'],
+      },
+    }),
+  ],
+})
+```
+
+On first boot the plugin seeds four categories, the trackers you listed, and three legal pages — privacy policy, cookie policy with a live cookie table, and terms of service. From then on everything is edited in the admin under **Privacy**.
+
+<Cards>
+  <Card title="Installation" href="/docs/plugins/payload-consent/installation" description="Install, wire the frontend, add the banner, avoid the flash." />
+  <Card title="Admin guide" href="/docs/plugins/payload-consent/admin" description="What every screen and field does, written for whoever maintains the site." />
+  <Card title="Cookies & scripts" href="/docs/plugins/payload-consent/trackers" description="Tracker kinds, the loader, Consent Mode v2 and the built-in presets." />
+  <Card title="Configuration" href="/docs/plugins/payload-consent/configuration" description="Every plugin option with its default." />
+</Cards>
+
+## What you get out of the box
+
+- Four categories (`necessary`, `functional`, `analytics`, `marketing`) with sensible Google Consent Mode mappings.
+- Seventeen tracker presets, with their real cookie names and durations already filled in.
+- Jurisdiction detection from CDN country headers, with opt-in for the EEA, UK, Switzerland, Brazil and Canada and opt-out for the US, all overridable.
+- Global Privacy Control honoured under opt-out law.
+- Google Consent Mode v2 defaults emitted before any Google tag, and updates on every change.
+- Re-consent when your categories, trackers or legal documents change, driven by content hashes rather than a version number you have to remember to bump.
+- Anonymous consent records with a retention job, and per-user consent history when you want it.
+- Three seeded legal documents in Lexical, with tables, that editors can actually edit.
+
+## Requirements
+
+| Dependency | Version |
+| --- | --- |
+| Payload | 3.79 – 3.x (developed against 3.88) |
+| React | 18 or 19 |
+| Node | 18.20.2+ or 20.9+ |
+
+Any Payload database adapter works; the plugin uses only the local API. Localization is picked up automatically — if your config has `localization`, the visitor-facing fields become localized.
+
+## Status
+
+**0.1.0**, first public release. On the roadmap: an embed script for non-React sites, a banner preview in the admin, and a scanner CLI that diffs the cookies a page actually sets against the ones you declared.
+
+MIT licensed, part of [Payload Solutions](https://payload.solutions).

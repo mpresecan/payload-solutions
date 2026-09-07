@@ -17,6 +17,7 @@ import { admin, lastLoginMethod, magicLink, organization, twoFactor } from 'bett
 import Stripe from 'stripe'
 
 import type { BetterAuthOptions } from 'payload-auth/better-auth'
+import { authorizeSubscriptionReference } from '@/lib/auth/billing-authorization'
 import { env } from '@/lib/env'
 import { toStripePlans } from '@/lib/stack'
 import stack from '@/stack.config'
@@ -126,26 +127,7 @@ function plugins(): BetterAuthPlugin[] {
             plans: toStripePlans(stack),
             requireEmailVerification: stack.auth.requireEmailVerification,
             // Only owners and admins of an organization may manage its subscription.
-            authorizeReference: async ({ user, referenceId, session }) => {
-              if (referenceId === user.id) return true
-              const payload = await payloadClient()
-              const { toPayloadId } = await import('@/lib/ids')
-              const members = await payload.find({
-                collection: 'members',
-                where: {
-                  and: [
-                    { user: { equals: toPayloadId(payload, user.id) } },
-                    { organization: { equals: toPayloadId(payload, referenceId) } },
-                  ],
-                },
-                depth: 0,
-                limit: 1,
-                overrideAccess: true,
-              })
-              const role = members.docs[0]?.role
-              void session
-              return role === 'owner' || role === 'admin'
-            },
+            authorizeReference: authorizeSubscriptionReference,
           },
           organization: stack.billing.attachedTo === 'organization' ? { enabled: true } : undefined,
         }),

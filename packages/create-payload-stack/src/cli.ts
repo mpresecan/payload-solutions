@@ -15,6 +15,7 @@ import {
   type ProjectOptions,
   type SocialProvider,
 } from './options'
+import { STORAGE_ADAPTER_KEYS, STORAGE_CHOICES, STORAGE_KEYS, type StorageKey } from './storage'
 import { copyLocalTemplate, downloadTemplate } from './template'
 import { detectPackageManager, installCommand, isDirectoryEmpty, runCommand, slugify } from './utils'
 
@@ -37,6 +38,11 @@ function parseList<T extends string>(raw: string | undefined, allowed: readonly 
     if (!allowed.includes(item)) bail(`Unknown value "${item}" for ${flag}. Allowed: ${allowed.join(', ')}`)
   }
   return items
+}
+
+function listWords(items: readonly string[]) {
+  if (items.length <= 1) return items.join('')
+  return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`
 }
 
 export async function run(flags: CliFlags, positionalName?: string) {
@@ -144,6 +150,20 @@ export async function run(flags: CliFlags, positionalName?: string) {
     )
   }
 
+  // 7. Media storage
+  const storageFlag = flags.storage as StorageKey | undefined
+  if (storageFlag && !STORAGE_KEYS.includes(storageFlag)) bail(`Unknown value "${storageFlag}" for --storage. Allowed: ${STORAGE_KEYS.join(', ')}`)
+  const storage: StorageKey = storageFlag ?? (flags.defaults ? 'none' : guard(
+    await p.select<StorageKey>({
+      message: 'Media storage',
+      initialValue: 'none',
+      options: [
+        { value: 'none', label: 'Skip for now', hint: 'uploads go to ./media on local disk; add an adapter any time' },
+        ...STORAGE_ADAPTER_KEYS.map((key) => ({ value: key, label: STORAGE_CHOICES[key].label, hint: STORAGE_CHOICES[key].hint })),
+      ],
+    }),
+  ))
+
   const packageManager = flags.packageManager ?? (await detectPackageManager())
 
   const options: ProjectOptions = {
@@ -156,6 +176,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
     social,
     organizations,
     billing,
+    storage,
     packageManager,
     install: flags.install,
     git: flags.git,
@@ -213,6 +234,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
     ...(db === 'sqlite' ? [] : ['# start your database, then check DATABASE_URL in .env']),
     ...(social.length ? [`# add ${social.map((sp) => `${sp.toUpperCase()}_CLIENT_ID / _SECRET`).join(' and ')} to .env`] : []),
     ...(billing !== 'none' ? ['# add STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET and NEXT_PUBLIC_STRIPE_PRICE_* to .env when you are ready for billing'] : []),
+    ...(storage !== 'none' ? [`# add ${listWords(STORAGE_CHOICES[storage].envVars)} to .env to store uploads in ${STORAGE_CHOICES[storage].label} (local disk until then)`] : []),
     runCommand(packageManager, 'dev'),
     'open http://localhost:3000/admin',
   ]

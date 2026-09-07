@@ -37,9 +37,10 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "pnpm build && vitest run",
     "clean": "rm -rf dist .turbo",
-    "prepublishOnly": "pnpm build"
+    "prepublishOnly": "pnpm build",
+    "test:unit": "vitest run --exclude test/scaffold.test.ts"
   },
   "dependencies": {
     "@clack/prompts": "^1.7.0",

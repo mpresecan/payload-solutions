@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
+import { BillingNotConfigured } from '@/components/auth/billing/billing-not-configured'
 import { Organization } from '@/components/auth/organization/organization'
+import { billingReady } from '@/lib/env'
 import stack from '@/stack.config'
 
 /**
@@ -33,7 +35,7 @@ export default async function OrganizationPage({ params }: Params) {
   return (
     <div className="mx-auto w-full max-w-4xl">
       <h1 className="mb-6 text-2xl font-semibold tracking-tight">Organization</h1>
-      <Organization path={path} />
+      {path === 'billing' && !billingReady ? <BillingNotConfigured /> : <Organization path={path} />}
     </div>
   )
 }
