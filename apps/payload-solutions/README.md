@@ -21,12 +21,27 @@ The first admin user is created at `/admin` (Payload's native auth). Products, p
 
 ## Environment
 
-| Variable | Purpose |
-| --- | --- |
-| `DATABASE_URL` | Postgres connection string (required, also at build time: the homepage is prerendered) |
-| `PAYLOAD_SECRET` | Payload secret (required) |
-| `NEXT_PUBLIC_SITE_URL` | Public origin, `https://payload.solutions` in production |
-| `RESEND_API_KEY` | Optional. Enables email; contact notifications go to `CONTACT_NOTIFY_EMAIL` |
+| Variable               | Purpose                                                                                |
+| ---------------------- | -------------------------------------------------------------------------------------- |
+| `DATABASE_URL`         | Postgres connection string (required, also at build time: the homepage is prerendered) |
+| `PAYLOAD_SECRET`       | Payload secret (required)                                                              |
+| `NEXT_PUBLIC_SITE_URL` | Public origin, `https://payload.solutions` in production                               |
+| `RESEND_API_KEY`       | Optional. Enables email; contact notifications go to `CONTACT_NOTIFY_EMAIL`            |
+
+## Database and deployment
+
+Development pushes the schema straight to the database; production runs migrations from `src/migrations`.
+Create one whenever a collection or field changes, and commit it:
+
+```bash
+pnpm --filter @payload-solutions/web db:migrate:create <name>   # after changing collections
+pnpm --filter @payload-solutions/web db:migrate:status
+pnpm --filter @payload-solutions/web db:migrate:fresh           # rebuild a local database from the migrations (drops data)
+```
+
+Vercel builds with `turbo run ci` (set in `vercel.json`), which is `db:migrate && build`: the tables exist
+before the homepage is prerendered. Plain `build` never touches the database, so local builds stay pure.
+Uploads still need a storage adapter before `media` is usable in production; Vercel's filesystem is read-only.
 
 ## Docs
 

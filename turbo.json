@@ -16,6 +16,19 @@
       ],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
+    "ci": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": [
+        "PAYLOAD_SECRET",
+        "NEXT_PUBLIC_SITE_URL",
+        "RESEND_API_KEY",
+        "CONTACT_NOTIFY_EMAIL",
+        "DATABASE_*"
+      ],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+    },
     "dev": {
       "cache": false,
       "persistent": true

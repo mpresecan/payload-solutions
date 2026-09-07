@@ -41,6 +41,12 @@ export default buildConfig({
     : undefined,
   sharp,
   onInit: async (payload) => {
-    await seed(payload)
+    // Seeding must never take the app down: a transient database error, or two cold starts
+    // racing on the first insert, would otherwise fail init for every request.
+    try {
+      await seed(payload)
+    } catch (err) {
+      payload.logger.error({ err }, 'Seeding skipped')
+    }
   },
 })

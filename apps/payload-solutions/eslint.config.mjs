@@ -14,7 +14,7 @@ const eslintConfig = [
   },
   {
     // Generated code and Payload's own admin route files.
-    ignores: ['.next/', '.source/', 'src/payload-types.ts', 'src/app/(payload)/admin/importMap.js'],
+    ignores: ['.next/', '.source/', 'src/migrations/', 'src/payload-types.ts', 'src/app/(payload)/admin/importMap.js'],
   },
 ]
 
