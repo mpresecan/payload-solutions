@@ -1,0 +1,185 @@
+---
+title: Legal audit
+description: Check your legal pages against your own configuration and the disclosures the law lists — a deterministic scan, an MCP server your own AI agent drives, and drafts that land as drafts.
+---
+
+Legal pages rot quietly. Someone adds Sentry on a Tuesday, and the privacy policy still lists the recipients it listed in March. A seeded template goes live with "Acme Ltd" in the contact block. The Polish translation exists, but nobody noticed it never got the cookie table. None of that shows up in a test suite, and none of it shows up in production either — until it does.
+
+`payload-consent` is a CLI and an MCP server that check for exactly this. It compares what your documents *say* against what your project *is*: the trackers you configured, the processors you registered, the dependencies in `package.json`, the fields in your Payload schema.
+
+<Callout type="warn">
+This is not legal advice and it does not tell you whether your business is lawful. It tells you where your documents and your configuration disagree, and where a disclosure the law lists is missing from the text.
+</Callout>
+
+## The one distinction that matters
+
+Every finding is either **checked by code** or **judged by a model**, and the report says which.
+
+A deterministic finding is proved: the string `{{cookie-table}}` is sitting in the published text as literal text; seven processor rows have `verified = false`; the site has a `pl` locale and the privacy policy has no `pl` version. There is nothing to second-guess.
+
+An inferred finding is a judgement about prose — whether the privacy policy actually states a retention period, whether the DPA carries all eight Art. 28(3) clauses. Those are the questions code cannot answer, so a model answers them, and every one of them must **quote the text it is about** or the tool rejects it.
+
+Keeping the two apart is what makes the report worth reading. It is also why the scan is useful on its own, with no model involved at all.
+
+## Install
+
+The CLI ships with the plugin. From your project root:
+
+```bash
+npx payload-consent init
+```
+
+That writes three things: an MCP server entry (`.mcp.json`, or `.cursor/mcp.json` for Cursor), the legal skill into `.claude/skills/payload-consent-legal/`, and a short section in `AGENTS.md` so agents that read neither still get the rules.
+
+There is no API key to set, and no model to choose.
+
+## `payload-consent scan`
+
+The deterministic half. No model, no network, no key.
+
+```bash
+npx payload-consent scan
+npx payload-consent scan --md audit.md --json audit.json
+npx payload-consent scan --fail-on blocker   # for CI
+npx payload-consent scan --save              # also store it in the admin
+```
+
+It connects to your database the way Payload does, so it works **before you launch**, against drafts, which is when it is most useful.
+
+### What it checks
+
+| Area | Findings |
+| --- | --- |
+| **Seeds** | template tokens printed literally, unfilled placeholders (`[COMPANY]`, "your company", `example.com`, the sample company), the "review before publishing" notice still in a published page |
+| **Processor register** | rows nobody verified against a contract, non-EEA processing with no Chapter V mechanism, recipients/transfers/sub-processor/annex tables missing from the pages that should render them |
+| **Vendors** | anything wired into the project — a dependency in `package.json`, a configured environment variable — that appears in no processor row |
+| **Trackers** | trackers with no category (they never load), cookies with no duration, trackers with no purpose, a cookie policy that renders no generated table while trackers exist |
+| **Pages** | a required document that does not exist, a page that has only ever been a draft, content edited after its effective date, duplicate published pages of one kind |
+| **Locales** | a configured locale with no version of a page, and translations of one page that render different generated blocks |
+| **Banner** | no link to the privacy or cookie policy, a link pointing at a draft or at the wrong kind of page, "reject all" switched off while an opt-in jurisdiction is active |
+| **Data map** | categories of personal data present in your Payload schema that no recipient row accounts for, and special category data anywhere |
+| **Profile** | legal facts nobody has answered yet |
+
+### The data map
+
+The interesting one. Rather than asking you to maintain a record of processing that goes stale in month three, the scan derives it:
+
+- **Dependencies** — `stripe`, `@sentry/*`, `resend`, `@payloadcms/storage-s3` and friends map to processor presets.
+- **Environment variable names** — only the names, never the values, and only from the project's own `.env*` files. The shell you happen to be running in is not evidence about your client's project.
+- **Your Payload schema** — field names across every collection are matched against personal-data patterns, so `users.email` becomes contact data, an `ip` field becomes technical data, and a field called `diagnosis` is flagged as special category data needing an Art. 9 condition.
+
+Consent records are never read. They are real personal data, they are excluded by design, and nothing about them reaches a model.
+
+## The MCP server
+
+```bash
+npx payload-consent mcp                  # read-only
+npx payload-consent mcp --allow-drafts   # may save drafts
+```
+
+Your agent connects and gets ten tools:
+
+| Tool | What it does |
+| --- | --- |
+| `consent_scan` | the deterministic findings — run first, treat as settled |
+| `consent_data_map` | what the application stores and which vendors it reaches |
+| `consent_list_pages` | every page, kind, locale, status and effective date |
+| `consent_read_page` | one page as **markdown**, with `{{…}}` tokens for generated tables |
+| `consent_registry` | settings, categories, trackers, processors |
+| `consent_checklist` | the requirements for a page kind, with citations and the locale's glossary |
+| `consent_profile` | read the compliance profile, or record answers to its questions |
+| `consent_propose` | validate a markdown draft and write it to a file — never the database |
+| `consent_report` | store the audit where non-developers can read it |
+| `consent_apply` | save proposals as draft versions, if writing is enabled |
+
+### Markdown, not Lexical
+
+`consent_read_page` returns markdown, and `consent_propose` takes markdown back. Generated tables travel as the same tokens the seed templates use — `{{cookie-table}}`, `{{processor-table:recipients}}`, `{{processor-table:annex}}`, `{{policy-version}}` — and go back through the same converter the seeds go through.
+
+So the agent reads and writes the format the documents were authored in. Nobody asks a model to emit Lexical JSON, which it will do plausibly and wrongly.
+
+## The compliance profile
+
+**Consent settings → Compliance profile** is a different thing from the Jurisdictions tab. Jurisdictions describe the *visitor's* law — which consent model to show whom. The compliance profile describes *your* obligations: who the controller is, on what basis you process, how long you keep things, whether a DPO exists.
+
+These are facts a model must never invent. A plausible guess is worse than a blank, because a blank gets noticed and a plausible guess gets published.
+
+So the agent asks. It is already in a terminal with you, so it puts the questions one at a time, with the reason the law needs each one:
+
+> Article 13(2)(a) says a privacy policy has to give either a retention period or the criteria that decide it — "as long as necessary" on its own has been held not to satisfy it. So: how long do you keep an account after someone closes it?
+
+Answers are recorded through `consent_profile` with a timestamp and an attribution, so the next run does not ask again, and a reviewer can see where the fact came from.
+
+<Callout>
+This is enforced, not merely requested. `consent_propose` **refuses** a draft for a document whose checklist depends on an unanswered question, and hands back the questions to ask. The skill tells the agent to ask rather than guess; this is what happens when it guesses anyway.
+</Callout>
+
+You can also fill the profile in by hand in the admin, or list what is missing with `npx payload-consent profile`.
+
+## Language
+
+A localised page is a document in that language, not a translation of the English one.
+
+The tools return, per locale, the terminology the official text of the Regulation uses in that language — and the false friends that give a machine translation away: Polish *kontroler* where the Regulation says **administrator**, Croatian *pristanak* where it says **privola**, German *Kontrolleur* where it says **Verantwortlicher**. Italian is the sharpest trap: *responsabile del trattamento* is the **processor**, and a document that maps "responsible" to "controller" has inverted the whole legal relationship.
+
+Glossaries ship for English, German, French, Spanish, Italian, Dutch, Polish, Portuguese, Croatian, Czech, Swedish and Danish. For any other language the tools say so, and tell the agent to take the terms from the official text rather than translating from English.
+
+The skill's rules: never translate a page into English to reason about it, draft in the page's own language, and when the English changes report the other locales as stale rather than quietly machine-translating them.
+
+## Drafting and applying
+
+Nothing an agent produces goes near your published documents.
+
+1. `consent_propose` validates a draft and writes it to `.consent/proposals/`. It rejects unknown tokens, re-introduced placeholders, and anything depending on an unanswered legal fact. It returns a diff.
+2. You read the diff.
+3. `payload-consent apply --allow-drafts` — or `consent_apply`, if the server was started with that flag — saves it as a **draft version** of the page.
+4. A person publishes it in the admin. Nothing else can.
+
+```bash
+npx payload-consent apply --dry-run       # validate and diff
+npx payload-consent apply --allow-drafts  # save as draft versions
+```
+
+Draft versions record which agent and model produced them.
+
+## Stored audits
+
+With `audits: true` (the default), `--save` and `consent_report` write the run into a `consent-audits` collection.
+
+Read access is `access.manage` — deliberately unlike legal pages, which are public. An audit is an inventory of your own gaps and is not a public document.
+
+The point is the people who actually fix these things. A developer reads a terminal; the person who resolves "the privacy policy never states a retention period" is usually a founder or an editor who will not open one. So the findings live in the admin, and **acceptance lives on the finding**: status, a required reason, who decided and when.
+
+That reason is not bureaucracy. An ignore file in a repo is a list of things somebody silenced; a dated record of who accepted which risk and why is the kind of thing you want to have when someone asks how you assessed your compliance. Accepted findings carry forward to the next run and stop counting towards the totals.
+
+## Configuration
+
+```ts
+consentPlugin({
+  audits: true,                    // the stored-audits collection; default true
+  slugs: { audits: 'legal-audits' },
+})
+```
+
+Everything else is CLI flags. There is nothing to configure about models, because there are none.
+
+## Continuous integration
+
+```yaml
+- run: npx payload-consent scan --fail-on blocker --quiet
+```
+
+The scan needs a database — most of the checks are comparisons between the documents and the configuration, and without the documents there is nothing to compare against. Facts with no claims to check them against produce noise, and noise in a compliance tool teaches people to ignore it. Point it at your preview or branch database; it does not need anything published.
+
+## Why there is no `--model` flag
+
+The package contains no model code, no AI SDK and no provider list. Model-agnostic here is the absence of a wrapper, not a wrapper over four providers.
+
+The agent is the one you are already running and already paying for — Claude Code, Cursor, Codex, Gemini CLI, whatever replaces them next year. It connects over MCP, reads a skill, and calls tools that are all deterministic. Nothing here has to be updated when a provider changes an endpoint, and your legal text never passes through a vendor you did not choose.
+
+## What it will not do
+
+- Publish anything. Draft versions are the boundary.
+- Read your consent records.
+- Read the values of your environment variables.
+- Tell you that you are compliant. It can tell you what your documents disclose and what they do not.

@@ -2,7 +2,9 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { resendAdapter } from '@payloadcms/email-resend'
 import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
+import { sentryPlugin } from '@payloadcms/plugin-sentry'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import * as Sentry from '@sentry/nextjs'
 // storage-adapter-import
 import path from 'path'
 import { buildConfig, type Field, type Plugin } from 'payload'
@@ -18,7 +20,7 @@ import { Projects } from '@/collections/Projects'
 import { Users } from '@/collections/Users'
 import { ADMIN_ROLES, ROLES, betterAuthOptions } from '@/lib/auth/options'
 import { silenceKnownPayloadAuthWarnings } from '@/lib/auth/payload-auth-workarounds'
-import { env } from '@/lib/env'
+import { env, sentryReady } from '@/lib/env'
 import { seedLegalPages } from '@/seed/legal'
 import stack from '@/stack.config'
 import { TENANT_SCOPED_COLLECTIONS, withTenantCleanup } from '@/tenancy/cleanup'
@@ -124,7 +126,27 @@ if (stack.features.organizations) {
   )
 }
 
-// 3. Media storage (the CLI writes your choice here; keep the markers so it can be swapped again).
+// 3. Error monitoring. The official Payload plugin reports admin and API failures (500s by
+// default) through the same SDK instance the rest of the app uses, so Payload's errors and the
+// app's arrive in one project with one trail of breadcrumbs. Skipped entirely without a DSN.
+if (sentryReady) {
+  plugins.push(
+    sentryPlugin({
+      Sentry,
+      options: {
+        // 404s and permission denials are normal traffic, not incidents: 500s only by default.
+        // Add codes here (e.g. [401, 403]) if you want them tracked.
+        captureErrors: [],
+        context: ({ defaultContext }) => ({
+          ...defaultContext,
+          tags: { ...defaultContext.tags, source: 'payload' },
+        }),
+      },
+    }),
+  )
+}
+
+// 4. Media storage (the CLI writes your choice here; keep the markers so it can be swapped again).
 // storage-adapter-config-start
 // Local disk (./media): fine for development, lost on redeploy on Vercel and other ephemeral hosts.
 // Move uploads to Vercel Blob, S3, R2, Azure, GCS or Uploadthing: https://payload.solutions/docs/payload-stack/storage

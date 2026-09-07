@@ -39,6 +39,20 @@ const schema = z.object({
   DISCORD_CLIENT_ID: optionalString,
   DISCORD_CLIENT_SECRET: optionalString,
 
+  // Error monitoring. Without SENTRY_DSN nothing is initialised and no SDK is downloaded by the
+  // browser: the app reports to the console in development and to nothing in production.
+  // A self-hosted Sentry or a GlitchTip DSN works here unchanged.
+  SENTRY_DSN: optionalString,
+  NEXT_PUBLIC_SENTRY_DSN: optionalString,
+  /** Overrides observability.environment from stack.config.ts (set this per deployment). */
+  SENTRY_ENVIRONMENT: optionalString,
+  /** Release identifier, normally the git sha. CI sets this so stack traces map to source. */
+  SENTRY_RELEASE: optionalString,
+  // Build-time only: uploading source maps and wrapping the build (see next.config.ts).
+  SENTRY_ORG: optionalString,
+  SENTRY_PROJECT: optionalString,
+  SENTRY_AUTH_TOKEN: optionalString,
+
   // Media storage. Only the adapter wired into payload.config.ts reads its variables; without them
   // uploads stay on local disk (./media).
   BLOB_READ_WRITE_TOKEN: optionalString,
@@ -89,3 +103,13 @@ export function requireEnv<K extends keyof Env>(key: K, why: string): NonNullabl
  * client, and the billing pages explain what is missing instead of rendering the checkout UI.
  */
 export const billingReady = Boolean(env.STRIPE_SECRET_KEY && env.STRIPE_WEBHOOK_SECRET)
+
+/**
+ * Error monitoring is wired up only when a DSN is present. stack.config.ts sets the policy
+ * (sampling, PII); this decides whether anything is sent at all, so a fresh clone, a preview build
+ * and CI stay silent without any config edits.
+ */
+export const sentryReady = Boolean(env.SENTRY_DSN)
+
+/** Source map upload and the build-time wrapper need the project coordinates as well as the DSN. */
+export const sentryBuildReady = Boolean(env.SENTRY_ORG && env.SENTRY_PROJECT && env.SENTRY_AUTH_TOKEN)

@@ -43,6 +43,7 @@
   "types": "./src/index.ts",
   "files": [
     "dist",
+    "bin.js",
     "README.md"
   ],
   "scripts": {
@@ -50,7 +51,7 @@
     "build:swc": "swc ./src -d ./dist --config-file .swcrc --strip-leading-paths",
     "build:types": "tsc --outDir dist --rootDir ./src",
     "clean": "rimraf {dist,*.tsbuildinfo,.turbo,dev/.next}",
-    "copyfiles": "copyfiles -u 1 \"src/**/*.{html,css,scss,ttf,woff,woff2,eot,svg,jpg,png,json}\" dist/",
+    "copyfiles": "copyfiles -u 1 \"src/**/*.{html,css,scss,ttf,woff,woff2,eot,svg,jpg,png,json,md}\" dist/",
     "dev": "next dev dev --webpack",
     "dev:generate-importmap": "pnpm dev:payload generate:importmap",
     "dev:generate-types": "pnpm dev:payload generate:types",
@@ -130,5 +131,8 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts"
   },
-  "registry": "https://registry.npmjs.org/"
+  "registry": "https://registry.npmjs.org/",
+  "bin": {
+    "payload-consent": "bin.js"
+  }
 }

@@ -66,6 +66,11 @@ export default defineStack({
     ],
   },
 
+  observability: {
+    tracesSampleRate: 0.1,
+    sendPII: false,
+  },
+
   legal: {
     company: 'Example Software Ltd',
     jurisdiction: 'Ireland',

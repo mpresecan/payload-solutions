@@ -112,6 +112,28 @@ const stackSchema = z.strictObject({
     ])
     .default({ provider: 'none' }),
 
+  /**
+   * Error monitoring policy — what you send and how much of it. The destination is infrastructure
+   * and lives in .env (SENTRY_DSN, or whatever your own adapter reads), never here: this file is
+   * imported on the client.
+   */
+  observability: z
+    .strictObject({
+      /** Fraction of info / warning / debug events reported. Errors and fatals are never sampled. */
+      sampleRate: z.number().min(0).max(1).default(1),
+      /** Fraction of requests traced, when the provider does tracing. Lower this before it costs money. */
+      tracesSampleRate: z.number().min(0).max(1).default(0.1),
+      /**
+       * Attach names, emails and IP addresses to events. Off by default: with it off, error
+       * monitoring carries no personal data, which is what lets you run it on legitimate interest
+       * rather than behind the consent banner. Turn it on and say so in your privacy policy.
+       */
+      sendPII: z.boolean().default(false),
+      /** Environment label on every event. Defaults to NODE_ENV. */
+      environment: z.string().optional(),
+    })
+    .prefault({}),
+
   legal: z.strictObject({
     company: z.string().min(1),
     jurisdiction: z.string().min(1),

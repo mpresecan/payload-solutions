@@ -10,6 +10,7 @@ export type ConsentPluginSlugs = {
   records: CollectionSlug
   legalPages: CollectionSlug
   processors: CollectionSlug
+  audits: CollectionSlug
 }
 export type ConsentPluginSlugInput = Partial<Record<keyof ConsentPluginSlugs, string>>
 
@@ -122,6 +123,11 @@ export type ConsentPluginOptions = {
    * Art. 28(2). Default true.
    */
   processors?: boolean
+  /**
+   * Enable the stored legal audits collection, so `payload-consent scan` can write its report
+   * where non-developers can read it. Admin-only, never public. Default true.
+   */
+  audits?: boolean
   /** Who may manage consent settings, categories, trackers and read records. Default: any authenticated user. */
   access?: { manage?: Access }
   cookie?: { name?: string; domain?: string; sameSite?: 'lax' | 'strict' }
@@ -178,6 +184,7 @@ export const DEFAULT_SLUGS: ConsentPluginSlugs = {
   records: 'consent-records' as CollectionSlug,
   legalPages: 'legal-pages' as CollectionSlug,
   processors: 'consent-processors' as CollectionSlug,
+  audits: 'consent-audits' as CollectionSlug,
 }
 
 export function resolveOptions(options: ConsentPluginOptions = {}): ResolvedConsentPluginOptions {
@@ -190,6 +197,7 @@ export function resolveOptions(options: ConsentPluginOptions = {}): ResolvedCons
     usersSlug: options.usersSlug === undefined ? 'users' : options.usersSlug,
     legalPages: options.legalPages ?? true,
     processors: options.processors ?? true,
+    audits: options.audits ?? true,
     access: { manage },
     cookie: { name: options.cookie?.name ?? 'pl-consent', domain: options.cookie?.domain, sameSite: options.cookie?.sameSite ?? 'lax' },
     jurisdiction: {

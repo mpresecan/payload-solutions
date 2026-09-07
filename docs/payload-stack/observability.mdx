@@ -1,0 +1,112 @@
+---
+title: Observability
+description: Error monitoring through a provider-agnostic port — Sentry, a self-hosted alternative, or your own adapter.
+---
+
+Every error in a Payload Stack project is reported through one small interface in `src/lib/observability`, never through a vendor SDK directly. Nothing is sent until you set a DSN: with no provider configured the browser downloads no SDK at all, and the server logs to the console in development and to nothing in production.
+
+Sentry is wired up out of the box because it is the one provider whose Next.js integration also handles source maps and the build. Swapping it for something else means writing one file.
+
+## Turning it on
+
+```bash
+SENTRY_DSN=https://<key>@<host>/<project>
+NEXT_PUBLIC_SENTRY_DSN=https://<key>@<host>/<project>
+```
+
+That is enough for server and browser error reporting. Two further variables unlock the build-time half — readable stack traces and client instrumentation:
+
+```bash
+SENTRY_ORG=your-org
+SENTRY_PROJECT=your-project
+SENTRY_AUTH_TOKEN=sntrys_...
+```
+
+Without them the build is untouched: `next.config.ts` skips the wrapper entirely. In CI, set `SENTRY_RELEASE` to the commit sha so a stack trace points at the line of source that produced it.
+
+| Variable | Needed for | Where it is read |
+| --- | --- | --- |
+| `SENTRY_DSN` | server reporting | `src/instrumentation.ts`, `src/payload.config.ts` |
+| `NEXT_PUBLIC_SENTRY_DSN` | browser reporting | `src/instrumentation-client.ts` |
+| `SENTRY_ENVIRONMENT` | labelling deployments | `src/instrumentation.ts` |
+| `SENTRY_RELEASE` | mapping traces to a commit | build and runtime |
+| `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | source map upload | `next.config.ts` (build only) |
+
+`sentry.io`, a self-hosted Sentry and [GlitchTip](https://glitchtip.com) all speak the same protocol, so the DSN is the only thing that changes between them. Self-hosting is a config value here, not a fork.
+
+## Policy lives in stack.config.ts
+
+The destination is infrastructure and lives in `.env`. What you send, and how much of it, is product configuration:
+
+```ts
+observability: {
+  sampleRate: 1,          // info / warning / debug events. Errors are never sampled away.
+  tracesSampleRate: 0.1,  // fraction of requests traced, when the provider does tracing
+  sendPII: false,         // attach names, emails and IP addresses to events
+  // environment: 'production',
+}
+```
+
+`sendPII: false` is the default and it matters legally as much as technically. With it off, error monitoring carries no personal data and sets no cookies, which is what lets you run it under legitimate interest rather than behind a consent banner. Turn it on and you have taken on a disclosure: say so in your privacy policy, and gate it with the rest of your consent categories. Scrubbing is enforced in the facade rather than in each adapter, so a provider you add later inherits it automatically.
+
+## Reporting from your own code
+
+```ts
+import { captureError, captureMessage, withErrorReporting } from '@/lib/observability'
+
+captureError(error, { source: 'invite-flow', tags: { plan: 'team' }, extra: { orgId } })
+captureMessage('Stripe webhook arrived out of order', 'warning')
+
+export const POST = withErrorReporting('stripe-webhook', async (request) => { ... })
+```
+
+`withErrorReporting` reports, flushes and rethrows, so your own error handling is unchanged. The flush matters: serverless runtimes freeze the moment a response is written, and anything still buffered is lost.
+
+Three things are wired for you already:
+
+- **`src/instrumentation.ts`** exports Next.js's `onRequestError`, so every uncaught server error — server components, route handlers, server actions, middleware — is reported once, centrally.
+- **`error.tsx` and `global-error.tsx`** report render and hydration errors, and show the user the `digest` so they can quote a reference that you can search for.
+- **`@payloadcms/plugin-sentry`** reports Payload's own failures (500s by default) through the same SDK instance, so the admin panel, the REST API and the app land in one project with one trail of breadcrumbs. Add status codes to `captureErrors` in `payload.config.ts` if you want 401s and 403s too.
+
+## Using another provider
+
+An adapter is an object with a `captureError` method. Everything else — `captureMessage`, `identify`, `startSpan`, `flush` — is optional, and the facade degrades when it is missing.
+
+```ts
+// src/lib/observability/adapters/my-provider.ts
+import type { ObservabilityAdapter } from '../types'
+
+export const myAdapter: ObservabilityAdapter = {
+  name: 'my-provider',
+  captureError(error, context) {
+    void fetch('https://ingest.example.com/errors', {
+      method: 'POST',
+      body: JSON.stringify({ message: String(error), ...context }),
+      keepalive: true,
+    })
+  },
+}
+```
+
+Register it from `src/instrumentation.ts` (server) and `src/instrumentation-client.ts` (browser) in place of the Sentry adapter:
+
+```ts
+import { setObservabilityAdapter } from '@/lib/observability/registry'
+import { myAdapter } from '@/lib/observability/adapters/my-provider'
+
+export async function register() {
+  setObservabilityAdapter(myAdapter)
+}
+```
+
+`src/lib/observability/adapters/custom.ts` ships as a working starting point: a batching HTTP adapter you point at any ingest endpoint.
+
+Attribute names follow [OpenTelemetry semantic conventions](https://opentelemetry.io/docs/specs/semconv/) (`http.request.method`, `url.path`, `user.id`) rather than a vocabulary of ours, so an OTLP collector, PostHog, Highlight or Axiom adapter is a mapping exercise rather than a translation.
+
+## What this does not cover
+
+Error reporting only. Metrics dashboards, uptime checks and log shipping are deliberately out of the template:
+
+- **Traces and metrics** — Next.js supports OpenTelemetry natively. Add `@vercel/otel` in `register()` and point `OTEL_EXPORTER_OTLP_ENDPOINT` at Grafana Cloud, Honeycomb, Axiom, SigNoz, Dash0 or your own collector. Vendor-neutral by construction, so there is nothing for the template to abstract.
+- **Logs** — Payload runs on [pino](https://getpino.io). Pass `loggerOptions` with a transport in `payload.config.ts` and Payload's logs and yours ship together to Better Stack, Axiom, Loki or Datadog without touching application code.
+- **Uptime** — an external concern by definition. Point any checker at your deployment.

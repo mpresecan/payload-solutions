@@ -40,7 +40,35 @@ export default buildConfig({
 | `GET /api/consent/records/me` | endpoint | the logged-in user's consent history |
 | `GET /api/consent/subprocessors` | endpoint | the published sub-processor list, its version and change log |
 | `consentPurgeRecords` | job task | retention purge |
+| `consent-audits` | collection (optional) | stored legal audits, **admin-only**, with per-finding acceptance and a required reason |
 | `ConsentOverview` | admin component | dashboard widget (`@payload-solutions/plugin-consent/rsc#ConsentOverview`) |
+| `payload-consent` | CLI + MCP server | the legal audit: `init`, `scan`, `mcp`, `apply`, `profile` |
+
+## Legal audit
+
+```bash
+npx payload-consent init    # MCP server entry, the legal skill, AGENTS.md
+npx payload-consent scan    # deterministic checks: no model, no network, no API key
+```
+
+`scan` compares your documents against your own configuration and proves what it finds: template
+tokens printed literally, processor rows nobody verified, a locale with no translation, a vendor
+in `package.json` that appears in no recipients table, personal data in your Payload schema that
+the register does not account for. It needs a database but not published pages, so the best time
+to run it is before launch.
+
+`mcp` starts a stdio MCP server your own agent drives — Claude Code, Cursor, Codex, whatever you
+already use. **The package contains no model code and no AI SDK**: model-agnostic here is the
+absence of a wrapper, not a wrapper over four providers. The agent reads pages as markdown (with
+`{{cookie-table}}`-style tokens for generated tables), walks a checklist with citations, and must
+quote the text behind every judgement it reports.
+
+Legal facts — the controller's identity, the legal basis per purpose, retention periods — are
+never invented. The agent asks you in the terminal and records the answer on the compliance
+profile; `consent_propose` **refuses** any draft that depends on an unanswered question. Drafts
+land as draft versions of the page and are never published.
+
+Full documentation: **https://payload.solutions/docs/plugins/payload-consent/audit**
 
 ## Frontend
 
@@ -94,6 +122,7 @@ This package follows the [Payload plugin template](https://github.com/payloadcms
 cp dev/.env.example dev/.env       # SQLite file, no external services
 pnpm dev                           # http://localhost:3000 (frontend demo) and /admin (dev@payloadcms.com / test)
 pnpm test:int                      # vitest against a real Payload instance (throwaway SQLite)
+PAYLOAD_CONFIG_PATH=$PWD/dev/payload.config.ts node bin.js scan   # the CLI against the dev app
 pnpm test:e2e                      # Playwright: admin login, banner flow, cookie table (run `pnpm exec playwright install chromium` once)
 pnpm build                         # tsc declarations + swc to dist/
 pnpm generate:types                # after changing collections

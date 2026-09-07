@@ -1,5 +1,6 @@
 import type { Config, Plugin } from 'payload'
 
+import { createAuditsCollection } from './collections/audits.js'
 import { createCategoriesCollection } from './collections/categories.js'
 import { createLegalPagesCollection } from './collections/legal-pages.js'
 import { createProcessorsCollection } from './collections/processors.js'
@@ -27,6 +28,10 @@ export { CookieTableBlock, PolicyVersionBlock, ProcessorTableBlock } from './blo
 export { TRACKER_PRESETS } from './seed/presets.js'
 export { PROCESSOR_PRESETS } from './seed/processor-presets.js'
 export { legalPagesEditor } from './collections/legal-pages.js'
+export { CHECKLISTS, TERMINOLOGY, checklistFor, terminologyFor } from './audit/checklists.js'
+export { FINDING_CODES } from './audit/findings.js'
+export { PROFILE_QUESTIONS } from './audit/profile.js'
+export type { Finding, ScanResult, Severity } from './audit/types.js'
 export { PURGE_TASK_SLUG }
 
 const registry = new WeakMap<object, ResolvedConsentPluginOptions>()
@@ -58,6 +63,7 @@ export const consentPlugin =
       createRecordsCollection(options),
       ...(options.legalPages ? [createLegalPagesCollection(options, localized)] : []),
       ...(options.processors ? [createProcessorsCollection(options, localized)] : []),
+      ...(options.audits ? [createAuditsCollection(options)] : []),
     ]
 
     const jobs = config.jobs ?? {}

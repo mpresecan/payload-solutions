@@ -2,6 +2,7 @@ import type { GlobalConfig } from 'payload'
 
 import { DEFAULT_BANNER } from '@payload-solutions/consent-core'
 
+import { complianceTab } from './compliance.js'
 import { localize } from '../fields.js'
 import type { ResolvedConsentPluginOptions } from '../types.js'
 import { invalidateConfigCache } from '../config-cache.js'
@@ -285,6 +286,7 @@ export function createSettingsGlobal(options: ResolvedConsentPluginOptions, loca
             ],
           },
           ...(options.processors ? [processorsTab] : []),
+          complianceTab(options),
           {
             label: 'Versions',
             fields: [

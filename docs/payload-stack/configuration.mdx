@@ -110,6 +110,17 @@ Each plan:
 | `trialDays` | Free trial length. |
 | `limits` | Free-form numbers your code can enforce, e.g. `{ projects: 10 }`. |
 
+### `observability`
+
+Error monitoring policy. The destination (`SENTRY_DSN`, or whatever your own adapter reads) is infrastructure and lives in `.env`; this file is imported on the client, so no DSN belongs here. See [Observability](/docs/payload-stack/observability).
+
+| Key | Default | Notes |
+| --- | --- | --- |
+| `sampleRate` | `1` | Fraction of `info` / `warning` / `debug` events reported. Errors and fatals are never sampled away. |
+| `tracesSampleRate` | `0.1` | Fraction of requests traced, when the provider does tracing. |
+| `sendPII` | `false` | Attach names, emails and IP addresses. Off means error monitoring carries no personal data and needs no consent banner. |
+| `environment` | `NODE_ENV` | Label on every event. `SENTRY_ENVIRONMENT` overrides it per deployment. |
+
 ### `legal`
 
 `company` and `jurisdiction` (and optional `address`) are used to seed the Privacy Policy, Terms of Service and Cookie Policy on first boot. Edit the generated pages in the admin under Content.
@@ -127,4 +138,4 @@ stack.features.magicLink, passkeys, emailPassword, twoFactor
 
 ## Environment variables
 
-See `.env.example` in the project. Required: `DATABASE_URL`, `PAYLOAD_SECRET`, `NEXT_PUBLIC_APP_URL`. Recommended: `BETTER_AUTH_SECRET` (falls back to `PAYLOAD_SECRET`). Optional: Resend, Stripe and social provider credentials. `src/lib/env.ts` validates them at boot.
+See `.env.example` in the project. Required: `DATABASE_URL`, `PAYLOAD_SECRET`, `NEXT_PUBLIC_APP_URL`. Recommended: `BETTER_AUTH_SECRET` (falls back to `PAYLOAD_SECRET`). Optional: Resend, Stripe, social provider and `SENTRY_*` credentials. `src/lib/env.ts` validates them at boot.
