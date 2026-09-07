@@ -68,6 +68,10 @@
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    /* In-page anchors glide instead of jumping. Sections carry `scroll-mt-header` so they
+       clear the sticky header, and the reduced-motion block below resets this to auto.
+       Next needs `data-scroll-behavior="smooth"` on <html> to keep it during route changes. */
+    scroll-behavior: smooth;
   }
 
   body {
@@ -156,6 +160,37 @@
   color: var(--fg-muted);
 }
 
+/*
+  Footer column heading. Measured off payloadcms.com's footer: 12px, regular weight, sans (not
+  mono), 3px of tracking — a quarter of an em, far wider than `label-mono` — uppercase, and at
+  full --fg rather than muted, so the four headings read as the footer's structure while the
+  links underneath stay quiet.
+*/
+@utility footer-heading {
+  font-size: 0.75rem;
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+
+/*
+  Feathers a boxed canvas into the page. The LiquidMark canvas paints its own --bg plus the
+  glow, a shade off the page black, so wherever the element is not full-bleed its edges show
+  as a rectangle. The ellipse is deliberately smaller than the box — sized so the fade is
+  complete BY the edge rather than only starting there — and it is switched off from lg,
+  where the mark is the full-bleed hero background and has no edges to hide.
+*/
+@utility edge-fade {
+  -webkit-mask-image: radial-gradient(60% 60% at 50% 58%, #000 50%, transparent 100%);
+  mask-image: radial-gradient(60% 60% at 50% 58%, #000 50%, transparent 100%);
+  @media (min-width: 1024px) {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
 /* Page container: max content width plus responsive gutters. */
 @utility container-content {
   width: 100%;
@@ -182,75 +217,249 @@
    --------------------------------------------------------------------------------------------- */
 
 /*
-  A grid whose 1px gaps ARE the rules: the container paints --border and each child paints
-  --bg over it, so interior lines never double up and no child needs its own border.
-  Children must set a background (`bg-bg`, or `bg-accent-soft` for the one tinted cell).
+  A list laid out on the page grid.
+
+  These used to be self-contained boxes: a bordered container whose 1px gaps drew every
+  rule. Two grids then had to agree — the box's own lines and the background lattice behind
+  it — and the result read as a spreadsheet dropped onto the page. Now the list draws only
+  the horizontal rules that separate its rows, and the vertical divisions are the background
+  grid showing through, which is exactly how payloadcms.com does it: there is one grid on
+  the page, and content sits on it.
+
+  So: no container border except the cap on top, no cell backgrounds (they would hide the
+  lines), and a bottom rule per cell, which lines up across a row into one continuous rule.
 */
-@utility cell-grid {
+@utility list-grid {
   display: grid;
-  gap: 1px;
-  background-color: var(--border);
-  border: 1px solid var(--border);
+  border-top: 1px solid var(--border);
 }
 
-/*
-  The one tinted cell a section is allowed. It must be OPAQUE: cell-grid paints --border as
-  its own background so the 1px gaps show as rules, and a translucent `bg-accent-soft` would
-  let that grey through and come out as a muddy lifted panel instead of a whisper of accent
-  on black. Compositing the tint over --bg with a gradient layer keeps it flat.
-*/
-@utility cell-tint {
-  background-color: var(--bg);
-  background-image: linear-gradient(var(--accent-soft), var(--accent-soft));
-}
-
-/* Padding that matches the lattice's optical rhythm. Cells are roomy; that is the premium part. */
-@utility cell-p {
-  padding: 1.75rem;
+@utility list-cell {
+  padding: 2rem 1.5rem;
+  border-bottom: 1px solid var(--border);
   @media (min-width: 1024px) {
-    padding: 2.5rem;
+    padding: 2.25rem 2rem;
   }
 }
 
 /*
-  A full-bleed action row: label left, arrow right, a hairline under it. This is the shape
-  payloadcms.com uses for its hero calls to action instead of a filled button.
+  The four-column layout grid, in flow. GridColumns draws the hairlines behind the page;
+  this puts content on them. No column gap on purpose — a gap would push every cell off the
+  line it is supposed to sit on, so cells breathe with their own padding or a max-width on
+  the text inside them. A row gap is fine and is what separates the stacked cells on phones.
 */
-@utility action-row {
+@utility col-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------
+   The button.
+
+   Lifted from payloadcms.com, whose call-to-action is not a filled pill but a row of the
+   lattice that inverts when you point at it: an opaque panel rises from below while the
+   resting label leaves upward, and each label pivots three degrees about its bottom-left
+   corner a beat later, so the words settle rather than slide. The two halves are
+   deliberately out of step — the panel arrives in 450ms, the departing label takes twice
+   that — which is what stops it reading as a single sliding block.
+
+   Markup (see ActionRow in src/lattice.tsx):
+
+     <a class="slide-btn">
+       <span class="slide-btn__face">
+         <span class="slide-btn__text">Label</span>
+         <svg class="slide-btn__arrow"/>
+       </span>
+       <span class="slide-btn__face slide-btn__face--hover" aria-hidden>… same again …</span>
+     </a>
+
+   The duplicate face is aria-hidden, so the label is announced once.
+   --------------------------------------------------------------------------------------------- */
+@utility slide-btn {
+  --slide-speed: 450ms;
+  --slide-pad-y: 1.5rem;
+  /* Matches list-cell's inset, so a row's label starts on the same vertical as the text in
+     the cells above and below it. */
+  --slide-pad-x: 1.5rem;
   position: relative;
+  display: flex;
+  overflow: hidden;
+  padding: 0;
+  color: var(--fg);
+  border-bottom: 1px solid var(--border);
+}
+
+/*
+  Compact chrome: the same behaviour at header scale, as a hairline box rather than a row of
+  the lattice. The label stops stretching so the box hugs its text.
+*/
+@utility slide-btn-sm {
+  --slide-pad-y: 0.5625rem;
+  --slide-pad-x: 0.875rem;
+  border: 1px solid var(--border-strong);
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+.slide-btn-sm .slide-btn__face {
+  justify-content: center;
+  gap: 0.5rem;
+}
+.slide-btn-sm .slide-btn__text {
+  flex: 0 1 auto;
+}
+
+.slide-btn__face {
+  position: relative;
+  z-index: 1;
   display: flex;
   width: 100%;
   align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  border-bottom: 1px solid var(--border);
-  padding-block: 1.5rem;
-  font-size: 1.0625rem;
+  /*
+    Opaque, so a button that spans two columns reads as one object instead of being cut in
+    half by the grid line behind it. payloadcms.com does the same thing with its
+    forceBackground modifier; its own buttons are one column wide, so it only needs it
+    occasionally, and ours are two.
+  */
+  background-color: var(--bg);
+  gap: 1rem;
+  padding: var(--slide-pad-y) var(--slide-pad-x);
   font-weight: 500;
   letter-spacing: -0.01em;
-  color: var(--fg);
-  transition:
-    color var(--dur-fast) var(--ease-standard),
-    border-color var(--dur-fast) var(--ease-standard);
+  transition: transform var(--slide-speed) var(--ease-out);
 }
-@media (hover: hover) {
-  .action-row:hover {
-    color: var(--accent);
-    border-color: var(--accent-line);
-  }
-  .action-row:hover .action-row__arrow {
-    transform: translate3d(0.2rem, -0.2rem, 0);
-  }
+
+/* The part that pivots. Kept separate from the arrow, which travels instead of turning. */
+.slide-btn__text {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  transform: rotate(0deg);
+  transform-origin: left bottom;
+  transition: transform var(--slide-speed) 0.15s var(--ease-out);
 }
-.action-row__arrow {
+
+.slide-btn__meta {
   flex: none;
   color: var(--fg-subtle);
-  transition:
-    transform var(--dur) var(--ease-out),
-    color var(--dur-fast) var(--ease-standard);
+  font-size: 0.875rem;
+  font-weight: 400;
 }
-.action-row:hover .action-row__arrow {
+
+.slide-btn__arrow {
+  flex: none;
+  transition: transform var(--slide-speed) var(--ease-out);
+}
+
+/* The panel that rises. Two pixels taller than the row so it covers the hairline under it. */
+.slide-btn__face--hover {
+  position: absolute;
+  inset: 0 0 -2px;
+  z-index: 2;
+  height: calc(100% + 2px);
+  background-color: var(--fg);
+  color: var(--bg);
+  transform: translateY(100%);
+}
+.slide-btn__face--hover .slide-btn__text {
+  transform: rotate(3deg);
+}
+.slide-btn__face--hover .slide-btn__meta {
+  color: color-mix(in oklab, var(--bg) 55%, var(--fg));
+}
+
+@media (hover: hover) {
+  .slide-btn:hover .slide-btn__face:not(.slide-btn__face--hover) {
+    transform: translateY(-100%);
+    transition-duration: calc(var(--slide-speed) * 2);
+  }
+  .slide-btn:hover .slide-btn__face:not(.slide-btn__face--hover) .slide-btn__text {
+    transform: rotate(-3deg);
+  }
+  .slide-btn:hover .slide-btn__face--hover {
+    transform: translateY(0);
+  }
+  .slide-btn:hover .slide-btn__face--hover .slide-btn__text {
+    transform: rotate(0deg);
+  }
+  .slide-btn:hover .slide-btn__arrow {
+    transform: translate3d(2px, -2px, 0);
+  }
+}
+
+/* Keyboard users get the same state as pointer users. */
+.slide-btn:focus-visible .slide-btn__face:not(.slide-btn__face--hover) {
+  transform: translateY(-100%);
+}
+.slide-btn:focus-visible .slide-btn__face--hover {
+  transform: translateY(0);
+}
+
+/*
+  Reduced motion: the invert still happens, because it is the affordance, but nothing
+  travels or turns. The global reduced-motion rule already collapses the durations; this
+  removes the rotation so the label never lands crooked.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .slide-btn__text,
+  .slide-btn__face--hover .slide-btn__text,
+  .slide-btn:hover .slide-btn__face:not(.slide-btn__face--hover) .slide-btn__text {
+    transform: none;
+  }
+  .slide-btn:hover .slide-btn__arrow {
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------
+   The inline link. For a proper noun inside a headline or a paragraph that points off the
+   site (see ProseLink in src/lattice.tsx). The rule is drawn as a background gradient rather
+   than with text-decoration, because that is what can be animated and what survives a line
+   break: a hairline at rest, an accent line wiping in from the left on hover, in the same
+   easing as the button.
+   --------------------------------------------------------------------------------------------- */
+@utility prose-link {
+  --prose-link-speed: 420ms;
+  color: inherit;
+  background-image:
+    linear-gradient(var(--accent), var(--accent)),
+    linear-gradient(var(--border-strong), var(--border-strong));
+  background-repeat: no-repeat;
+  /* The rule is pulled up from the bottom of the em box so it sits just under the baseline.
+     Display type here runs at line-height 0.98–1.02, so a rule hung below the em box would
+     land on the line underneath; raise this value for body copy if a descender needs room. */
+  --prose-link-offset: 0.14em;
+  background-position:
+    0 calc(100% - var(--prose-link-offset)),
+    0 calc(100% - var(--prose-link-offset));
+  background-size:
+    0 1px,
+    100% 1px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  transition:
+    background-size var(--prose-link-speed) var(--ease-out),
+    color var(--prose-link-speed) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .prose-link:hover {
+    color: var(--accent);
+    background-size:
+      100% 1px,
+      100% 1px;
+  }
+}
+
+/* Keyboard users get the same state as pointer users. */
+.prose-link:focus-visible {
   color: var(--accent);
+  background-size:
+    100% 1px,
+    100% 1px;
 }
 
 /* ---------------------------------------------------------------------------------------------

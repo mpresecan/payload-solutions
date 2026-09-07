@@ -13,8 +13,8 @@ const brand = brands.stack
 export function OpenSource() {
   return (
     <section className="hairline-t py-section" aria-labelledby="oss-heading">
-      <div className="container-content grid grid-cols-1 gap-14 lg:grid-cols-12 lg:gap-10">
-        <Reveal className="lg:col-span-6">
+      <div className="container-content col-grid gap-y-14">
+        <Reveal className="lg:col-span-2 lg:pr-12">
           <SectionHead
             id="oss-heading"
             eyebrow="MIT"
@@ -23,7 +23,7 @@ export function OpenSource() {
           />
         </Reveal>
 
-        <Reveal className="min-w-0 lg:col-span-6 lg:pt-2">
+        <Reveal className="min-w-0 lg:col-span-2 lg:pt-2">
           <div className="border-t border-border">
             <CopyCommand variant="row" />
             <ActionRow href={brand.github}>GitHub repository</ActionRow>

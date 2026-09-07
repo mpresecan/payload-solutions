@@ -18,8 +18,8 @@ export function Plugins({ plugins }: { plugins: Plugin[] }) {
       className="scroll-mt-header hairline-t py-section"
       aria-labelledby="plugins-heading"
     >
-      <div className="container-content grid grid-cols-1 gap-14 lg:grid-cols-12 lg:gap-10">
-        <Reveal className="lg:col-span-4">
+      <div className="container-content">
+        <Reveal>
           <SectionHead
             id="plugins-heading"
             eyebrow="Plugins"
@@ -28,7 +28,8 @@ export function Plugins({ plugins }: { plugins: Plugin[] }) {
           />
         </Reveal>
 
-        <ul className="lg:col-span-8">
+        {/* Full width: each row is a rule across all four columns, like the roadmap below it. */}
+        <ul className="mt-16">
           {plugins.map((plugin, i) => (
             <Reveal
               as="li"

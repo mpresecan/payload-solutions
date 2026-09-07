@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Check, Copy } from '@phosphor-icons/react'
 import { NPX_COMMAND } from '@payload-solutions/brand'
+import { SlideFaces } from '@payload-solutions/brand/lattice'
 import { cn } from '@/lib/cn'
 
 interface CopyCommandProps {
@@ -73,26 +74,16 @@ export function CopyCommand({ className, variant = 'box', size = 'md' }: CopyCom
         onClick={copy}
         aria-label={label}
         aria-live="polite"
-        className={cn(
-          'group flex w-full items-center justify-between gap-6 border-b border-border py-5 text-left transition-colors duration-150 ease-standard hover:border-accent-line',
-          className,
-        )}
+        className={cn('slide-btn w-full font-mono text-[0.9375rem] sm:text-base', className)}
       >
-        <span className="flex min-w-0 items-baseline gap-3 font-mono text-[0.9375rem] text-fg sm:text-base">
-          <span className="text-fg-subtle" aria-hidden>
+        <SlideFaces icon={copied ? <Check size={17} weight="bold" /> : <Copy size={17} />}>
+          {/* Opacity rather than a token colour, so the prompt reads the same on the
+              resting face and on the inverted one that rises behind it. */}
+          <span className="mr-3 opacity-45" aria-hidden>
             $
           </span>
           <span className="min-w-0 [overflow-wrap:anywhere]">{NPX_COMMAND}</span>
-        </span>
-        <span
-          className={cn(
-            'shrink-0 transition-colors duration-150',
-            copied ? 'text-accent' : 'text-fg-subtle group-hover:text-accent',
-          )}
-          aria-hidden
-        >
-          {copied ? <Check size={17} weight="bold" /> : <Copy size={17} />}
-        </span>
+        </SlideFaces>
         <span className="sr-only">
           {copied ? 'Copied' : failed ? 'Copy failed, select the text instead' : ''}
         </span>

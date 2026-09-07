@@ -1,4 +1,5 @@
-import { ActionRow, SectionHead } from '@payload-solutions/brand/lattice'
+import { PAYLOAD_URL } from '@payload-solutions/brand'
+import { ActionRow, ProseLink, SectionHead } from '@payload-solutions/brand/lattice'
 import { Reveal } from '@/components/reveal'
 
 const POINTS: Array<{ title: string; body: string }> = [
@@ -32,14 +33,19 @@ export function WhyPayload() {
           <SectionHead
             id="why-heading"
             eyebrow="The backbone"
-            title="Why Payload CMS is the right backbone for a SaaS."
+            title={
+              <>
+                Why <ProseLink href={PAYLOAD_URL}>Payload CMS</ProseLink> is the right backbone for
+                a SaaS.
+              </>
+            }
             lead="Most starters give you auth and a pricing page and leave the actual product to you. Payload gives you the product layer as well."
           />
         </Reveal>
 
-        <dl className="cell-grid mt-16 grid-cols-1 sm:grid-cols-2">
+        <dl className="list-grid mt-16 grid-cols-1 sm:grid-cols-2">
           {POINTS.map((p, i) => (
-            <Reveal key={p.title} index={i} className="cell-p bg-bg">
+            <Reveal key={p.title} index={i} className="list-cell">
               <dt className="display-sm">{p.title}</dt>
               <dd className="mt-4 max-w-[48ch] text-pretty text-[0.9375rem] leading-relaxed text-fg-muted">
                 {p.body}
@@ -48,10 +54,12 @@ export function WhyPayload() {
           ))}
         </dl>
 
-        <div className="mt-16 max-w-[38rem] border-t border-border">
-          <ActionRow href="/when-to-choose" meta="2 min read">
-            When to choose Payload Stack, and when not to
-          </ActionRow>
+        <div className="col-grid mt-16">
+          <div className="border-t border-border lg:col-span-2">
+            <ActionRow href="/when-to-choose" meta="2 min read">
+              When to choose Payload Stack, and when not to
+            </ActionRow>
+          </div>
         </div>
       </div>
     </section>

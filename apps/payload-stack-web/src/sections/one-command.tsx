@@ -64,8 +64,8 @@ export function OneCommand() {
       className="scroll-mt-header hairline-t py-section"
       aria-labelledby="how-heading"
     >
-      <div className="container-content grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-10">
-        <div className="lg:col-span-5">
+      <div className="container-content col-grid gap-y-12">
+        <div className="lg:col-span-2 lg:pr-12">
           <Reveal>
             <SectionHead
               id="how-heading"
@@ -92,7 +92,7 @@ export function OneCommand() {
           </ol>
         </div>
 
-        <Reveal className="min-w-0 lg:col-span-7">
+        <Reveal className="min-w-0 lg:col-span-2">
           <pre
             className="code-block border border-border bg-surface p-5 text-[0.75rem] sm:p-6 sm:text-[0.8125rem] lg:p-8"
             aria-label="Terminal transcript of create-payload-stack"

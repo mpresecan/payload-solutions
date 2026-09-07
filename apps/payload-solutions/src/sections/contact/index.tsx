@@ -20,8 +20,8 @@ const OFFERS: Array<{ title: string; body: string }> = [
 export function Contact() {
   return (
     <section id="contact" className="scroll-mt-header hairline-t py-section" aria-labelledby="contact-heading">
-      <div className="container-content grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-10">
-        <div className="lg:col-span-5">
+      <div className="container-content col-grid gap-y-12">
+        <div className="lg:col-span-2 lg:pr-12">
           <Reveal>
             <SectionHead
               id="contact-heading"
@@ -39,7 +39,7 @@ export function Contact() {
             ))}
           </ul>
         </div>
-        <Reveal className="min-w-0 lg:col-span-7">
+        <Reveal className="min-w-0 lg:col-span-2">
           <ContactForm />
         </Reveal>
       </div>

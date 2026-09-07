@@ -4,7 +4,6 @@ import { Logo, brands } from '@payload-solutions/brand'
 import { HeaderThemeSync } from '@payload-solutions/brand/use-header-theme'
 
 import { BrandIcon } from '@/components/brand-icon'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 
 const brand = brands.solutions
@@ -38,6 +37,11 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-1 sm:gap-2">
+          {/* The primary nav collapses below lg; Docs is the one destination that stays
+              reachable from the header on phones. */}
+          <Link href="/docs" className="px-2 text-sm text-fg-muted transition-colors hover:text-fg lg:hidden">
+            Docs
+          </Link>
           <a
             href={brand.github}
             target="_blank"
@@ -47,11 +51,10 @@ export function SiteHeader() {
           >
             <BrandIcon icon={siGithub} size={18} />
           </a>
-          <ThemeToggle />
           <div className="ml-1 hidden sm:block">
             {/* Hairline, not a filled block: on true black the header stays monochrome and the
                 accent is spent on the page itself. */}
-            <Button href="/#contact" variant="secondary" className="h-9 px-3 text-sm">
+            <Button href="/#contact" variant="secondary">
               Start a project
             </Button>
           </div>

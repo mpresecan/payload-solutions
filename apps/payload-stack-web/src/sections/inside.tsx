@@ -18,7 +18,8 @@ interface Cell {
   icon: ReactNode
   title: string
   body: string
-  span: 1 | 2
+  /** Width in grid columns. Rows must add up to 4 so every cell edge lands on a hairline. */
+  span: 1 | 2 | 4
   tint?: boolean
   extra?: ReactNode
   /** A real screenshot, placed beside the copy (span 2) or below it (span 1). */
@@ -119,13 +120,13 @@ const CELLS: Cell[] = [
     icon: <SquaresFour size={24} />,
     title: 'Dashboard and account',
     body: 'A shadcn sidebar layout, account and security settings, sessions, API keys, and onboarding: create an organization, invite people, pick a plan.',
-    span: 1,
+    span: 2,
     media: (
-      <div className="relative mt-8 h-52 overflow-hidden border-l border-t border-border bg-surface">
+      <div className="relative h-full min-h-[16rem] overflow-hidden border-l border-t border-border bg-surface">
         <ThemedImage
           {...screens.dashboard}
-          sizes="(min-width: 1024px) 560px, 90vw"
-          className="absolute left-[6%] top-[6%] w-[140%] max-w-none"
+          sizes="(min-width: 1024px) 420px, 90vw"
+          className="absolute left-[6%] top-[8%] w-[150%] max-w-none"
         />
       </div>
     ),
@@ -135,7 +136,7 @@ const CELLS: Cell[] = [
     icon: <SlidersHorizontal size={24} />,
     title: 'Config, email, legal, SEO',
     body: 'One typed config for name, plans, auth methods and feature flags. React Email templates, legal pages as a collection, metadata and sitemap included.',
-    span: 2,
+    span: 4,
     extra: (
       <Chips
         items={[
@@ -170,7 +171,7 @@ export function Inside() {
         </Reveal>
 
         <ul
-          className="cell-grid mt-16 grid-cols-1 md:grid-cols-3"
+          className="list-grid mt-16 grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
           role="list"
         >
           {CELLS.map((cell, i) => (
@@ -180,15 +181,16 @@ export function Inside() {
               index={i}
               className={cn(
                 'flex min-w-0 flex-col',
-                cell.tint ? 'cell-tint' : 'bg-bg',
-                cell.span === 2 ? 'md:col-span-2' : '',
-                cell.media && cell.span === 2 ? 'lg:grid lg:grid-cols-2' : '',
+                cell.tint ? 'cell-tint' : '',
+                cell.span === 2 ? 'lg:col-span-2' : '',
+                cell.span === 4 ? 'md:col-span-2 lg:col-span-4' : '',
+                cell.media && cell.span >= 2 ? 'lg:grid lg:grid-cols-2' : '',
                 cell.media && cell.span === 1 ? 'pb-0' : '',
               )}
             >
               <div
                 className={cn(
-                  'cell-p flex min-w-0 flex-col',
+                  'list-cell flex min-w-0 flex-col',
                   cell.media && cell.span === 1 ? 'pb-0 lg:pb-0' : '',
                 )}
               >
@@ -200,7 +202,7 @@ export function Inside() {
                 {cell.extra}
                 {cell.media && cell.span === 1 ? cell.media : null}
               </div>
-              {cell.media && cell.span === 2 ? (
+              {cell.media && cell.span >= 2 ? (
                 <div className="min-h-[16rem] pl-7 pt-7 lg:pl-0 lg:pt-10">{cell.media}</div>
               ) : null}
             </Reveal>

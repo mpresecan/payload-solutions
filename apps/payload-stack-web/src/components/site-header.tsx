@@ -4,7 +4,6 @@ import { Logo, brands } from '@payload-solutions/brand'
 import { HeaderThemeSync } from '@payload-solutions/brand/use-header-theme'
 import { BrandIcon } from '@/components/brand-icon'
 import { MobileNav } from '@/components/mobile-nav'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 
 const brand = brands.stack
@@ -41,7 +40,7 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-1 sm:gap-2">
           <a
-            href={brand.github}
+            href={brand.githubSource ?? brand.github}
             target="_blank"
             rel="noreferrer noopener"
             aria-label="GitHub repository"
@@ -49,9 +48,8 @@ export function SiteHeader() {
           >
             <BrandIcon icon={siGithub} size={18} />
           </a>
-          <ThemeToggle />
           <div className="ml-1 hidden sm:block">
-            <Button href={brand.docsUrl} variant="secondary" className="h-9 px-3 text-sm" arrow>
+            <Button href={brand.docsUrl} variant="secondary" arrow>
               Documentation
             </Button>
           </div>

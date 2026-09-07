@@ -27,7 +27,14 @@ function subscribe(onChange: () => void) {
  * Light / dark toggle. The site follows the system by default; a click pins a theme and stores it.
  * The theme is only known on the client, so the button stays hidden until hydration.
  */
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({
+  className,
+  variant = 'icon',
+}: {
+  className?: string
+  /** `row` is the footer-column presentation: icon plus a label, styled like the links beside it. */
+  variant?: 'icon' | 'row'
+}) {
   const theme = useSyncExternalStore<Theme | null>(subscribe, resolveTheme, () => null)
 
   const toggle = () => {
@@ -38,6 +45,20 @@ export function ThemeToggle({ className }: { className?: string }) {
     } catch {
       /* storage unavailable: theme still applies for this page view */
     }
+  }
+
+  if (variant === 'row') {
+    return (
+      <button
+        type="button"
+        onClick={toggle}
+        className={`inline-flex items-center gap-2.5 text-fg transition-colors hover:text-accent ${className ?? ''}`}
+        style={{ visibility: theme ? 'visible' : 'hidden' }}
+      >
+        {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+        <span>{theme === 'dark' ? 'Light theme' : 'Dark theme'}</span>
+      </button>
+    )
   }
 
   return (

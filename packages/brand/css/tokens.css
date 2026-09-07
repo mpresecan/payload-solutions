@@ -15,11 +15,18 @@
   always wins. The attribute works on any element, so a single section can be a dark band on
   a light page (see ThemeBand).
 
-  Brand strategy: `data-brand="solutions | stack | clock | consent | emails"` sets the accent
-  family on any element. The light/dark pair is resolved with light-dark(), which follows the
-  nearest inherited `color-scheme` — so a Payload Clock card inside a dark band gets Clock's
-  dark accent without the card knowing which band it is in. A flat fallback is declared first
-  for engines without light-dark().
+  Brand strategy: `data-brand="solutions | stack | clock | consent | emails | scheduler |
+  vercel"` sets the accent family on any element. The light/dark pair is resolved with
+  light-dark(), which follows the nearest inherited `color-scheme` — so a Payload Clock card
+  inside a dark band gets Clock's dark accent without the card knowing which band it is in. A
+  flat fallback is declared first for engines without light-dark().
+
+  Every entity owns its own position on the OKLCH hue wheel, at least 42° from its nearest
+  neighbour: rose 14°, brass 81°, emerald 156°, teal 198°, cobalt 258°, orchid 308°. Payload
+  Stack is the deliberate exception — a platinum at chroma 0.045 that separates from the
+  umbrella cobalt by saturation rather than angle, so the flagship reads monochrome the way
+  Payload's own identity does. Never add an entity without checking it against that wheel;
+  the previous set had three entities sharing cobalt and Stack sitting 28° off it.
 */
 
 :root,
@@ -214,18 +221,21 @@
   --accent-glow: light-dark(rgba(29, 98, 216, 0.12), rgba(91, 157, 255, 0.16));
 }
 
-/* Payload Stack — violet */
+/*
+  Payload Stack — platinum. The one near-neutral in the set: chroma 0.045, so it reads as a
+  cool steel rather than a pale cobalt. Its glow is a white bloom, not a coloured one.
+*/
 [data-brand='stack'] {
-  --accent: #8b7bff;
-  --accent: light-dark(#5b45e0, #8b7bff);
-  --accent-hover: #a596ff;
-  --accent-hover: light-dark(#4a35c4, #a596ff);
-  --accent-soft: rgba(139, 123, 255, 0.1);
-  --accent-soft: light-dark(rgba(91, 69, 224, 0.09), rgba(139, 123, 255, 0.1));
-  --accent-line: rgba(139, 123, 255, 0.32);
-  --accent-line: light-dark(rgba(91, 69, 224, 0.34), rgba(139, 123, 255, 0.32));
-  --accent-glow: rgba(139, 123, 255, 0.16);
-  --accent-glow: light-dark(rgba(91, 69, 224, 0.12), rgba(139, 123, 255, 0.16));
+  --accent: #b4cee7;
+  --accent: light-dark(#4c667f, #b4cee7);
+  --accent-hover: #d0e4f8;
+  --accent-hover: light-dark(#3a5570, #d0e4f8);
+  --accent-soft: rgba(180, 206, 231, 0.1);
+  --accent-soft: light-dark(rgba(76, 102, 127, 0.09), rgba(180, 206, 231, 0.1));
+  --accent-line: rgba(180, 206, 231, 0.32);
+  --accent-line: light-dark(rgba(76, 102, 127, 0.34), rgba(180, 206, 231, 0.32));
+  --accent-glow: rgba(180, 206, 231, 0.13);
+  --accent-glow: light-dark(rgba(76, 102, 127, 0.1), rgba(180, 206, 231, 0.13));
 }
 
 /* Payload Clock — brass */
@@ -268,6 +278,34 @@
   --accent-line: light-dark(rgba(194, 52, 74, 0.34), rgba(255, 122, 138, 0.32));
   --accent-glow: rgba(255, 122, 138, 0.14);
   --accent-glow: light-dark(rgba(194, 52, 74, 0.1), rgba(255, 122, 138, 0.14));
+}
+
+/* Payload Action Scheduler — teal */
+[data-brand='scheduler'] {
+  --accent: #3aced3;
+  --accent: light-dark(#00777b, #3aced3);
+  --accent-hover: #6fe3e6;
+  --accent-hover: light-dark(#006568, #6fe3e6);
+  --accent-soft: rgba(58, 206, 211, 0.1);
+  --accent-soft: light-dark(rgba(0, 119, 123, 0.09), rgba(58, 206, 211, 0.1));
+  --accent-line: rgba(58, 206, 211, 0.32);
+  --accent-line: light-dark(rgba(0, 119, 123, 0.34), rgba(58, 206, 211, 0.32));
+  --accent-glow: rgba(58, 206, 211, 0.14);
+  --accent-glow: light-dark(rgba(0, 119, 123, 0.1), rgba(58, 206, 211, 0.14));
+}
+
+/* Vercel Integration — orchid */
+[data-brand='vercel'] {
+  --accent: #c175fc;
+  --accent: light-dark(#8b36c3, #c175fc);
+  --accent-hover: #d392ff;
+  --accent-hover: light-dark(#791faf, #d392ff);
+  --accent-soft: rgba(193, 117, 252, 0.1);
+  --accent-soft: light-dark(rgba(139, 54, 195, 0.09), rgba(193, 117, 252, 0.1));
+  --accent-line: rgba(193, 117, 252, 0.32);
+  --accent-line: light-dark(rgba(139, 54, 195, 0.34), rgba(193, 117, 252, 0.32));
+  --accent-glow: rgba(193, 117, 252, 0.16);
+  --accent-glow: light-dark(rgba(139, 54, 195, 0.12), rgba(193, 117, 252, 0.16));
 }
 
 /*

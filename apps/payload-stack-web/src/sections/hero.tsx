@@ -1,5 +1,5 @@
-import { brands } from '@payload-solutions/brand'
-import { ActionRow } from '@payload-solutions/brand/lattice'
+import { PAYLOAD_URL, brands } from '@payload-solutions/brand'
+import { ActionRow, IndependenceNote, ProseLink } from '@payload-solutions/brand/lattice'
 import { Parallax } from '@payload-solutions/brand/parallax'
 import { CopyCommand } from '@/components/copy-command'
 import { StackVisual } from '@/components/stack-visual'
@@ -16,26 +16,30 @@ const brand = brands.stack
 export function Hero() {
   return (
     <section className="relative" aria-labelledby="hero-heading">
-      <div className="container-content relative grid min-h-[calc(100dvh-var(--header-height))] grid-cols-1 items-center gap-14 py-20 lg:grid-cols-12 lg:gap-10 lg:py-24">
-        <div className="lg:col-span-6">
+      <div className="container-content col-grid relative min-h-[calc(100dvh-var(--header-height))] items-center gap-y-14 py-20 lg:py-24">
+        {/* Two of the four columns. The copy is held back by its own measure; the action rows
+            fill the cell, so they start on the left grid line and end on the centre one. */}
+        <div className="lg:col-span-2">
           <h1 id="hero-heading" className="display-xl max-w-[15ch]">
-            The SaaS boilerplate for Payload CMS.
+            The SaaS boilerplate for <ProseLink href={PAYLOAD_URL}>Payload CMS</ProseLink>.
           </h1>
-          <p className="lead mt-7 max-w-[34rem]">
+          <p className="lead mt-7 max-w-[30rem]">
             Better Auth, organizations, Stripe subscriptions and a shadcn dashboard, wired into
             Payload and Next.js. Open source, one command.
           </p>
 
-          <div className="mt-11 max-w-[34rem] border-t border-border">
+          <div className="mt-11 border-t border-border">
             <CopyCommand variant="row" />
             <ActionRow href={brand.docsUrl}>Documentation</ActionRow>
             <ActionRow href="/when-to-choose" meta="2 min read">
               When to choose Payload Stack
             </ActionRow>
           </div>
+
+          <IndependenceNote className="mt-8" />
         </div>
 
-        <Parallax speed={-0.08} className="min-w-0 lg:col-span-6 lg:pl-4">
+        <Parallax speed={-0.08} className="min-w-0 lg:col-span-2 lg:pl-10">
           <StackVisual className="mx-auto w-full max-w-[20rem] sm:max-w-[26rem] md:max-w-[40rem] lg:max-w-none" />
         </Parallax>
       </div>

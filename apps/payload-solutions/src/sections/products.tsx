@@ -16,7 +16,7 @@ const SCREEN_BY_SLUG: Partial<Record<string, ScreenName>> = {
 }
 
 /**
- * The product wall. Each cell carries its own `data-brand`, so Payload Stack is violet,
+ * The product wall. Each cell carries its own `data-brand`, so Payload Stack is platinum,
  * Payload Clock is brass and so on: the accent inside a cell — status chip, links, the
  * hairline that lifts on hover — belongs to that product rather than to the page. It is the
  * only place on the site where more than one accent is in view at once, and it is the point
@@ -38,7 +38,7 @@ export function Products({ products }: { products: Product[] }) {
           />
         </Reveal>
 
-        <div className="cell-grid mt-16 grid-cols-1 md:grid-cols-2">
+        <div className="list-grid mt-16 grid-cols-1 md:grid-cols-2">
           {products.map((product, i) => {
             const screen = SCREEN_BY_SLUG[product.slug]
             return (
@@ -46,7 +46,7 @@ export function Products({ products }: { products: Product[] }) {
                 key={product.id}
                 index={i}
                 data-brand={accentForSlug(product.slug)}
-                className="cell-p group flex min-w-0 flex-col bg-bg"
+                className="list-cell group flex min-w-0 flex-col"
               >
                 <div className="flex items-start justify-between gap-4">
                   <h3 className="display-md">{product.name}</h3>
@@ -87,8 +87,10 @@ export function Products({ products }: { products: Product[] }) {
                     </Link>
                   ) : null}
                 </div>
+                {/* The screenshot bleeds into the cell's own padding, so it runs to the grid
+                    line rather than floating inside a margin. */}
                 {screen ? (
-                  <div className="relative -mb-7 -mr-7 mt-10 h-56 overflow-hidden border-l border-t border-border bg-surface lg:-mb-10 lg:-mr-10">
+                  <div className="relative -mb-8 -mr-6 mt-10 h-56 overflow-hidden border-l border-t border-border bg-surface lg:-mb-9 lg:-mr-8">
                     <ThemedImage
                       {...screens[screen]}
                       sizes="(min-width: 1024px) 640px, 90vw"

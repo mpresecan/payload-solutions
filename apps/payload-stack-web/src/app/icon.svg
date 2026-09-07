@@ -1,7 +1,12 @@
+<!--
+  Payload Stack favicon. The facet carries the platinum accent family, but stepped down to
+  #6C8AA6: the token value #b4cee7 sits at 1.45:1 against the #f2f2f2 body and the two shapes
+  merge into one blob at 16px. This step holds 3.2:1 against the body and 5.8:1 on black.
+-->
 <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="64" height="64" fill="#0a0a0a"/>
+  <rect width="64" height="64" fill="#000000"/>
   <g transform="translate(15 8) scale(1.75)">
     <path d="M10.5 3.49976L0.713097 8.15257V20.4896L8.2737 25.1999V12.8629L18 7.99976L10.5 3.49976Z" fill="#F2F2F2"/>
-    <path d="M11 23.5V15L18 19.5L11 23.5Z" fill="#F2803F"/>
+    <path d="M11 23.5V15L18 19.5L11 23.5Z" fill="#6C8AA6"/>
   </g>
 </svg>

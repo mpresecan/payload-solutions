@@ -87,12 +87,18 @@ function Points({ items, columns }: { items: Point[]; columns: 2 | 3 }) {
     <dl
       className={
         columns === 3
-          ? 'cell-grid mt-16 grid-cols-1 md:grid-cols-3'
-          : 'cell-grid mt-16 grid-cols-1 sm:grid-cols-2'
+          ? 'list-grid mt-16 grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
+          : 'list-grid mt-16 grid-cols-1 sm:grid-cols-2'
       }
     >
       {items.map((p, i) => (
-        <Reveal key={p.title} index={i} className="cell-p bg-bg">
+        <Reveal
+          key={p.title}
+          index={i}
+          /* Three items across four columns: the first takes two, so the row still closes
+             on the far grid line. */
+          className={`list-cell ${columns === 3 && i === 0 ? 'md:col-span-2' : ''}`}
+        >
           <dt className="display-sm">{p.title}</dt>
           <dd className="mt-4 max-w-[48ch] text-pretty text-[0.9375rem] leading-relaxed text-fg-muted">
             {p.body}
@@ -161,8 +167,8 @@ function Verdict() {
           <SectionHead id="verdict-heading" title="The short version." />
         </Reveal>
 
-        <Reveal className="cell-grid mt-14 grid-cols-1 md:grid-cols-2">
-          <div className="cell-p cell-tint">
+        <Reveal className="list-grid mt-14 grid-cols-1 md:grid-cols-2">
+          <div className="list-cell cell-tint">
             <h3 className="display-sm">Choose Payload Stack if</h3>
             <ul className="mt-6 space-y-4" role="list">
               {CHOOSE.map((item) => (
@@ -173,7 +179,7 @@ function Verdict() {
               ))}
             </ul>
           </div>
-          <div className="cell-p bg-bg">
+          <div className="list-cell">
             <h3 className="display-sm">Choose something else if</h3>
             <ul className="mt-6 space-y-4" role="list">
               {ELSEWHERE.map((item) => (
@@ -193,15 +199,15 @@ function Verdict() {
 function Decide() {
   return (
     <section className="hairline-t py-section" aria-labelledby="decide-heading">
-      <div className="container-content grid grid-cols-1 gap-14 lg:grid-cols-12 lg:gap-10">
-        <Reveal className="lg:col-span-6">
+      <div className="container-content col-grid gap-y-14">
+        <Reveal className="lg:col-span-2 lg:pr-12">
           <SectionHead
             id="decide-heading"
             title="Still deciding? Scaffold it."
             lead="One command gives you a project you can read end to end. If the fit is wrong, you will know in fifteen minutes. If it is right, you are already past the hard part."
           />
         </Reveal>
-        <Reveal className="min-w-0 lg:col-span-6 lg:pt-2">
+        <Reveal className="min-w-0 lg:col-span-2 lg:pt-2">
           <div className="border-t border-border">
             <CopyCommand variant="row" />
             <ActionRow href={brand.docsUrl}>Documentation</ActionRow>

@@ -3,6 +3,8 @@ import { getLayoutTabs, type LayoutTab } from 'fumadocs-ui/layouts/shared'
 import type { ReactNode } from 'react'
 
 import { DocsBrandSync } from '@/components/docs-brand-sync'
+import { DocsSourceLink } from '@/components/docs-source-link'
+import { SiteFooter } from '@/components/site-footer'
 import { baseOptions } from '@/lib/layout.shared'
 import { source } from '@/lib/source'
 
@@ -27,10 +29,30 @@ export default function Layout({ children }: { children: ReactNode }) {
     },
   ]
 
+  /*
+    The footer sits outside DocsLayout, not inside it. DocsLayout's container is a CSS grid
+    whose sidebar and TOC columns own the full height, so a footer placed among its children
+    would be boxed into the `main` column. As a sibling it closes the page edge to edge under
+    the whole shell — the same move payloadcms.com makes on its docs pages, where the docs
+    grid stops on a hairline and the site footer runs full width beneath it.
+  */
   return (
-    <DocsLayout {...baseOptions()} tree={tree} tabs={tabs}>
-      <DocsBrandSync />
-      {children}
-    </DocsLayout>
+    <>
+      <DocsLayout
+        {...baseOptions()}
+        tree={tree}
+        tabs={tabs}
+        /*
+          The sidebar's pinned foot: the source of the product the select is showing. The `key`
+          is not decoration — Fumadocs drops this element into an array of sidebar children, and
+          React warns about a keyless child owned by this file without it.
+        */
+        sidebar={{ footer: <DocsSourceLink key="docs-source" /> }}
+      >
+        <DocsBrandSync />
+        {children}
+      </DocsLayout>
+      <SiteFooter />
+    </>
   )
 }

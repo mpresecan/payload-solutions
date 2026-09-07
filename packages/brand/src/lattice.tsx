@@ -80,33 +80,91 @@ export function SectionHead({
   )
 }
 
-export interface ActionRowProps {
-  href: string
+export interface SlideFacesProps {
   children: ReactNode
-  /** Secondary text on the right, before the arrow (a command, a duration, a count). */
+  /** Secondary text on the right, before the icon (a command, a duration, a count). */
   meta?: ReactNode
+  /** Replaces the diagonal arrow — a copy glyph, a check, nothing. */
+  icon?: ReactNode
+}
+
+/**
+ * The two stacked faces every slide button is made of: the resting one and the inverted one
+ * that rises on hover. The second is aria-hidden, so the label is announced once.
+ *
+ * Put these inside an element carrying the `slide-btn` class; see the CSS in tailwind.css
+ * for the timing, which is lifted from payloadcms.com.
+ */
+export function SlideFaces({ children, meta, icon }: SlideFacesProps) {
+  const face = (hover: boolean) => (
+    <span
+      className={hover ? 'slide-btn__face slide-btn__face--hover' : 'slide-btn__face'}
+      aria-hidden={hover ? true : undefined}
+    >
+      <span className="slide-btn__text">{children}</span>
+      {meta ? <span className="slide-btn__meta">{meta}</span> : null}
+      {icon === undefined ? <ArrowGlyph className="slide-btn__arrow" /> : icon}
+    </span>
+  )
+  return (
+    <>
+      {face(false)}
+      {face(true)}
+    </>
+  )
+}
+
+export interface ActionRowProps extends SlideFacesProps {
+  href: string
   external?: boolean
   className?: string
 }
 
 /**
- * A full-bleed call to action drawn as a row of the lattice rather than as a button: label
- * left, arrow right, one hairline underneath. This is the shape payloadcms.com uses under
- * its hero, and it is what makes a page read as a document rather than as a landing page.
+ * A call to action drawn as a row of the lattice rather than as a filled button: label left,
+ * arrow right, one hairline underneath, and the inverted panel on hover. Sized to span whole
+ * grid columns — put a stack of them in a `col-span-2` cell and they land exactly on the
+ * centre line, which is how payloadcms.com sits its hero actions on the grid.
  */
-export function ActionRow({ href, children, meta, external, className }: ActionRowProps) {
+export function ActionRow({ href, children, meta, icon, external, className }: ActionRowProps) {
   const isExternal = external ?? /^https?:\/\//.test(href)
   return (
     <a
       href={href}
-      className={`action-row group ${className ?? ''}`}
+      className={`slide-btn w-full ${className ?? ''}`}
       {...(isExternal ? { target: '_blank', rel: 'noreferrer noopener' } : {})}
     >
-      <span className="min-w-0 truncate">{children}</span>
-      <span className="flex shrink-0 items-center gap-4">
-        {meta ? <span className="hidden text-sm text-fg-subtle sm:block">{meta}</span> : null}
-        <ArrowGlyph className="action-row__arrow" />
-      </span>
+      <SlideFaces meta={meta} icon={icon}>
+        {children}
+      </SlideFaces>
+    </a>
+  )
+}
+
+export interface ProseLinkProps {
+  href: string
+  children: ReactNode
+  /** Overrides the http(s) sniff on `href`. */
+  external?: boolean
+  className?: string
+}
+
+/**
+ * An inline link inside a headline or a paragraph — the one used wherever "Payload CMS" is
+ * named in prose on either site. It rests as a hairline under the words and, on hover, an
+ * accent line wipes in from the left while the text takes the accent; see `prose-link` in
+ * css/tailwind.css. Colour is inherited, so it reads as text first and as a link second,
+ * which is what keeps a headline from turning into a row of blue.
+ */
+export function ProseLink({ href, children, external, className }: ProseLinkProps) {
+  const isExternal = external ?? /^https?:\/\//.test(href)
+  return (
+    <a
+      href={href}
+      className={`prose-link ${className ?? ''}`}
+      {...(isExternal ? { target: '_blank', rel: 'noreferrer noopener' } : {})}
+    >
+      {children}
     </a>
   )
 }
@@ -116,14 +174,37 @@ export interface CellGridProps extends ComponentPropsWithoutRef<'div'> {
 }
 
 /**
- * The hairline cell grid. Set the column count with a Tailwind grid-cols-* class; the 1px
- * gaps are the rules, so children only need a background (`bg-bg`, or `bg-accent-soft` for
- * the single tinted cell a section is allowed).
+ * A list on the page grid. Set the column count with a Tailwind grid-cols-* class, matching
+ * the background lattice (4, or 2 for full-width halves); children get `list-cell` and no
+ * background, so the vertical rules are the lattice showing through.
  */
 export function CellGrid({ as: Tag = 'div', className, children, ...rest }: CellGridProps) {
   return (
-    <Tag className={`cell-grid ${className ?? ''}`} {...rest}>
+    <Tag className={`list-grid ${className ?? ''}`} {...rest}>
       {children}
     </Tag>
+  )
+}
+
+/**
+ * The independence line both heroes carry. The mark, the wordmarks and the palette all
+ * borrow Payload's visual language closely enough that a visitor could read these sites as
+ * official, so they have to say plainly whose they are — in the smallest voice on the page,
+ * once, and in identical words on both sites.
+ *
+ * Deliberately not an Eyebrow: this is a footnote, not a label, and it must not compete
+ * with the headline it sits under.
+ */
+export function IndependenceNote({ className }: { className?: string }) {
+  return (
+    <p
+      className={`flex max-w-[34rem] items-start gap-3 text-[0.8125rem] leading-[1.5] text-fg-subtle ${className ?? ''}`}
+    >
+      <span aria-hidden className="mt-[0.6em] h-px w-4 shrink-0 bg-border-strong" />
+      <span>
+        An independent project built for the Payload community — not affiliated with or endorsed by
+        Payload CMS.
+      </span>
+    </p>
   )
 }

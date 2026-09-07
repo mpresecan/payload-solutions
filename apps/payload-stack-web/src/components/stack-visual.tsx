@@ -17,7 +17,10 @@ const LAYERS: IsoLayer[] = [
   { id: 'ui', name: 'Next.js + shadcn/ui', detail: 'Dashboard, account, marketing pages' },
 ]
 
-/** The Payload Stack, bottom to top. The database layer cycles through the adapters the CLI offers. */
+/**
+ * The Payload Stack, bottom to top. The database layer is the swappable one: it slides out to the
+ * left and the next adapter slides in from the right, and it can be dragged or stepped through.
+ */
 export function StackVisual({ className }: { className?: string }) {
   return (
     <IsoStack
