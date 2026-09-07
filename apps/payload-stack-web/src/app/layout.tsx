@@ -41,23 +41,30 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#fafafa' },
-    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
-  ],
+  // The site opens dark whatever the system says, so the browser chrome matches.
+  themeColor: '#000000',
   width: 'device-width',
   initialScale: 1,
 }
 
 /**
- * Applies a stored theme choice before first paint. System preference is the default;
- * the toggle in the header writes `ps-theme` = light | dark | system.
+ * Applies the theme before first paint. Dark is the default whatever the system prefers;
+ * the toggle in the footer writes `ps-theme` = light | dark.
  */
-const themeInitScript = `(function(){try{var t=localStorage.getItem('ps-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t)}}catch(e){}})();`
+const themeInitScript = `(function(){var t='dark';try{var s=localStorage.getItem('ps-theme');if(s==='light'||s==='dark'){t=s}}catch(e){}document.documentElement.setAttribute('data-theme',t)})();`
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+    /* data-brand picks this site's accent family (platinum) out of the shared token set. */
+    <html
+      lang="en"
+      data-brand="stack"
+      /* Next disables CSS smooth scrolling during route changes unless this is set. */
+      data-scroll-behavior="smooth"
+      data-theme="dark"
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>

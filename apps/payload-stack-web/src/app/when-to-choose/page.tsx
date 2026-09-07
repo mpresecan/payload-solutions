@@ -3,12 +3,12 @@ import type { ReactNode } from 'react'
 import { Check, X } from '@phosphor-icons/react/dist/ssr'
 import { SOLUTIONS_URL, brands } from '@payload-solutions/brand'
 import { GridColumns } from '@payload-solutions/brand/grid-columns'
+import { ActionRow, Eyebrow, SectionHead } from '@payload-solutions/brand/lattice'
 import { ThemeBand } from '@payload-solutions/brand/theme-band'
 import { CopyCommand } from '@/components/copy-command'
 import { Reveal } from '@/components/reveal'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
-import { Button } from '@/components/ui/button'
 
 const brand = brands.stack
 
@@ -87,14 +87,20 @@ function Points({ items, columns }: { items: Point[]; columns: 2 | 3 }) {
     <dl
       className={
         columns === 3
-          ? 'mt-14 grid grid-cols-1 gap-x-12 gap-y-12 md:grid-cols-3'
-          : 'mt-14 grid grid-cols-1 gap-x-12 gap-y-12 sm:grid-cols-2'
+          ? 'list-grid mt-16 grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
+          : 'list-grid mt-16 grid-cols-1 sm:grid-cols-2'
       }
     >
       {items.map((p, i) => (
-        <Reveal key={p.title} index={i} className="border-t border-border pt-6">
-          <dt className="text-xl font-medium leading-snug tracking-tight">{p.title}</dt>
-          <dd className="mt-3 max-w-[48ch] text-pretty text-[0.9375rem] leading-relaxed text-fg-muted">
+        <Reveal
+          key={p.title}
+          index={i}
+          /* Three items across four columns: the first takes two, so the row still closes
+             on the far grid line. */
+          className={`list-cell ${columns === 3 && i === 0 ? 'md:col-span-2' : ''}`}
+        >
+          <dt className="display-sm">{p.title}</dt>
+          <dd className="mt-4 max-w-[48ch] text-pretty text-[0.9375rem] leading-relaxed text-fg-muted">
             {p.body}
           </dd>
         </Reveal>
@@ -106,14 +112,11 @@ function Points({ items, columns }: { items: Point[]; columns: 2 | 3 }) {
 function Opener() {
   return (
     <section className="container-content py-20 lg:py-28" aria-labelledby="fit-heading">
-      <p className="label-mono">Is it a fit?</p>
-      <h1
-        id="fit-heading"
-        className="mt-6 max-w-3xl text-balance text-[2.75rem] font-medium leading-[1.02] tracking-display sm:text-5xl lg:text-6xl"
-      >
+      <Eyebrow>Is it a fit?</Eyebrow>
+      <h1 id="fit-heading" className="display-xl mt-7 max-w-[16ch]">
         When to choose Payload Stack.
       </h1>
-      <p className="mt-6 max-w-[38rem] text-pretty text-lg leading-relaxed text-fg-muted">
+      <p className="lead mt-7 max-w-[38rem]">
         It makes strong choices for you: Payload as the backend, organizations as the unit of
         billing, Next.js and shadcn/ui in front. Those choices are a head start for some products
         and dead weight for others. This page is for telling which one yours is.
@@ -126,17 +129,12 @@ function Fit() {
   return (
     <section className="py-section" aria-labelledby="choose-heading">
       <div className="container-content">
-        <Reveal className="max-w-2xl">
-          <h2
+        <Reveal>
+          <SectionHead
             id="choose-heading"
-            className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl lg:text-5xl"
-          >
-            Choose it when.
-          </h2>
-          <p className="mt-5 text-pretty text-lg leading-relaxed text-fg-muted">
-            The stack earns its keep where the hard parts of a SaaS are the parts around the
-            product: tenancy, billing, the admin nobody wants to build.
-          </p>
+            title="Choose it when."
+            lead="The stack earns its keep where the hard parts of a SaaS are the parts around the product: tenancy, billing, the admin nobody wants to build."
+          />
         </Reveal>
         <Points items={FIT} columns={2} />
       </div>
@@ -148,16 +146,12 @@ function NotFit() {
   return (
     <section className="hairline-t py-section" aria-labelledby="elsewhere-heading">
       <div className="container-content">
-        <Reveal className="max-w-2xl">
-          <h2
+        <Reveal>
+          <SectionHead
             id="elsewhere-heading"
-            className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl lg:text-5xl"
-          >
-            Look elsewhere when.
-          </h2>
-          <p className="mt-5 text-pretty text-lg leading-relaxed text-fg-muted">
-            Every opinion in the stack is a cost for someone. These are the three that matter.
-          </p>
+            title="Look elsewhere when."
+            lead="Every opinion in the stack is a cost for someone. These are the three that matter."
+          />
         </Reveal>
         <Points items={NOT_FIT} columns={3} />
       </div>
@@ -169,20 +163,13 @@ function Verdict() {
   return (
     <section className="hairline-t py-section" aria-labelledby="verdict-heading">
       <div className="container-content">
-        <Reveal className="max-w-2xl">
-          <h2
-            id="verdict-heading"
-            className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl lg:text-5xl"
-          >
-            The short version.
-          </h2>
+        <Reveal>
+          <SectionHead id="verdict-heading" title="The short version." />
         </Reveal>
 
-        <Reveal className="mt-12 grid grid-cols-1 border border-border md:grid-cols-2">
-          <div className="bg-accent-soft p-7 lg:p-9">
-            <h3 className="text-xl font-medium leading-snug tracking-tight">
-              Choose Payload Stack if
-            </h3>
+        <Reveal className="list-grid mt-14 grid-cols-1 md:grid-cols-2">
+          <div className="list-cell cell-tint">
+            <h3 className="display-sm">Choose Payload Stack if</h3>
             <ul className="mt-6 space-y-4" role="list">
               {CHOOSE.map((item) => (
                 <li key={item} className="flex gap-3 text-[0.9375rem] leading-relaxed">
@@ -192,10 +179,8 @@ function Verdict() {
               ))}
             </ul>
           </div>
-          <div className="border-t border-border bg-bg p-7 md:border-l md:border-t-0 lg:p-9">
-            <h3 className="text-xl font-medium leading-snug tracking-tight">
-              Choose something else if
-            </h3>
+          <div className="list-cell">
+            <h3 className="display-sm">Choose something else if</h3>
             <ul className="mt-6 space-y-4" role="list">
               {ELSEWHERE.map((item) => (
                 <li key={item} className="flex gap-3 text-[0.9375rem] leading-relaxed text-fg-muted">
@@ -213,31 +198,20 @@ function Verdict() {
 
 function Decide() {
   return (
-    <section className="hairline-t" aria-labelledby="decide-heading">
-      <div className="container-content py-section">
-        <Reveal className="grid grid-cols-1 gap-10 border border-border bg-surface p-6 sm:p-8 lg:grid-cols-12 lg:items-end lg:gap-8 lg:p-12">
-          <div className="lg:col-span-7">
-            <h2
-              id="decide-heading"
-              className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl"
-            >
-              Still deciding? Scaffold it.
-            </h2>
-            <p className="mt-5 max-w-[52ch] text-pretty text-lg leading-relaxed text-fg-muted">
-              One command gives you a project you can read end to end. If the fit is wrong, you
-              will know in fifteen minutes. If it is right, you are already past the hard part.
-            </p>
-          </div>
-          <div className="flex min-w-0 flex-col items-start gap-3 lg:col-span-5 lg:items-end">
-            <CopyCommand size="lg" className="w-full sm:w-auto" />
-            <div className="flex flex-wrap gap-3">
-              <Button href={brand.docsUrl} variant="secondary" arrow>
-                Documentation
-              </Button>
-              <Button href={`${SOLUTIONS_URL}/#contact`} variant="ghost" arrow>
-                Ask us
-              </Button>
-            </div>
+    <section className="hairline-t py-section" aria-labelledby="decide-heading">
+      <div className="container-content col-grid gap-y-14">
+        <Reveal className="lg:col-span-2 lg:pr-12">
+          <SectionHead
+            id="decide-heading"
+            title="Still deciding? Scaffold it."
+            lead="One command gives you a project you can read end to end. If the fit is wrong, you will know in fifteen minutes. If it is right, you are already past the hard part."
+          />
+        </Reveal>
+        <Reveal className="min-w-0 lg:col-span-2 lg:pt-2">
+          <div className="border-t border-border">
+            <CopyCommand variant="row" />
+            <ActionRow href={brand.docsUrl}>Documentation</ActionRow>
+            <ActionRow href={`${SOLUTIONS_URL}/#contact`}>Ask us a question</ActionRow>
           </div>
         </Reveal>
       </div>

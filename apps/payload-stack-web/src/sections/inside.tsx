@@ -7,6 +7,7 @@ import {
   SlidersHorizontal,
   SquaresFour,
 } from '@phosphor-icons/react/dist/ssr'
+import { SectionHead } from '@payload-solutions/brand/lattice'
 import { screens } from '@payload-solutions/brand/screens'
 import { ThemedImage } from '@payload-solutions/brand/themed-image'
 import { Reveal } from '@/components/reveal'
@@ -17,7 +18,8 @@ interface Cell {
   icon: ReactNode
   title: string
   body: string
-  span: 1 | 2
+  /** Width in grid columns. Rows must add up to 4 so every cell edge lands on a hairline. */
+  span: 1 | 2 | 4
   tint?: boolean
   extra?: ReactNode
   /** A real screenshot, placed beside the copy (span 2) or below it (span 1). */
@@ -118,13 +120,13 @@ const CELLS: Cell[] = [
     icon: <SquaresFour size={24} />,
     title: 'Dashboard and account',
     body: 'A shadcn sidebar layout, account and security settings, sessions, API keys, and onboarding: create an organization, invite people, pick a plan.',
-    span: 1,
+    span: 2,
     media: (
-      <div className="relative mt-8 h-52 overflow-hidden border-l border-t border-border bg-surface">
+      <div className="relative h-full min-h-[16rem] overflow-hidden border-l border-t border-border bg-surface">
         <ThemedImage
           {...screens.dashboard}
-          sizes="(min-width: 1024px) 560px, 90vw"
-          className="absolute left-[6%] top-[6%] w-[140%] max-w-none"
+          sizes="(min-width: 1024px) 420px, 90vw"
+          className="absolute left-[6%] top-[8%] w-[150%] max-w-none"
         />
       </div>
     ),
@@ -134,7 +136,19 @@ const CELLS: Cell[] = [
     icon: <SlidersHorizontal size={24} />,
     title: 'Config, email, legal, SEO',
     body: 'One typed config for name, plans, auth methods and feature flags. React Email templates, legal pages as a collection, metadata and sitemap included.',
-    span: 2,
+    span: 4,
+    extra: (
+      <Chips
+        items={[
+          'stack.config.ts',
+          'React Email',
+          'Legal pages',
+          'Feature flags',
+          'Metadata',
+          'Sitemap',
+        ]}
+      />
+    ),
   },
 ]
 
@@ -142,21 +156,22 @@ export function Inside() {
   return (
     <section id="inside" className="scroll-mt-header py-section" aria-labelledby="inside-heading">
       <div className="container-content">
-        <Reveal className="max-w-2xl">
-          <h2
+        <Reveal>
+          <SectionHead
             id="inside-heading"
-            className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl lg:text-5xl"
-          >
-            Everything a SaaS needs on day one.
-          </h2>
-          <p className="mt-5 text-pretty text-lg leading-relaxed text-fg-muted">
-            Not a demo app. The pieces every product ships, already connected, with nothing about
-            anyone&apos;s particular business baked in.
-          </p>
+            eyebrow="What is in it"
+            title="Everything a SaaS needs on day one."
+            lead={
+              <>
+                Not a demo app. The pieces every product ships, already connected, with nothing
+                about anyone&apos;s particular business baked in.
+              </>
+            }
+          />
         </Reveal>
 
         <ul
-          className="mt-14 grid grid-cols-1 gap-px border border-border bg-border md:grid-cols-3"
+          className="list-grid mt-16 grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
           role="list"
         >
           {CELLS.map((cell, i) => (
@@ -166,30 +181,29 @@ export function Inside() {
               index={i}
               className={cn(
                 'flex min-w-0 flex-col',
-                cell.tint ? 'bg-accent-soft' : 'bg-bg',
-                cell.span === 2 ? 'md:col-span-2' : '',
-                cell.media && cell.span === 2 ? 'lg:grid lg:grid-cols-2' : '',
+                cell.tint ? 'cell-tint' : '',
+                cell.span === 2 ? 'lg:col-span-2' : '',
+                cell.span === 4 ? 'md:col-span-2 lg:col-span-4' : '',
+                cell.media && cell.span >= 2 ? 'lg:grid lg:grid-cols-2' : '',
                 cell.media && cell.span === 1 ? 'pb-0' : '',
               )}
             >
               <div
                 className={cn(
-                  'flex min-w-0 flex-col p-7 lg:p-9',
+                  'list-cell flex min-w-0 flex-col',
                   cell.media && cell.span === 1 ? 'pb-0 lg:pb-0' : '',
                 )}
               >
                 <div className={cell.tint ? 'text-accent' : 'text-fg'}>{cell.icon}</div>
-                <h3 className="mt-6 text-xl font-medium leading-snug tracking-tight">
-                  {cell.title}
-                </h3>
-                <p className="mt-3 max-w-[50ch] text-pretty text-[0.9375rem] leading-relaxed text-fg-muted">
+                <h3 className="display-sm mt-7">{cell.title}</h3>
+                <p className="mt-4 max-w-[50ch] text-pretty text-[0.9375rem] leading-relaxed text-fg-muted">
                   {cell.body}
                 </p>
                 {cell.extra}
                 {cell.media && cell.span === 1 ? cell.media : null}
               </div>
-              {cell.media && cell.span === 2 ? (
-                <div className="min-h-[16rem] pl-7 pt-7 lg:pl-0 lg:pt-9">{cell.media}</div>
+              {cell.media && cell.span >= 2 ? (
+                <div className="min-h-[16rem] pl-7 pt-7 lg:pl-0 lg:pt-10">{cell.media}</div>
               ) : null}
             </Reveal>
           ))}

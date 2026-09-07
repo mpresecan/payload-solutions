@@ -1,4 +1,5 @@
 import { Crosshairs } from '@payload-solutions/brand/crosshairs'
+import { SectionHead } from '@payload-solutions/brand/lattice'
 import { Parallax } from '@payload-solutions/brand/parallax'
 import { screens } from '@payload-solutions/brand/screens'
 import { ThemedImage } from '@payload-solutions/brand/themed-image'
@@ -204,21 +205,18 @@ export function Config() {
       aria-labelledby="config-heading"
     >
       <div className="container-content">
-        <Reveal className="max-w-2xl">
-          <h2
+        <Reveal>
+          <SectionHead
             id="config-heading"
-            className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl lg:text-5xl"
-          >
-            Your whole product, described in one file.
-          </h2>
-          <p className="mt-5 max-w-[52ch] text-pretty text-lg leading-relaxed text-fg-muted">
-            Pricing page, checkout, entitlements, sign-in screens and legal pages all read from
-            stack.config.ts. Change it once and everything follows.
-          </p>
+            eyebrow="stack.config.ts"
+            title="Your whole product, described in one file."
+            lead="Pricing page, checkout, entitlements, sign-in screens and legal pages all read from stack.config.ts. Change it once and everything follows."
+          />
         </Reveal>
 
-        <div className="mt-12 grid grid-cols-1 gap-8 lg:mt-16 lg:grid-cols-12 lg:items-start lg:gap-10">
-          <Reveal className="min-w-0 lg:col-span-7">
+        <div className="col-grid mt-14 gap-y-8 lg:mt-20 lg:items-start">
+          {/* Three columns for the file, one for what it produces. */}
+          <Reveal className="min-w-0 lg:col-span-3 lg:pr-10">
             <div className="border border-border bg-surface">
               <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
                 <span className="font-mono text-xs text-fg-muted">src/stack.config.ts</span>
@@ -242,7 +240,7 @@ export function Config() {
           </Reveal>
 
           {/* What the plans above turn into: the real pricing page, leading slightly on scroll. */}
-          <Reveal className="min-w-0 lg:col-span-5 lg:sticky lg:top-[calc(var(--header-height)+2rem)]">
+          <Reveal className="min-w-0 lg:col-span-1 lg:sticky lg:top-[calc(var(--header-height)+2rem)]">
             <Parallax speed={-0.05} as="figure" className="relative m-0">
               <div className="scanline relative border border-border p-[6%]">
                 <Crosshairs />

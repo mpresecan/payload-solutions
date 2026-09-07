@@ -33,9 +33,12 @@ export interface LiquidMarkOptions {
   drift?: number
   /** How much accent colour the smear carries, 0-1. At rest the mark stays fg-coloured. */
   accentBleed?: number
-  /** Fraction of the element's height the mark occupies on wide viewports. */
+  /**
+   * Fraction of the element's height the mark occupies on wide viewports. A narrow or
+   * squarish element (aspect <= 1.35) uses 70% of this and centres the mark instead.
+   */
   scale?: number
-  /** Mark centre in UV space on wide viewports. */
+  /** Mark centre in UV space on wide viewports. Ignored when the element is not wide. */
   origin?: [number, number]
 }
 
@@ -208,6 +211,27 @@ function parseColor(value: string, fallback: Rgb): Rgb {
   return fallback
 }
 
+/**
+ * Resolve a design token to an rgb triple.
+ *
+ * getComputedStyle().getPropertyValue() on a custom property hands back its *specified*
+ * token sequence, not a colour: since the palette rewrite, `--bg` is `var(--base-1000)` and
+ * `--accent` is a `light-dark()` pair, and both would come back as those literal strings and
+ * fall through to the hard-coded fallback. Painting the token onto a real colour property
+ * and reading that back makes the engine do the substitution — including light-dark(), which
+ * resolves against the host's inherited color-scheme, so the mark is lit in the accent of
+ * whichever brand and whichever band it is standing in.
+ */
+function resolveToken(host: HTMLElement, name: string, fallback: Rgb): Rgb {
+  const probe = document.createElement('span')
+  probe.style.cssText = 'position:absolute;width:0;height:0;visibility:hidden;pointer-events:none'
+  probe.style.color = `var(${name})`
+  host.appendChild(probe)
+  const value = getComputedStyle(probe).color
+  probe.remove()
+  return parseColor(value, fallback)
+}
+
 export function LiquidMark({ className, children, ...overrides }: LiquidMarkProps) {
   const hostRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -242,10 +266,9 @@ export function LiquidMark({ className, children, ...overrides }: LiquidMarkProp
       // No WebGL2, or a context we can no longer draw on: leave `children` showing.
       if (!gl || gl.isContextLost()) return null
 
-      const styles = getComputedStyle(host)
-      const bg: Rgb = parseColor(styles.getPropertyValue('--bg'), [0.039, 0.039, 0.039])
-      const accent: Rgb = parseColor(styles.getPropertyValue('--accent'), [0.949, 0.502, 0.247])
-      const ink: Rgb = parseColor(styles.getPropertyValue('--fg'), [0.949, 0.949, 0.949])
+      const bg: Rgb = resolveToken(host, '--bg', [0, 0, 0])
+      const accent: Rgb = resolveToken(host, '--accent', [0.357, 0.616, 1])
+      const ink: Rgb = resolveToken(host, '--fg', [1, 1, 1])
 
       const compile = (type: number, src: string) => {
         const sh = gl.createShader(type)!
@@ -331,6 +354,14 @@ export function LiquidMark({ className, children, ...overrides }: LiquidMarkProp
 
       const maskTex = gl.createTexture()!
 
+      /**
+       * Where the mark actually ends up, which is NOT always `options.origin`: a narrow or
+       * squarish element centres it instead. The render pass needs the same number for its
+       * glow falloff, so it is stored here rather than recomputed — passing the configured
+       * origin while the mask used the centred one lit the wrong part of the frame.
+       */
+      let effectiveOrigin: [number, number] = [...optsRef.current.origin]
+
       const buildMask = (w: number, h: number) => {
         const { scale, origin } = optsRef.current
         const c = document.createElement('canvas')
@@ -342,10 +373,11 @@ export function LiquidMark({ className, children, ...overrides }: LiquidMarkProp
         ctx.fillRect(0, 0, w, h)
 
         const wide = w / h > 1.35
+        effectiveOrigin = wide ? [origin[0], origin[1]] : [0.5, 0.62]
         const targetH = h * (wide ? scale : scale * 0.7)
         const k = targetH / MARK_BOX.h
         ctx.save()
-        ctx.translate(w * (wide ? origin[0] : 0.5), h * (wide ? origin[1] : 0.62))
+        ctx.translate(w * effectiveOrigin[0], h * effectiveOrigin[1])
         ctx.scale(k, k)
         ctx.translate(-(MARK_BOX.x + MARK_BOX.w / 2), -(MARK_BOX.y + MARK_BOX.h / 2))
         ctx.fillStyle = '#fff'
@@ -468,7 +500,7 @@ export function LiquidMark({ className, children, ...overrides }: LiquidMarkProp
         gl.uniform1i(renderProg.u.uSim!, 0)
         gl.uniform1f(renderProg.u.uAspect!, canvas.width / canvas.height)
         gl.uniform1f(renderProg.u.uGlow!, o.accentBleed)
-        gl.uniform2f(renderProg.u.uOrigin!, o.origin[0], o.origin[1])
+        gl.uniform2f(renderProg.u.uOrigin!, effectiveOrigin[0], effectiveOrigin[1])
         gl.uniform3f(renderProg.u.uBg!, bg[0], bg[1], bg[2])
         gl.uniform3f(renderProg.u.uAccent!, accent[0], accent[1], accent[2])
         gl.uniform3f(renderProg.u.uInk!, ink[0], ink[1], ink[2])

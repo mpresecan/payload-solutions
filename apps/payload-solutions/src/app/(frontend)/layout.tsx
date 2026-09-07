@@ -25,22 +25,29 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#fafafa' },
-    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
-  ],
+  // The site opens dark whatever the system says, so the browser chrome matches.
+  themeColor: '#000000',
 }
 
 export default function FrontendLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+    /* data-brand sets the umbrella accent (cobalt); product cards override it per entity. */
+    <html
+      lang="en"
+      data-brand="solutions"
+      /* Next disables CSS smooth scrolling during route changes unless this is set. */
+      data-scroll-behavior="smooth"
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      suppressHydrationWarning
+    >
       <body className="flex min-h-dvh flex-col bg-bg text-fg antialiased">
         <RootProvider
           theme={{
             // Brand tokens read data-theme; Fumadocs reads the .dark class. Set both.
             attribute: ['class', 'data-theme'],
-            defaultTheme: 'system',
-            enableSystem: true,
+            // Dark is the design's home key: it is the default, not the system preference.
+            defaultTheme: 'dark',
+            enableSystem: false,
             disableTransitionOnChange: true,
           }}
           search={{ options: { api: '/api/search' } }}

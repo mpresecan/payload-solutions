@@ -1,3 +1,4 @@
+import { SectionHead } from '@payload-solutions/brand/lattice'
 import { Reveal } from '@/components/reveal'
 
 const STEPS: Array<{ title: string; body: string }> = [
@@ -63,15 +64,14 @@ export function OneCommand() {
       className="scroll-mt-header hairline-t py-section"
       aria-labelledby="how-heading"
     >
-      <div className="container-content grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-10">
-        <div className="lg:col-span-5">
+      <div className="container-content col-grid gap-y-12">
+        <div className="lg:col-span-2 lg:pr-12">
           <Reveal>
-            <h2
+            <SectionHead
               id="how-heading"
-              className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl lg:text-5xl"
-            >
-              From zero to a running product in seven prompts.
-            </h2>
+              eyebrow="One command"
+              title="From zero to a running product in seven prompts."
+            />
           </Reveal>
           <ol className="mt-10 space-y-6">
             {STEPS.map((step, i) => (
@@ -82,7 +82,7 @@ export function OneCommand() {
                 className="border-t border-border pt-6 first:border-t-0 first:pt-0"
               >
                 <div>
-                  <h3 className="text-lg font-medium leading-snug tracking-tight">{step.title}</h3>
+                  <h3 className="display-sm">{step.title}</h3>
                   <p className="mt-1.5 max-w-[46ch] text-pretty text-[0.9375rem] leading-relaxed text-fg-muted">
                     {step.body}
                   </p>
@@ -92,9 +92,9 @@ export function OneCommand() {
           </ol>
         </div>
 
-        <Reveal className="min-w-0 lg:col-span-7">
+        <Reveal className="min-w-0 lg:col-span-2">
           <pre
-            className="code-block border border-border bg-surface p-4 text-[0.75rem] sm:p-6 sm:text-[0.8125rem] lg:p-8"
+            className="code-block border border-border bg-surface p-5 text-[0.75rem] sm:p-6 sm:text-[0.8125rem] lg:p-8"
             aria-label="Terminal transcript of create-payload-stack"
           >
             <code>

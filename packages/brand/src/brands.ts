@@ -18,12 +18,20 @@ export interface Brand {
   /** Where this product's documentation lives. All docs are hosted on payload.solutions. */
   docsUrl: string
   github: string
+  /** Deep link to this product's own folder in the repo, when it has one. */
+  githubSource?: string
   twitter?: string
 }
+
+/** Payload CMS itself. Every mention of the name in prose links here. */
+export const PAYLOAD_URL = 'https://payloadcms.com'
 
 export const SOLUTIONS_URL = 'https://payload.solutions'
 export const DOCS_BASE_URL = `${SOLUTIONS_URL}/docs`
 export const GITHUB_REPO_URL = 'https://github.com/mpresecan/payload-solutions'
+
+/** The Payload Stack template itself, inside the monorepo. */
+export const STACK_TEMPLATE_URL = `${GITHUB_REPO_URL}/tree/main/templates/payload-stack`
 
 export const brands: Record<BrandId, Brand> = {
   solutions: {
@@ -49,6 +57,7 @@ export const brands: Record<BrandId, Brand> = {
       'Payload Stack is an open-source SaaS boilerplate on Payload CMS and Next.js: Better Auth, organizations, Stripe subscriptions, a shadcn dashboard and a Payload admin, scaffolded with one command.',
     docsUrl: `${DOCS_BASE_URL}/payload-stack`,
     github: GITHUB_REPO_URL,
+    githubSource: STACK_TEMPLATE_URL,
   },
   clock: {
     id: 'clock',
@@ -75,3 +84,41 @@ export const INDEPENDENCE_NOTICE =
   'Payload Solutions is an independent open-source project and is not affiliated with, sponsored by, or endorsed by Payload CMS, Inc.'
 
 export const NPX_COMMAND = 'npx create-payload-stack@latest'
+
+/**
+ * Accent families defined in tokens.css. Every entity owns its own place in the set, so a
+ * page never reads as "the orange one": Solutions is cobalt, Clock brass, Consent emerald,
+ * Emails rose, Action Scheduler teal, Vercel Integration orchid, and Payload Stack a
+ * near-neutral platinum that separates by saturation rather than hue. Wider than BrandId on
+ * purpose — plugins get an accent without needing a full brand record (domain, tagline,
+ * docs) they do not have.
+ *
+ * Adding an entity here without adding its block to tokens.css is the bug this set was
+ * built to fix: an unmatched slug falls back to the umbrella cobalt and the entity silently
+ * becomes indistinguishable from Payload Solutions.
+ */
+export type AccentId =
+  | 'solutions'
+  | 'stack'
+  | 'clock'
+  | 'consent'
+  | 'emails'
+  | 'scheduler'
+  | 'vercel'
+
+/**
+ * The accent a product or plugin owns, from its slug or package name. Matched on the word
+ * rather than an exact slug so `payload-consent`, `plugin-consent` and
+ * `@payload-solutions/consent` all land on the same hue. Anything unrecognised falls back
+ * to the umbrella cobalt.
+ */
+export function accentForSlug(slug?: string | null): AccentId {
+  const s = (slug ?? '').toLowerCase()
+  if (s.includes('stack')) return 'stack'
+  if (s.includes('clock')) return 'clock'
+  if (s.includes('consent')) return 'consent'
+  if (s.includes('email')) return 'emails'
+  if (s.includes('schedul')) return 'scheduler'
+  if (s.includes('vercel')) return 'vercel'
+  return 'solutions'
+}
