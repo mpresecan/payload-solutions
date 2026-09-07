@@ -7,6 +7,7 @@ import {
   SlidersHorizontal,
   SquaresFour,
 } from '@phosphor-icons/react/dist/ssr'
+import { SectionHead } from '@payload-solutions/brand/lattice'
 import { screens } from '@payload-solutions/brand/screens'
 import { ThemedImage } from '@payload-solutions/brand/themed-image'
 import { Reveal } from '@/components/reveal'
@@ -135,6 +136,18 @@ const CELLS: Cell[] = [
     title: 'Config, email, legal, SEO',
     body: 'One typed config for name, plans, auth methods and feature flags. React Email templates, legal pages as a collection, metadata and sitemap included.',
     span: 2,
+    extra: (
+      <Chips
+        items={[
+          'stack.config.ts',
+          'React Email',
+          'Legal pages',
+          'Feature flags',
+          'Metadata',
+          'Sitemap',
+        ]}
+      />
+    ),
   },
 ]
 
@@ -142,21 +155,22 @@ export function Inside() {
   return (
     <section id="inside" className="scroll-mt-header py-section" aria-labelledby="inside-heading">
       <div className="container-content">
-        <Reveal className="max-w-2xl">
-          <h2
+        <Reveal>
+          <SectionHead
             id="inside-heading"
-            className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl lg:text-5xl"
-          >
-            Everything a SaaS needs on day one.
-          </h2>
-          <p className="mt-5 text-pretty text-lg leading-relaxed text-fg-muted">
-            Not a demo app. The pieces every product ships, already connected, with nothing about
-            anyone&apos;s particular business baked in.
-          </p>
+            eyebrow="What is in it"
+            title="Everything a SaaS needs on day one."
+            lead={
+              <>
+                Not a demo app. The pieces every product ships, already connected, with nothing
+                about anyone&apos;s particular business baked in.
+              </>
+            }
+          />
         </Reveal>
 
         <ul
-          className="mt-14 grid grid-cols-1 gap-px border border-border bg-border md:grid-cols-3"
+          className="cell-grid mt-16 grid-cols-1 md:grid-cols-3"
           role="list"
         >
           {CELLS.map((cell, i) => (
@@ -166,7 +180,7 @@ export function Inside() {
               index={i}
               className={cn(
                 'flex min-w-0 flex-col',
-                cell.tint ? 'bg-accent-soft' : 'bg-bg',
+                cell.tint ? 'cell-tint' : 'bg-bg',
                 cell.span === 2 ? 'md:col-span-2' : '',
                 cell.media && cell.span === 2 ? 'lg:grid lg:grid-cols-2' : '',
                 cell.media && cell.span === 1 ? 'pb-0' : '',
@@ -174,22 +188,20 @@ export function Inside() {
             >
               <div
                 className={cn(
-                  'flex min-w-0 flex-col p-7 lg:p-9',
+                  'cell-p flex min-w-0 flex-col',
                   cell.media && cell.span === 1 ? 'pb-0 lg:pb-0' : '',
                 )}
               >
                 <div className={cell.tint ? 'text-accent' : 'text-fg'}>{cell.icon}</div>
-                <h3 className="mt-6 text-xl font-medium leading-snug tracking-tight">
-                  {cell.title}
-                </h3>
-                <p className="mt-3 max-w-[50ch] text-pretty text-[0.9375rem] leading-relaxed text-fg-muted">
+                <h3 className="display-sm mt-7">{cell.title}</h3>
+                <p className="mt-4 max-w-[50ch] text-pretty text-[0.9375rem] leading-relaxed text-fg-muted">
                   {cell.body}
                 </p>
                 {cell.extra}
                 {cell.media && cell.span === 1 ? cell.media : null}
               </div>
               {cell.media && cell.span === 2 ? (
-                <div className="min-h-[16rem] pl-7 pt-7 lg:pl-0 lg:pt-9">{cell.media}</div>
+                <div className="min-h-[16rem] pl-7 pt-7 lg:pl-0 lg:pt-10">{cell.media}</div>
               ) : null}
             </Reveal>
           ))}

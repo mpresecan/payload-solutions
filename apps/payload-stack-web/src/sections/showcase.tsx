@@ -1,3 +1,4 @@
+import { SectionHead } from '@payload-solutions/brand/lattice'
 import { MediaStack } from '@payload-solutions/brand/media-stack'
 import { screens } from '@payload-solutions/brand/screens'
 import { ThemedImage } from '@payload-solutions/brand/themed-image'
@@ -14,20 +15,15 @@ export function Showcase() {
   return (
     <section className="relative py-section" aria-labelledby="showcase-heading">
       <div className="container-content">
-        <Reveal className="max-w-2xl">
-          <h2
+        <Reveal>
+          <SectionHead
             id="showcase-heading"
-            className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl lg:text-5xl"
-          >
-            Your product in front. Payload behind it.
-          </h2>
-          <p className="mt-5 text-pretty text-lg leading-relaxed text-fg-muted">
-            The dashboard your users sign in to and the admin your team works in read the same
-            collections, the same session and the same config.
-          </p>
+            title="Your product in front. Payload behind it."
+            lead="The dashboard your users sign in to and the admin your team works in read the same collections, the same session and the same config."
+          />
         </Reveal>
 
-        <Reveal className="mt-12 lg:mt-16">
+        <Reveal className="mt-14 lg:mt-20">
           <MediaStack
             texture={false}
             back={

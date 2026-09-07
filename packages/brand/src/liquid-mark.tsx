@@ -208,6 +208,27 @@ function parseColor(value: string, fallback: Rgb): Rgb {
   return fallback
 }
 
+/**
+ * Resolve a design token to an rgb triple.
+ *
+ * getComputedStyle().getPropertyValue() on a custom property hands back its *specified*
+ * token sequence, not a colour: since the palette rewrite, `--bg` is `var(--base-1000)` and
+ * `--accent` is a `light-dark()` pair, and both would come back as those literal strings and
+ * fall through to the hard-coded fallback. Painting the token onto a real colour property
+ * and reading that back makes the engine do the substitution — including light-dark(), which
+ * resolves against the host's inherited color-scheme, so the mark is lit in the accent of
+ * whichever brand and whichever band it is standing in.
+ */
+function resolveToken(host: HTMLElement, name: string, fallback: Rgb): Rgb {
+  const probe = document.createElement('span')
+  probe.style.cssText = 'position:absolute;width:0;height:0;visibility:hidden;pointer-events:none'
+  probe.style.color = `var(${name})`
+  host.appendChild(probe)
+  const value = getComputedStyle(probe).color
+  probe.remove()
+  return parseColor(value, fallback)
+}
+
 export function LiquidMark({ className, children, ...overrides }: LiquidMarkProps) {
   const hostRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -242,10 +263,9 @@ export function LiquidMark({ className, children, ...overrides }: LiquidMarkProp
       // No WebGL2, or a context we can no longer draw on: leave `children` showing.
       if (!gl || gl.isContextLost()) return null
 
-      const styles = getComputedStyle(host)
-      const bg: Rgb = parseColor(styles.getPropertyValue('--bg'), [0.039, 0.039, 0.039])
-      const accent: Rgb = parseColor(styles.getPropertyValue('--accent'), [0.949, 0.502, 0.247])
-      const ink: Rgb = parseColor(styles.getPropertyValue('--fg'), [0.949, 0.949, 0.949])
+      const bg: Rgb = resolveToken(host, '--bg', [0, 0, 0])
+      const accent: Rgb = resolveToken(host, '--accent', [0.357, 0.616, 1])
+      const ink: Rgb = resolveToken(host, '--fg', [1, 1, 1])
 
       const compile = (type: number, src: string) => {
         const sh = gl.createShader(type)!

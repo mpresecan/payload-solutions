@@ -6,6 +6,7 @@ import {
   SOLUTIONS_URL,
   brands,
 } from '@payload-solutions/brand'
+import { FooterWordmark } from '@payload-solutions/brand/footer-wordmark'
 
 const stack = brands.stack
 
@@ -101,6 +102,8 @@ export function SiteFooter() {
           </p>
         </div>
       </div>
+
+      <FooterWordmark brand="stack" />
     </footer>
   )
 }

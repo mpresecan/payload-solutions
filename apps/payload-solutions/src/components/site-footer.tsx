@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { INDEPENDENCE_NOTICE, Logo, PAYLOAD_TRADEMARK_ATTRIBUTION, brands } from '@payload-solutions/brand'
+import { FooterWordmark } from '@payload-solutions/brand/footer-wordmark'
 
 const solutions = brands.solutions
 
@@ -72,6 +73,8 @@ export function SiteFooter() {
           <p className="shrink-0">MIT licensed. Copyright {new Date().getFullYear()} Payload Solutions.</p>
         </div>
       </div>
+
+      <FooterWordmark brand="solutions" />
     </footer>
   )
 }

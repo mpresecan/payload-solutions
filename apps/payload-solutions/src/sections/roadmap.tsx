@@ -1,5 +1,6 @@
 import { ArrowUpRight } from '@phosphor-icons/react/dist/ssr'
 
+import { SectionHead } from '@payload-solutions/brand/lattice'
 import { Reveal } from '@/components/reveal'
 import type { RoadmapItem } from '@/payload-types'
 
@@ -14,21 +15,20 @@ export function Roadmap({ items }: { items: RoadmapItem[] }) {
   return (
     <section id="roadmap" className="scroll-mt-header hairline-t py-section" aria-labelledby="roadmap-heading">
       <div className="container-content">
-        <Reveal className="max-w-2xl">
-          <h2 id="roadmap-heading" className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl lg:text-5xl">
-            Roadmap
-          </h2>
-          <p className="mt-5 text-pretty text-lg leading-relaxed text-fg-muted">
-            What is done, what we are on, what comes next. Managed in our own Payload admin and updated as
-            things ship.
-          </p>
+        <Reveal>
+          <SectionHead
+            id="roadmap-heading"
+            eyebrow="In the open"
+            title="Roadmap"
+            lead="What is done, what we are on, what comes next. Managed in our own Payload admin and updated as things ship."
+          />
         </Reveal>
 
-        <div className="mt-14 grid grid-cols-1 gap-px border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+        <div className="cell-grid mt-16 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {STAGES.map((stage, i) => {
             const stageItems = items.filter((item) => item.stage === stage.key)
             return (
-              <Reveal key={stage.key} index={i} className="flex min-w-0 flex-col bg-bg p-6">
+              <Reveal key={stage.key} index={i} className="flex min-w-0 flex-col bg-bg p-7">
                 <h3 className="font-mono text-xs uppercase tracking-[0.18em] text-fg-muted">{stage.label}</h3>
                 <ul className="mt-5 space-y-5">
                   {stageItems.length === 0 ? (

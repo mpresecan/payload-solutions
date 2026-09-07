@@ -2,6 +2,7 @@ import { DocsLayout } from 'fumadocs-ui/layouts/docs'
 import { getLayoutTabs, type LayoutTab } from 'fumadocs-ui/layouts/shared'
 import type { ReactNode } from 'react'
 
+import { DocsBrandSync } from '@/components/docs-brand-sync'
 import { baseOptions } from '@/lib/layout.shared'
 import { source } from '@/lib/source'
 
@@ -28,6 +29,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   return (
     <DocsLayout {...baseOptions()} tree={tree} tabs={tabs}>
+      <DocsBrandSync />
       {children}
     </DocsLayout>
   )

@@ -75,3 +75,26 @@ export const INDEPENDENCE_NOTICE =
   'Payload Solutions is an independent open-source project and is not affiliated with, sponsored by, or endorsed by Payload CMS, Inc.'
 
 export const NPX_COMMAND = 'npx create-payload-stack@latest'
+
+/**
+ * Accent families defined in tokens.css. Every entity has its own hue on true black, so a
+ * page never reads as "the orange one": Solutions is cobalt, Stack violet, Clock brass,
+ * Consent emerald, Emails rose. Wider than BrandId on purpose — plugins get an accent
+ * without needing a full brand record (domain, tagline, docs) they do not have.
+ */
+export type AccentId = 'solutions' | 'stack' | 'clock' | 'consent' | 'emails'
+
+/**
+ * The accent a product or plugin owns, from its slug or package name. Matched on the word
+ * rather than an exact slug so `payload-consent`, `plugin-consent` and
+ * `@payload-solutions/consent` all land on the same hue. Anything unrecognised falls back
+ * to the umbrella cobalt.
+ */
+export function accentForSlug(slug?: string | null): AccentId {
+  const s = (slug ?? '').toLowerCase()
+  if (s.includes('stack')) return 'stack'
+  if (s.includes('clock')) return 'clock'
+  if (s.includes('consent')) return 'consent'
+  if (s.includes('email')) return 'emails'
+  return 'solutions'
+}

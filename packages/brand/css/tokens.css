@@ -1,62 +1,84 @@
 /*
   Payload Solutions design tokens.
-  One palette, one accent, one radius scale (sharp) shared by payload.solutions,
-  payloadstack.com and payloadclock.com.
+
+  Palette strategy (2026-09 premium pass, payloadcms.com as the reference):
+  - A single neutral ramp, --base-0 (white) to --base-1000 (black), in even steps. Every
+    surface, line and text colour is a step on that ramp, so the greys never drift.
+  - Dark is the primary theme and it is TRUE BLACK: --bg is #000, exactly like payloadcms.com.
+    Depth comes from 7%-and-under elevation steps and 12.5%-alpha hairlines, never from
+    lifted grey panels.
+  - Chrome is monochrome. Colour enters only through the per-brand accent, which each site
+    (and each product card) sets with `data-brand`.
 
   Theme strategy: CSS variables. Light is the default on :root, dark is applied by
-  prefers-color-scheme unless the page forces `data-theme="light"`, and
-  `data-theme="dark"` always wins. The attribute also works on any element, so a single
-  section can be a dark band on a light page (see ThemeBand). Neutrals are off-black /
-  off-white on purpose.
+  prefers-color-scheme unless the page forces `data-theme="light"`, and `data-theme="dark"`
+  always wins. The attribute works on any element, so a single section can be a dark band on
+  a light page (see ThemeBand).
+
+  Brand strategy: `data-brand="solutions | stack | clock | consent | emails"` sets the accent
+  family on any element. The light/dark pair is resolved with light-dark(), which follows the
+  nearest inherited `color-scheme` — so a Payload Clock card inside a dark band gets Clock's
+  dark accent without the card knowing which band it is in. A flat fallback is declared first
+  for engines without light-dark().
 */
 
 :root,
 [data-theme='light'] {
   color-scheme: light;
 
+  /* ---- neutral ramp ------------------------------------------------------------------ */
+  --base-0: #ffffff;
+  --base-50: #f5f5f5;
+  --base-100: #ebebeb;
+  --base-150: #dddddd;
+  --base-200: #d0d0d0;
+  --base-300: #b5b5b5;
+  --base-400: #9a9a9a;
+  --base-500: #808080;
+  --base-600: #656565;
+  --base-700: #4a4a4a;
+  --base-800: #2f2f2f;
+  --base-850: #222222;
+  --base-900: #141414;
+  --base-950: #070707;
+  --base-1000: #000000;
+
   /* surfaces */
-  --bg: #fafafa;
-  --surface: #f3f3f3;
-  --surface-2: #ebebeb;
-  --surface-inverted: #101010;
+  --bg: var(--base-0);
+  --surface: var(--base-50);
+  --surface-2: var(--base-100);
+  --surface-3: var(--base-150);
+  --surface-inverted: var(--base-1000);
 
   /* text */
-  --fg: #141414;
-  --fg-muted: rgba(20, 20, 20, 0.62);
-  --fg-subtle: rgba(20, 20, 20, 0.42);
-  --fg-inverted: #f5f5f5;
+  --fg: #0a0a0a;
+  --fg-muted: rgba(10, 10, 10, 0.62);
+  --fg-subtle: rgba(10, 10, 10, 0.42);
+  --fg-inverted: var(--base-0);
 
-  /* lines */
-  --border: rgba(0, 0, 0, 0.12);
+  /* lines: one hairline weight, one emphasis weight */
+  --border: rgba(0, 0, 0, 0.125);
   --border-strong: rgba(0, 0, 0, 0.28);
 
-  /* accent: burnt orange, darkened for AA contrast on light surfaces */
-  --accent: #c2531c;
-  --accent-hover: #a8460f;
-  --accent-fg: #fafafa;
-  --accent-soft: rgba(194, 83, 28, 0.1);
-
   /* semantic */
-  --success: #1f7a4d;
-  --warning: #b3760c;
+  --success: #0f7a48;
+  --warning: #8a6100;
   --danger: #b3261e;
 
-  /* selection, like Payload's amber selection but on-brand */
   --selection-bg: var(--accent);
   --selection-fg: var(--accent-fg);
 
   /* illustration surfaces (isometric slabs): top face lightest, then right, then left */
   --slab-top: #fdfdfd;
-  --slab-side-a: #e9e9e9;
-  --slab-side-b: #dcdcdc;
+  --slab-side-a: #ececec;
+  --slab-side-b: #dedede;
 
-  /* ambient backdrop (hero): light field, grid ink, texture strength */
-  --ambient-glow: rgba(194, 83, 28, 0.16);
-  --ambient-cool: rgba(20, 20, 20, 0.06);
-  --ambient-sheen: rgba(255, 255, 255, 0.5);
-  --ambient-grid: rgba(20, 20, 20, 0.07);
-  --noise-opacity: 0.05;
-  --scanline-ink: rgba(20, 20, 20, 0.08);
+  /* ambient layers */
+  --ambient-cool: rgba(10, 10, 10, 0.05);
+  --ambient-sheen: rgba(255, 255, 255, 0.55);
+  --ambient-grid: rgba(10, 10, 10, 0.06);
+  --noise-opacity: 0.04;
+  --scanline-ink: rgba(10, 10, 10, 0.07);
   --display-light: block;
   --display-dark: none;
 
@@ -68,10 +90,10 @@
     monospace;
 
   /* layout */
-  --content-max: 80rem; /* 1280px */
-  --gutter: clamp(1rem, 4vw, 2.5rem);
+  --content-max: 84rem; /* 1344px */
+  --gutter: clamp(1.25rem, 4vw, 3rem);
   --header-height: 4.25rem; /* 68px */
-  --section-y: clamp(4rem, 9vw, 7.5rem);
+  --section-y: clamp(4.5rem, 9vw, 8.5rem);
 
   /* shape: everything is square */
   --radius: 0px;
@@ -85,42 +107,41 @@
   --dur-slow: 500ms;
 }
 
+/* ---------------------------------------------------------------------------------------
+   Dark. --bg is true black; the ramp is inverted so --surface / --surface-2 land on the
+   #070707 / #141414 elevation steps rather than on lifted greys.
+   --------------------------------------------------------------------------------------- */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
 
-    --bg: #0a0a0a;
-    --surface: #111111;
-    --surface-2: #181818;
-    --surface-inverted: #f3f3f3;
+    --bg: var(--base-1000);
+    --surface: var(--base-950);
+    --surface-2: var(--base-900);
+    --surface-3: var(--base-850);
+    --surface-inverted: var(--base-0);
 
-    --fg: #f2f2f2;
-    --fg-muted: rgba(242, 242, 242, 0.64);
-    --fg-subtle: rgba(242, 242, 242, 0.42);
-    --fg-inverted: #111111;
+    --fg: #ffffff;
+    --fg-muted: rgba(255, 255, 255, 0.62);
+    --fg-subtle: rgba(255, 255, 255, 0.4);
+    --fg-inverted: var(--base-1000);
 
-    --border: rgba(255, 255, 255, 0.12);
-    --border-strong: rgba(255, 255, 255, 0.3);
+    --border: rgba(255, 255, 255, 0.125);
+    --border-strong: rgba(255, 255, 255, 0.28);
 
-    --accent: #f2803f;
-    --accent-hover: #ff9354;
-    --accent-fg: #0a0a0a;
-    --accent-soft: rgba(242, 128, 63, 0.14);
+    --success: #4fd08a;
+    --warning: #f0b84d;
+    --danger: #ff8f85;
 
-    --success: #4fbf85;
-    --warning: #e2a53a;
-    --danger: #ef6b62;
+    --slab-top: #161616;
+    --slab-side-a: #0d0d0d;
+    --slab-side-b: #050505;
 
-    --slab-top: #1e1e1e;
-    --slab-side-a: #151515;
-    --slab-side-b: #0f0f0f;
-
-    --ambient-glow: rgba(242, 128, 63, 0.2);
-    --ambient-cool: rgba(255, 255, 255, 0.05);
-    --ambient-sheen: rgba(255, 255, 255, 0.07);
-    --ambient-grid: rgba(255, 255, 255, 0.06);
-    --noise-opacity: 0.07;
-    --scanline-ink: rgba(255, 255, 255, 0.09);
+    --ambient-cool: rgba(255, 255, 255, 0.045);
+    --ambient-sheen: rgba(255, 255, 255, 0.06);
+    --ambient-grid: rgba(255, 255, 255, 0.055);
+    --noise-opacity: 0.05;
+    --scanline-ink: rgba(255, 255, 255, 0.08);
     --display-light: none;
     --display-dark: block;
   }
@@ -129,38 +150,143 @@
 [data-theme='dark'] {
   color-scheme: dark;
 
-  --bg: #0a0a0a;
-  --surface: #111111;
-  --surface-2: #181818;
-  --surface-inverted: #f3f3f3;
+  --bg: var(--base-1000);
+  --surface: var(--base-950);
+  --surface-2: var(--base-900);
+  --surface-3: var(--base-850);
+  --surface-inverted: var(--base-0);
 
-  --fg: #f2f2f2;
-  --fg-muted: rgba(242, 242, 242, 0.64);
-  --fg-subtle: rgba(242, 242, 242, 0.42);
-  --fg-inverted: #111111;
+  --fg: #ffffff;
+  --fg-muted: rgba(255, 255, 255, 0.62);
+  --fg-subtle: rgba(255, 255, 255, 0.4);
+  --fg-inverted: var(--base-1000);
 
-  --border: rgba(255, 255, 255, 0.12);
-  --border-strong: rgba(255, 255, 255, 0.3);
+  --border: rgba(255, 255, 255, 0.125);
+  --border-strong: rgba(255, 255, 255, 0.28);
 
-  --accent: #f2803f;
-  --accent-hover: #ff9354;
-  --accent-fg: #0a0a0a;
-  --accent-soft: rgba(242, 128, 63, 0.14);
+  --success: #4fd08a;
+  --warning: #f0b84d;
+  --danger: #ff8f85;
 
-  --success: #4fbf85;
-  --warning: #e2a53a;
-  --danger: #ef6b62;
+  --slab-top: #161616;
+  --slab-side-a: #0d0d0d;
+  --slab-side-b: #050505;
 
-  --slab-top: #1e1e1e;
-  --slab-side-a: #151515;
-  --slab-side-b: #0f0f0f;
-
-  --ambient-glow: rgba(242, 128, 63, 0.2);
-  --ambient-cool: rgba(255, 255, 255, 0.05);
-  --ambient-sheen: rgba(255, 255, 255, 0.07);
-  --ambient-grid: rgba(255, 255, 255, 0.06);
-  --noise-opacity: 0.07;
-  --scanline-ink: rgba(255, 255, 255, 0.09);
+  --ambient-cool: rgba(255, 255, 255, 0.045);
+  --ambient-sheen: rgba(255, 255, 255, 0.06);
+  --ambient-grid: rgba(255, 255, 255, 0.055);
+  --noise-opacity: 0.05;
+  --scanline-ink: rgba(255, 255, 255, 0.08);
   --display-light: none;
   --display-dark: block;
+}
+
+/* ---------------------------------------------------------------------------------------
+   Brand accents.
+
+   One family per entity, each a jewel hue that holds up on true black. The light value is
+   darkened to clear 4.5:1 on white; the dark value is the luminous one. Both are carried in
+   a single light-dark() pair so the accent follows whichever band it is dropped into.
+
+   --accent        the hue itself: fills, marks, active states
+   --accent-hover  one step brighter (dark) / deeper (light)
+   --accent-fg     text on an --accent fill
+   --accent-soft   ~10% tint for the rare filled cell
+   --accent-line   a hairline in the accent, for a cell that needs to be singled out
+   --accent-glow   the hero light; low alpha, large blur
+   --------------------------------------------------------------------------------------- */
+[data-brand] {
+  --accent-fg: #ffffff;
+  --accent-fg: light-dark(#ffffff, #000000);
+}
+
+/* Payload Solutions — cobalt */
+[data-brand='solutions'] {
+  --accent: #5b9dff;
+  --accent: light-dark(#1d62d8, #5b9dff);
+  --accent-hover: #7db0ff;
+  --accent-hover: light-dark(#1450b5, #7db0ff);
+  --accent-soft: rgba(91, 157, 255, 0.1);
+  --accent-soft: light-dark(rgba(29, 98, 216, 0.09), rgba(91, 157, 255, 0.1));
+  --accent-line: rgba(91, 157, 255, 0.32);
+  --accent-line: light-dark(rgba(29, 98, 216, 0.34), rgba(91, 157, 255, 0.32));
+  --accent-glow: rgba(91, 157, 255, 0.16);
+  --accent-glow: light-dark(rgba(29, 98, 216, 0.12), rgba(91, 157, 255, 0.16));
+}
+
+/* Payload Stack — violet */
+[data-brand='stack'] {
+  --accent: #8b7bff;
+  --accent: light-dark(#5b45e0, #8b7bff);
+  --accent-hover: #a596ff;
+  --accent-hover: light-dark(#4a35c4, #a596ff);
+  --accent-soft: rgba(139, 123, 255, 0.1);
+  --accent-soft: light-dark(rgba(91, 69, 224, 0.09), rgba(139, 123, 255, 0.1));
+  --accent-line: rgba(139, 123, 255, 0.32);
+  --accent-line: light-dark(rgba(91, 69, 224, 0.34), rgba(139, 123, 255, 0.32));
+  --accent-glow: rgba(139, 123, 255, 0.16);
+  --accent-glow: light-dark(rgba(91, 69, 224, 0.12), rgba(139, 123, 255, 0.16));
+}
+
+/* Payload Clock — brass */
+[data-brand='clock'] {
+  --accent: #f0b84d;
+  --accent: light-dark(#8a6100, #f0b84d);
+  --accent-hover: #ffcd6b;
+  --accent-hover: light-dark(#6f4d00, #ffcd6b);
+  --accent-soft: rgba(240, 184, 77, 0.1);
+  --accent-soft: light-dark(rgba(138, 97, 0, 0.09), rgba(240, 184, 77, 0.1));
+  --accent-line: rgba(240, 184, 77, 0.32);
+  --accent-line: light-dark(rgba(138, 97, 0, 0.34), rgba(240, 184, 77, 0.32));
+  --accent-glow: rgba(240, 184, 77, 0.14);
+  --accent-glow: light-dark(rgba(138, 97, 0, 0.1), rgba(240, 184, 77, 0.14));
+}
+
+/* Payload Consent — emerald */
+[data-brand='consent'] {
+  --accent: #3dd98a;
+  --accent: light-dark(#0f7a48, #3dd98a);
+  --accent-hover: #62e5a2;
+  --accent-hover: light-dark(#0a6239, #62e5a2);
+  --accent-soft: rgba(61, 217, 138, 0.1);
+  --accent-soft: light-dark(rgba(15, 122, 72, 0.09), rgba(61, 217, 138, 0.1));
+  --accent-line: rgba(61, 217, 138, 0.32);
+  --accent-line: light-dark(rgba(15, 122, 72, 0.34), rgba(61, 217, 138, 0.32));
+  --accent-glow: rgba(61, 217, 138, 0.14);
+  --accent-glow: light-dark(rgba(15, 122, 72, 0.1), rgba(61, 217, 138, 0.14));
+}
+
+/* Payload Emails — rose */
+[data-brand='emails'] {
+  --accent: #ff7a8a;
+  --accent: light-dark(#c2344a, #ff7a8a);
+  --accent-hover: #ff97a3;
+  --accent-hover: light-dark(#a3283b, #ff97a3);
+  --accent-soft: rgba(255, 122, 138, 0.1);
+  --accent-soft: light-dark(rgba(194, 52, 74, 0.09), rgba(255, 122, 138, 0.1));
+  --accent-line: rgba(255, 122, 138, 0.32);
+  --accent-line: light-dark(rgba(194, 52, 74, 0.34), rgba(255, 122, 138, 0.32));
+  --accent-glow: rgba(255, 122, 138, 0.14);
+  --accent-glow: light-dark(rgba(194, 52, 74, 0.1), rgba(255, 122, 138, 0.14));
+}
+
+/*
+  Fallback for a page that never sets data-brand (a docs route rendered on its own, an OG
+  image): the umbrella cobalt, so --accent is never undefined. Scoped with :not([data-brand])
+  so it can never outrank a brand block set on <html> itself (both would be one attribute of
+  specificity, and this rule comes last).
+*/
+:root:not([data-brand]) {
+  --accent: #1d62d8;
+  --accent: light-dark(#1d62d8, #5b9dff);
+  --accent-hover: #1450b5;
+  --accent-hover: light-dark(#1450b5, #7db0ff);
+  --accent-fg: #ffffff;
+  --accent-fg: light-dark(#ffffff, #000000);
+  --accent-soft: rgba(29, 98, 216, 0.09);
+  --accent-soft: light-dark(rgba(29, 98, 216, 0.09), rgba(91, 157, 255, 0.1));
+  --accent-line: rgba(29, 98, 216, 0.34);
+  --accent-line: light-dark(rgba(29, 98, 216, 0.34), rgba(91, 157, 255, 0.32));
+  --accent-glow: rgba(29, 98, 216, 0.12);
+  --accent-glow: light-dark(rgba(29, 98, 216, 0.12), rgba(91, 157, 255, 0.16));
 }

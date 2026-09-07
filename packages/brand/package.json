@@ -11,6 +11,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./logos": "./src/logos.tsx",
+    "./footer-wordmark": "./src/footer-wordmark.tsx",
     "./brands": "./src/brands.ts",
     "./tokens.css": "./css/tokens.css",
     "./tailwind.css": "./css/tailwind.css",
@@ -26,7 +27,8 @@
     "./themed-image": "./src/themed-image.tsx",
     "./use-header-theme": "./src/use-header-theme.ts",
     "./screens": "./src/screens.ts",
-    "./reduced-motion": "./src/reduced-motion.ts"
+    "./reduced-motion": "./src/reduced-motion.ts",
+    "./lattice": "./src/lattice.tsx"
   },
   "files": [
     "src",

@@ -33,8 +33,8 @@ const LOGOS = [
 export function BuiltWith() {
   return (
     <section aria-label="Built with" className="hairline-t hairline-b relative">
-      <div className="container-content flex flex-col gap-6 py-8 md:flex-row md:items-center md:gap-10">
-        <p className="shrink-0 text-sm text-fg-muted">Built with</p>
+      <div className="container-content flex flex-col gap-7 py-9 md:flex-row md:items-center md:gap-12">
+        <p className="label-mono shrink-0">Built with</p>
         <ul className="grid grid-cols-4 gap-x-6 gap-y-6 sm:grid-cols-6 md:flex md:flex-1 md:flex-wrap md:items-center md:justify-between">
           {LOGOS.map(({ icon, href }) => (
             <li
@@ -42,7 +42,7 @@ export function BuiltWith() {
               className="flex items-center justify-center text-fg-subtle transition-colors hover:text-fg"
             >
               <a href={href} target="_blank" rel="noreferrer noopener" aria-label={icon.title}>
-                <BrandIcon icon={icon} size={24} />
+                <BrandIcon icon={icon} size={26} />
               </a>
             </li>
           ))}

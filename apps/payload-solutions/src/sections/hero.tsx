@@ -1,5 +1,5 @@
+import { ActionRow, Eyebrow } from '@payload-solutions/brand/lattice'
 import { LiquidMark } from '@payload-solutions/brand/liquid-mark'
-import { Button } from '@/components/ui/button'
 
 /**
  * The umbrella hero. No product visual on purpose: payload.solutions has a portfolio, not one
@@ -45,14 +45,8 @@ export function Hero() {
       />
 
       <div className="container-content relative flex min-h-[calc(100dvh-var(--header-height))] max-h-[54rem] flex-col justify-center py-16 lg:py-24">
-        <p className="mb-6 flex items-center gap-3 font-mono text-xs font-medium uppercase tracking-[0.14em] text-fg-subtle">
-          <span aria-hidden="true" className="h-px w-7 bg-border-strong" />
-          Open source · MIT
-        </p>
-        <h1
-          id="hero-heading"
-          className="max-w-[20ch] text-balance text-[2.75rem] font-medium leading-[1.02] tracking-display sm:text-5xl lg:text-[3.5rem] xl:text-6xl"
-        >
+        <Eyebrow className="mb-7">Open source · MIT</Eyebrow>
+        <h1 id="hero-heading" className="display-xl max-w-[18ch]">
           Everything you need to ship SaaS on{' '}
           <a
             href="https://payloadcms.com"
@@ -64,17 +58,15 @@ export function Hero() {
           </a>
           .
         </h1>
-        <p className="mt-6 max-w-[34rem] text-pretty text-lg leading-relaxed text-fg-muted">
+        <p className="lead mt-7 max-w-[34rem]">
           Open-source boilerplate, plugins and the engineering team behind them. Built in the open,
           used in production, MIT licensed.
         </p>
-        <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-          <Button href="/#contact" size="lg">
-            Start a project
-          </Button>
-          <Button href="/docs" variant="secondary" size="lg" className="shrink-0" arrow>
-            Explore the stack
-          </Button>
+        {/* The things you can do here, as rows of the lattice rather than a button cluster. */}
+        <div className="mt-11 max-w-[34rem] border-t border-border">
+          <ActionRow href="/#products">See the products</ActionRow>
+          <ActionRow href="/docs">Read the documentation</ActionRow>
+          <ActionRow href="/#contact">Start a project with us</ActionRow>
         </div>
       </div>
     </section>

@@ -49,7 +49,9 @@ export function SiteHeader() {
           </a>
           <ThemeToggle />
           <div className="ml-1 hidden sm:block">
-            <Button href="/#contact" className="h-9 px-3 text-sm">
+            {/* Hairline, not a filled block: on true black the header stays monochrome and the
+                accent is spent on the page itself. */}
+            <Button href="/#contact" variant="secondary" className="h-9 px-3 text-sm">
               Start a project
             </Button>
           </div>

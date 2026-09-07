@@ -1,5 +1,4 @@
-import Link from 'next/link'
-import { ArrowRight } from '@phosphor-icons/react/dist/ssr'
+import { ActionRow, SectionHead } from '@payload-solutions/brand/lattice'
 import { Reveal } from '@/components/reveal'
 
 const POINTS: Array<{ title: string; body: string }> = [
@@ -23,43 +22,37 @@ const POINTS: Array<{ title: string; body: string }> = [
 
 export function WhyPayload() {
   return (
-    <section id="why" className="scroll-mt-header hairline-t py-section" aria-labelledby="why-heading">
+    <section
+      id="why"
+      className="scroll-mt-header hairline-t py-section"
+      aria-labelledby="why-heading"
+    >
       <div className="container-content">
-        <Reveal className="max-w-2xl">
-          <h2 id="why-heading" className="text-balance text-3xl font-medium leading-[1.05] tracking-display sm:text-4xl lg:text-5xl">
-            Why Payload CMS is the right backbone for a SaaS.
-          </h2>
-          <p className="mt-5 text-pretty text-lg leading-relaxed text-fg-muted">
-            Most starters give you auth and a pricing page and leave the actual product to you.
-            Payload gives you the product layer as well.
-          </p>
+        <Reveal>
+          <SectionHead
+            id="why-heading"
+            eyebrow="The backbone"
+            title="Why Payload CMS is the right backbone for a SaaS."
+            lead="Most starters give you auth and a pricing page and leave the actual product to you. Payload gives you the product layer as well."
+          />
         </Reveal>
 
-        <dl className="mt-14 grid grid-cols-1 gap-x-12 gap-y-12 sm:grid-cols-2">
+        <dl className="cell-grid mt-16 grid-cols-1 sm:grid-cols-2">
           {POINTS.map((p, i) => (
-            <Reveal key={p.title} index={i} className="border-t border-border pt-6">
-              <dt className="text-xl font-medium leading-snug tracking-tight">{p.title}</dt>
-              <dd className="mt-3 max-w-[48ch] text-pretty text-[0.9375rem] leading-relaxed text-fg-muted">
+            <Reveal key={p.title} index={i} className="cell-p bg-bg">
+              <dt className="display-sm">{p.title}</dt>
+              <dd className="mt-4 max-w-[48ch] text-pretty text-[0.9375rem] leading-relaxed text-fg-muted">
                 {p.body}
               </dd>
             </Reveal>
           ))}
         </dl>
 
-        <Reveal className="mt-14">
-          <Link
-            href="/when-to-choose"
-            className="group inline-flex items-center gap-2 text-[0.9375rem] font-medium text-fg"
-          >
+        <div className="mt-16 max-w-[38rem] border-t border-border">
+          <ActionRow href="/when-to-choose" meta="2 min read">
             When to choose Payload Stack, and when not to
-            <ArrowRight
-              size={16}
-              weight="bold"
-              className="transition-transform duration-150 ease-standard group-hover:translate-x-0.5"
-              aria-hidden
-            />
-          </Link>
-        </Reveal>
+          </ActionRow>
+        </div>
       </div>
     </section>
   )
