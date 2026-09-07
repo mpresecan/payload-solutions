@@ -1,6 +1,6 @@
 {
   "name": "payload-stack",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Payload Stack: a SaaS boilerplate on Payload CMS, Next.js, Better Auth, organizations, Stripe and shadcn/ui.",
   "license": "MIT",
   "type": "module",
