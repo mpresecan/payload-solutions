@@ -4,7 +4,7 @@
  *   - src/components/marketing/site-header.tsx and site-footer.tsx
  *   - src/app/(frontend)/(marketing)/pricing/page.tsx
  *   - src/app/(frontend)/(marketing)/legal/[slug]/page.tsx
- *   - src/app/(frontend)/(app)/dashboard/page.tsx (which cards show)
+ *   - src/app/(frontend)/(app)/dashboard/(overview)/page.tsx (which cards show)
  * Async server components are awaited and rendered to static markup; session and Payload are faked.
  */
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -78,7 +78,7 @@ const header = (input: StackInput, session: Session) =>
 const footer = (input: StackInput) =>
   renderPage(input, visitor, () => import('@/components/marketing/site-footer'), (m) => m.SiteFooter())
 const dashboard = (input: StackInput, session: Session) =>
-  renderPage(input, session, () => import('@/app/(frontend)/(app)/dashboard/page'), (m) => m.default())
+  renderPage(input, session, () => import('@/app/(frontend)/(app)/dashboard/(overview)/page'), (m) => m.default())
 
 describe('homepage', () => {
   it.each(presetEntries)('preset %s: copy reflects the enabled features', async (_name, input) => {
