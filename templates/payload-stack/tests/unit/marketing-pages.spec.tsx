@@ -53,6 +53,10 @@ function fakePayload() {
 async function renderPage<T>(input: StackInput, session: Session, importer: () => Promise<T>, pick: (m: T) => Promise<React.ReactElement> | React.ReactElement) {
   const payload = fakePayload()
   vi.doMock('@/lib/payload', () => ({ getPayloadClient: async () => payload }))
+  // The body of a legal page belongs to src/consent, which reads the consent config when the
+  // Payload Consent plugin is installed and cannot do that against a stub. What the route owes is
+  // the lookup, the heading, the effective date and the 404; the body is the seam's own test.
+  vi.doMock('@/consent/legal-page', () => ({ renderLegalPageContent: async () => null }))
   vi.doMock('@/lib/auth/session', () => ({
     getSession: async () => session,
     requireSession: async (returnTo?: string) => {
@@ -63,6 +67,7 @@ async function renderPage<T>(input: StackInput, session: Session, importer: () =
   }))
   const mod = await loadWithStack(input, importer)
   vi.doUnmock('@/lib/payload')
+  vi.doUnmock('@/consent/legal-page')
   vi.doUnmock('@/lib/auth/session')
   const element = await pick(mod)
   return { html: renderToStaticMarkup(element), payload }

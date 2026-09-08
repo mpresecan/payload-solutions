@@ -19,7 +19,20 @@ async function buildFor(input: StackInput, env: Record<string, string | undefine
 
 const slugs = (config: SanitizedConfig): string[] => config.collections.map((c) => c.slug as string)
 const collection = (config: SanitizedConfig, slug: string) => config.collections.find((c) => (c.slug as string) === slug)!
-const fieldNames = (c: { fields: Field[] }) => c.fields.map((f) => ('name' in f ? f.name : f.type))
+/**
+ * Rows, collapsibles and tabs are layout, not data: flatten them so a field lookup does not depend
+ * on how a collection happens to be arranged in the admin. Named containers (groups, arrays) are
+ * left alone, because their own name is the thing being asserted.
+ */
+const flatFields = (fields: Field[]): Field[] =>
+  fields.flatMap((f) =>
+    f.type === 'row' || f.type === 'collapsible'
+      ? flatFields(f.fields)
+      : f.type === 'tabs'
+        ? flatFields(f.tabs.flatMap((t) => t.fields))
+        : [f],
+  )
+const fieldNames = (c: { fields: Field[] }) => flatFields(c.fields).map((f) => ('name' in f ? f.name : f.type))
 
 describe('collections per preset', () => {
   it.each(presetEntries)('preset %s: collection set follows organizations', async (_name, input) => {
@@ -175,7 +188,7 @@ describe('media and legal pages', () => {
       expect(await access[op]!({ req: { user: { id: 1, role: ['admin'] } } })).toBe(true)
     }
     expect(legal.versions?.drafts).toBeTruthy()
-    const slug = legal.fields.find((f) => 'name' in f && f.name === 'slug') as Extract<Field, { type: 'text' }>
+    const slug = flatFields(legal.fields).find((f) => 'name' in f && f.name === 'slug') as Extract<Field, { type: 'text' }>
     expect(slug.unique).toBe(true)
     expect(slug.required).toBe(true)
     expect(fieldNames(legal)).toEqual(expect.arrayContaining(['title', 'slug', 'effectiveDate', 'showInFooter', 'content']))
