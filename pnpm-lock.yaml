@@ -621,6 +621,12 @@ importers:
         specifier: ^4.5.4
         version: 4.5.4
     devDependencies:
+      '@payload-solutions/consent-react':
+        specifier: workspace:*
+        version: link:../../packages/consent-react
+      '@payload-solutions/plugin-consent':
+        specifier: workspace:*
+        version: link:../../packages/plugin-consent
       '@payload-solutions/plugin-emails':
         specifier: workspace:*
         version: link:../../packages/plugin-emails
