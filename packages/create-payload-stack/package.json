@@ -1,6 +1,6 @@
 {
   "name": "create-payload-stack",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Scaffold a SaaS on Payload CMS: Better Auth, organizations, Stripe subscriptions and a shadcn dashboard, in one command.",
   "keywords": [
     "payload",
