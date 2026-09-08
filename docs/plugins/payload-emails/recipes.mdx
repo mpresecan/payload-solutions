@@ -1,0 +1,197 @@
+---
+title: Recipes
+description: Better Auth callbacks, migrating from hard-coded templates, localized copy, generated tables, renaming safely, and testing.
+---
+
+## Better Auth and Payload Stack
+
+[Payload Stack](/docs/payload-stack) routes every Better Auth email through the plugin. Each callback becomes a one-line `send`:
+
+```ts title="src/lib/auth/options.ts"
+emailAndPassword: {
+  sendResetPassword: async ({ user, url }, request) => {
+    const payload = await getPayloadClient()
+    await payload.emails.send('password-reset', {
+      input: { email: user.email, expiresInMinutes: 60, url },
+    })
+  },
+},
+emailVerification: {
+  sendVerificationEmail: async ({ user, url }) => {
+    const payload = await getPayloadClient()
+    await payload.emails.send('verify-email', { input: { email: user.email, url } })
+  },
+},
+```
+
+Organization invitations carry more context, which is exactly what `inputSchema` is for:
+
+```ts
+sendInvitationEmail: async (data) => {
+  const payload = await getPayloadClient()
+  await payload.emails.send('organization-invitation', {
+    input: {
+      email: data.email,
+      inviterName: data.inviter.user.name,
+      organizationName: data.organization.name,
+      role: data.role,
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/accept-invitation/${data.id}`,
+    },
+  })
+},
+```
+
+The wording of all of them is now something a founder can fix at 11pm without a deploy.
+
+## Migrating from hard-coded React Email templates
+
+You probably have a `src/emails/index.ts` full of functions that render a component and call `sendEmail`. Move in four steps, without a big-bang rewrite.
+
+**1. Turn the component you already have into the template.** Strip the per-email copy out of it and leave the shell — logo, container, footer, colours. Register it as `templates: { default: … }`.
+
+**2. Turn each function into a definition.** The arguments become `inputSchema`, the props you interpolated become `variables`, the JSX copy becomes `defaults.body` in Markdown.
+
+```ts
+// before
+export const emails = {
+  verifyEmail: (payload, to, url) =>
+    sendEmail(payload, { to, subject: `Verify your email for ${name}`, react: <EmailVerification url={url} email={to} /> }),
+}
+
+// after
+export const verifyEmail = defineEmail({
+  slug: 'verify-email',
+  label: 'Verify email',
+  required: true,
+  inputSchema: [
+    { name: 'email', type: 'email', required: true },
+    { name: 'url', type: 'text', required: true },
+  ],
+  variables: { email: {}, url: { type: 'url' } },
+  to: ({ input }) => input.email,
+  defaults: {
+    subject: 'Verify your email for {{site.name}}',
+    body: 'Confirm {{email}} to finish setting up your account.\n\n<Button label="Verify email" url="{{url}}" />',
+  },
+})
+```
+
+**3. Keep the old names working** while you migrate call sites:
+
+```ts
+export const emails = {
+  verifyEmail: (payload: Payload, to: string, url: string) =>
+    payload.emails.send('verify-email', { input: { email: to, url } }),
+}
+```
+
+**4. Delete the wrappers** once nothing imports them.
+
+Do one email first, send yourself a test, and only then do the rest.
+
+## Localized copy
+
+With `localization` configured, the copy fields are localized automatically — an editor switches locale in the admin and writes the German subject. Seed both from code:
+
+```ts
+defaults: {
+  subject: { de: 'Willkommen bei {{site.name}}', en: 'Welcome to {{site.name}}' },
+  body: { de: 'Hallo {{user.name}}, …', en: 'Hi {{user.name}}, …' },
+}
+```
+
+Send in the recipient's language, not the request's:
+
+```ts
+await payload.emails.send('welcome', { input: { user }, locale: user.preferredLocale })
+```
+
+The locale also drives number and date formatting, so `{{invoice.total}}` comes out `1.299,00` for `de` and `1,299.00` for `en`. Locales you do not seed fall back through Payload's own fallback rules.
+
+## A table an editor should not have to build
+
+Order lines, an itemised invoice — structure, not wording. Render it in code and expose it as one `html` variable:
+
+```ts
+variables: {
+  'order.lines': { type: 'html', description: 'The itemised table' },
+  'order.total': { type: 'number' },
+},
+resolve: async ({ input, payload }) => ({
+  'order.lines': renderLinesTable(await getOrder(payload, input.order)),
+  'order.total': input.total,
+}),
+```
+
+The editor writes the words around it and drops `{{order.lines}}` where the table belongs. `html` variables are the one thing not escaped — which is why only code can produce them.
+
+## Renaming an email without losing the copy
+
+```ts
+defineEmail({ slug: 'password-reset', previousSlugs: ['forgot-password'], /* … */ })
+```
+
+On the next boot the existing document is renamed in place, keeping its copy and its history. Without `previousSlugs` the old document is flagged **Orphaned** and a fresh one is created with default copy.
+
+## Testing
+
+Point Payload at an adapter that records instead of sends:
+
+```ts title="test/email-adapter.ts"
+import type { EmailAdapter, SendEmailOptions } from 'payload'
+
+export const sentEmails: SendEmailOptions[] = []
+
+export const testEmailAdapter: EmailAdapter<{ messageId: string }> = () => ({
+  name: 'test',
+  defaultFromAddress: 'test@example.com',
+  defaultFromName: 'Test',
+  sendEmail: async (message) => {
+    sentEmails.push(message)
+    return { messageId: `test-${sentEmails.length}` }
+  },
+})
+```
+
+Then assert on what your code actually produces:
+
+```ts
+test('welcomes a new user', async () => {
+  const user = await payload.create({ collection: 'users', data: { email: 'ada@example.com' } })
+  expect(sentEmails).toHaveLength(1)
+  expect(sentEmails[0].to).toEqual(['ada@example.com'])
+  expect(sentEmails[0].subject).toContain('Ada')
+})
+```
+
+For copy-independent assertions, `render()` is cheaper and does not touch the adapter:
+
+```ts
+const { subject, text } = await payload.emails.render('welcome', { input: { user, url: 'https://x.y' } })
+expect(text).toContain('https://x.y')
+```
+
+## Archiving every message
+
+```ts
+emailsPlugin({
+  emails,
+  hooks: { beforeSend: [({ message }) => ({ ...message, bcc: [...(message.bcc ?? []), 'archive@acme.com'] })] },
+})
+```
+
+Or turn on `log` and keep it in Payload instead, where it is searchable and expires on a schedule.
+
+## Sending from outside Payload
+
+Anywhere you can build a Payload instance:
+
+```ts
+import config from '@payload-config'
+import { getPayload } from 'payload'
+
+const payload = await getPayload({ config })
+await payload.emails.send('weekly-digest', { input: { user: user.id }, queue: true })
+```
+
+Useful in scripts, cron jobs and workers. `queue: true` keeps the script fast and lets the worker retry.

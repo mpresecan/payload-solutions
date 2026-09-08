@@ -18,6 +18,14 @@ import Stripe from 'stripe'
 
 import type { BetterAuthOptions } from 'payload-auth/better-auth'
 import { authorizeSubscriptionReference } from '@/lib/auth/billing-authorization'
+import {
+  deleteUserEmailCallbacks,
+  organizationEmailHooks,
+  stripeEmailEvents,
+  subscriptionEmailCallbacks,
+  trialEmailCallbacks,
+  twoFactorEmailOptions,
+} from '@/emails/hooks'
 import { env } from '@/lib/env'
 import { toStripePlans } from '@/lib/stack'
 import stack from '@/stack.config'
@@ -65,7 +73,9 @@ function plugins(): BetterAuthPlugin[] {
   ]
 
   if (stack.features.twoFactor) {
-    list.push(twoFactor({ issuer: stack.name }))
+    // `twoFactorEmailOptions` adds email one-time codes as a second factor when the emails plugin
+    // is installed; without it, an authenticator app is the only second factor. See src/emails/hooks.ts.
+    list.push(twoFactor({ issuer: stack.name, ...twoFactorEmailOptions }))
   }
 
   if (stack.features.passkeys) {
@@ -108,6 +118,8 @@ function plugins(): BetterAuthPlugin[] {
             role: data.role,
           })
         },
+        // Membership notices (joined, role changed, removed). Empty without the emails plugin.
+        ...organizationEmailHooks,
       }),
     )
   }
@@ -117,17 +129,25 @@ function plugins(): BetterAuthPlugin[] {
     const webhookSecret = env.STRIPE_WEBHOOK_SECRET
     if (secretKey && webhookSecret) {
       const stripeClient = new Stripe(secretKey)
+      // Trial reminders hang off each plan's freeTrial block; both are empty without the emails plugin.
+      const plans = toStripePlans(stack).map((plan) =>
+        plan.freeTrial ? { ...plan, freeTrial: { ...plan.freeTrial, ...trialEmailCallbacks } } : plan,
+      )
       list.push(
         stripe({
           stripeClient,
           stripeWebhookSecret: webhookSecret,
           createCustomerOnSignUp: stack.billing.attachedTo === 'user',
+          // Receipts and failed-payment notices, straight off the webhook.
+          ...stripeEmailEvents,
           subscription: {
             enabled: true,
-            plans: toStripePlans(stack),
+            plans,
             requireEmailVerification: stack.auth.requireEmailVerification,
             // Only owners and admins of an organization may manage its subscription.
             authorizeReference: authorizeSubscriptionReference,
+            // Subscription lifecycle notices (started, plan changed, cancelled, ended).
+            ...subscriptionEmailCallbacks,
           },
           organization: stack.billing.attachedTo === 'organization' ? { enabled: true } : undefined,
         }),
@@ -191,6 +211,8 @@ export const betterAuthOptions: BetterAuthOptions = {
         const payload = await payloadClient()
         await (await mail()).deleteAccount(payload, user.email, url)
       },
+      // Final confirmation once the account is gone. Empty without the emails plugin.
+      ...deleteUserEmailCallbacks,
     },
   },
 

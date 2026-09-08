@@ -79,14 +79,24 @@ export function AmbientBackdrop({
         />
       ) : null}
 
-      {/* Primary streak: a long, soft shaft of accent light raking across the frame. */}
+      {/*
+        Primary streak: a long, soft shaft of accent light raking across the frame.
+
+        It starts below the fold rather than above it. At top:-15% the shaft's brightest part
+        sat behind the header and the headline, which is what made the top of the hero read as
+        a lit blue haze instead of as black — and it is the copy, not the light, that is meant
+        to be the brightest thing up there. Pushed down and blurred wider, the same light
+        lands under the mark and the frame opens from black at the top to light at the bottom
+        right. --ambient-glow-strength then sets how far it burns.
+      */}
       <div
-        className="ambient-glow absolute -right-[20%] top-[-15%] h-[150vmin] w-[80vmin] origin-center"
+        className="ambient-glow absolute -right-[20%] top-[4%] h-[150vmin] w-[80vmin] origin-center"
         style={{
           transform: 'rotate(-28deg)',
+          opacity: 'var(--ambient-glow-strength)',
           background:
             'radial-gradient(closest-side, var(--accent-glow), color-mix(in oklab, var(--accent-glow) 40%, transparent) 45%, transparent 75%)',
-          filter: 'blur(70px)',
+          filter: 'blur(90px)',
         }}
       />
 
@@ -111,16 +121,42 @@ export function AmbientBackdrop({
       />
 
       {/* Vignette: pulls every edge back down to --bg so the black stays the deepest thing
-          on the page and the light reads as a single source rather than a wash. */}
+          on the page and the light reads as a single source rather than a wash. Centred on
+          the shaft and closing earlier than it used to (transparent only to 12%, fully --bg
+          by 88%), which is what keeps the lit area to the one corner it belongs in. */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            'radial-gradient(115% 85% at 62% 38%, transparent 30%, color-mix(in oklab, var(--bg) 55%, transparent) 68%, var(--bg) 100%)',
+            'radial-gradient(105% 78% at 66% 50%, transparent 12%, color-mix(in oklab, var(--bg) 70%, transparent) 52%, var(--bg) 88%)',
         }}
       />
 
       <div className="noise absolute inset-0" />
+
+      {/* CRT tile, over the noise and the vignette both. `noise` is blended with overlay, so
+          it dies wherever the frame is genuinely black — which after the vignette is most of
+          the edge. This one screens, so it is the layer that keeps the black alive out to
+          the corners. Absent file or reduced motion: not painted, and the frame is simply
+          what it was before. */}
+      <div className="crt absolute inset-0" />
+
+      {/*
+        Header scrim. The header is only 88% --bg over a blur, so whatever the ambient layer
+        puts behind it shows through — and with the shaft, the grain and the CRT tile all
+        lifting the top of the frame, the header sat on a band several levels lighter than
+        itself and drew a hard horizontal seam across the page at exactly the header's
+        bottom edge. This runs the top back down to solid --bg and releases it over 15rem,
+        so the header dissolves into the hero instead of sitting on it.
+
+        It is deliberately the last of the light layers: after the grain and the CRT tile,
+        so neither of them can put the seam back. GridColumns paints above it (z-[-1] over
+        this layer's z-[-2]), so the structural hairlines still run to the top of the page.
+      */}
+      <div
+        className="absolute inset-x-0 top-0 h-60"
+        style={{ background: 'linear-gradient(to bottom, var(--bg), transparent)' }}
+      />
 
       {/* Ground the frame into the page colour at the bottom edge. */}
       <div

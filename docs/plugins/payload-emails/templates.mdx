@@ -1,0 +1,111 @@
+---
+title: Templates
+description: The design is a React Email component in your repo. It owns the branding; editors own the words.
+---
+
+A template is a React Email component that every email is rendered inside. It owns the shell — colours, spacing, the wordmark, the container — so all your mail looks like one product and no editor can drift it by pasting a coloured heading.
+
+This is the deliberate split: **the template is a developer artefact, reviewed in pull requests.** The admin has no colour pickers, and the Email Settings screen says so in as many words, with a preview and a note pointing editors at their developers.
+
+## Writing one
+
+```tsx title="src/emails/template.tsx"
+import { Body, Container, Head, Html, Preview, Section, Text } from '@react-email/components'
+import type { EmailTemplate } from '@payload-solutions/plugin-emails'
+
+export const BrandTemplate: EmailTemplate = ({ children, footer, preheader, settings }) => (
+  <Html lang="en">
+    <Head />
+    {preheader ? <Preview>{preheader}</Preview> : null}
+    <Body style={{ backgroundColor: '#0b0b0c', fontFamily: 'Inter, Helvetica, Arial, sans-serif', margin: 0, padding: '32px 12px' }}>
+      <Container style={{ margin: '0 auto', maxWidth: '600px' }}>
+        <Text style={{ color: '#fafafa', fontWeight: 700, margin: '0 0 16px' }}>{settings.siteName}</Text>
+        <Section style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '40px' }}>{children}</Section>
+        {footer ? <Section style={{ color: '#71717a', fontSize: '12px', padding: '20px 40px 0' }}>{footer}</Section> : null}
+      </Container>
+    </Body>
+  </Html>
+)
+```
+
+```ts title="payload.config.ts"
+emailsPlugin({ emails, templates: { default: BrandTemplate } })
+```
+
+Anything React Email can do, a template can do: `Img`, `Row`, `Column`, `Hr`, `Link`, `Font`, the lot. Because the plugin renders your element with `@react-email/render`, you get the table scaffolding and Outlook conditionals for free.
+
+## The props
+
+| Prop | What it is |
+| --- | --- |
+| `children` | The editor's copy for this email, already converted to React Email elements with variables filled in. Put it where the body belongs. |
+| `footer` | The footer from Email Settings, rendered the same way. `null` when empty — guard it. |
+| `subject` | The interpolated subject. Most templates ignore it; some repeat it as an `H1`. |
+| `preheader` | Interpolated preview text. Pass it to React Email's `<Preview>`. |
+| `settings` | `siteName`, `siteUrl`, `from`, `replyTo`, `adminRecipients`, `testRecipient`. |
+| `definition` | The definition being rendered, if you want to branch on `group` or `slug`. |
+| `locale` | The render locale, when the project is localized. |
+
+## Making the copy match
+
+`children` is rendered with a default set of styles. Attach `styles` to your template to change them, and the editor's paragraphs, headings, links, lists and buttons inherit your design:
+
+```tsx
+BrandTemplate.styles = {
+  button: { backgroundColor: '#ff5a1f', borderRadius: '8px', color: '#fff', fontWeight: 600, padding: '14px 28px' },
+  h2: { fontSize: '20px', fontWeight: 700, margin: '24px 0 12px' },
+  link: { color: '#ff5a1f', textDecoration: 'underline' },
+  text: { color: '#18181b', fontSize: '15px', lineHeight: '1.6', margin: '0 0 16px' },
+}
+```
+
+Every key is a plain `CSSProperties` object and each is optional — what you leave out keeps the default. The full set: `text`, `h1`, `h2`, `h3`, `link`, `list`, `listItem`, `blockquote`, `hr`, `button`. Import `defaultStyles` if you want to extend rather than replace.
+
+## What editor copy turns into
+
+| In the editor | Rendered as |
+| --- | --- |
+| paragraph | `<Text style={styles.text}>` |
+| heading 1–3 | `<Heading as="h1…h3">` with `styles.h1…h3` |
+| bold / italic / underline / strikethrough | `<strong>` `<em>` `<u>` `<s>` |
+| link | `<Link style={styles.link} target="_blank">` |
+| bullet / numbered list | `<ul>` / `<ol>` with `styles.list` and `styles.listItem` |
+| quote | `<blockquote style={styles.blockquote}>` |
+| divider | `<Hr style={styles.hr}>` |
+| Button block | `<Button style={styles.button}>` — a real bulletproof button |
+
+The plain-text part of the message is produced from the same React tree, so the two can never disagree. Buttons and links keep their URLs in it.
+
+## More than one template
+
+```ts
+emailsPlugin({
+  emails,
+  templates: { default: BrandTemplate, receipt: ReceiptTemplate },
+})
+```
+
+```ts
+defineEmail({ slug: 'invoice-paid', template: 'receipt', /* … */ })
+```
+
+A definition naming a template you have not registered fails at startup rather than at send time. `default` is used when a definition says nothing.
+
+## The footer
+
+The one piece of the design editors do control, because it changes for reasons developers should not have to care about — a new office address, a legal line, a seasonal note. It is rich text in **Email Settings → Content**, it accepts the global variables (`{{site.name}}`, `{{year}}`), and it arrives at your template as the `footer` prop for you to place and style.
+
+## Previewing the template itself
+
+**Email Settings → Template** renders the active template with placeholder copy, so an editor can see the design without opening a particular email — and read the note explaining that changing it is a developer job. It refreshes after a save, so a footer edit shows up immediately.
+
+Under the hood that is `POST /api/email-templates/preview`, admin-only, which also returns the list of registered template names.
+
+## Notes from practice
+
+- **Do not use `align="left"` on a table.** In HTML that floats it, and the next paragraph wraps beside it. Use margins.
+- **Inline your styles.** Most clients drop `<style>` blocks. React Email's `style` props do the right thing.
+- **SVG logos do not render** in Outlook or Gmail. Use a PNG at 2× and set an explicit width.
+- **Test the dark background case.** Some clients invert; a white card on a dark shell survives it better than the reverse.
+
+Next: [Sending](/docs/plugins/payload-emails/sending).

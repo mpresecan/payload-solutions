@@ -113,7 +113,9 @@ describe('email and password', () => {
 describe('two-factor, passkeys and magic links', () => {
   it('names the two-factor issuer after the product', async () => {
     const { betterAuthOptions } = await loadOptions(base)
-    expect(plugin(betterAuthOptions, 'two-factor')?.options).toEqual({ issuer: 'Test App' })
+    // `toMatchObject`, not `toEqual`: src/emails/hooks.ts adds `otpOptions` when the emails plugin
+    // is installed, which turns email one-time codes on as a second factor.
+    expect(plugin(betterAuthOptions, 'two-factor')?.options).toMatchObject({ issuer: 'Test App' })
   })
 
   it('derives passkey relying party from the product url', async () => {

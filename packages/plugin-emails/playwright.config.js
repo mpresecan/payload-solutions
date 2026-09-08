@@ -14,14 +14,16 @@ import { defineConfig, devices } from '@playwright/test'
 export default defineConfig({
   testDir: './dev',
   testMatch: '**/e2e.spec.{ts,js}',
-  /* Run tests in files in parallel */
-  fullyParallel: true,
+  /* One Next dev server backed by one sqlite file: parallel workers only fight over it. */
+  fullyParallel: false,
+  workers: 1,
+  /* Next compiles each admin route on its first hit, so a cold run is slow. */
+  timeout: 120_000,
+  expect: { timeout: 20_000 },
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -33,7 +35,7 @@ export default defineConfig({
   ],
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:3300',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -41,6 +43,8 @@ export default defineConfig({
   webServer: {
     command: 'pnpm dev',
     reuseExistingServer: true,
-    url: 'http://localhost:3000/admin',
+    // The dev app compiles the Payload admin on first request, which is well past the 60s default.
+    timeout: 180_000,
+    url: 'http://localhost:3300/admin',
   },
 })

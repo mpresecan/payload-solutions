@@ -114,6 +114,7 @@ describe('--defaults', () => {
       organizations: true,
       billing: 'organization',
       storage: 'none',
+      emails: true,
       packageManager: 'pnpm',
       install: true,
       git: true,
@@ -231,9 +232,10 @@ describe('prompts', () => {
       'Organizations (teams)': true,
       Billing: 'none',
       'Media storage': 'vercel-blob',
+      'Transactional emails': true,
     }
     const options = await run(baseFlags())
-    expect(promptsShown).toEqual(['Project name', 'Database', 'Connection string', 'Sign-in methods', 'Organizations (teams)', 'Billing', 'Media storage'])
+    expect(promptsShown).toEqual(['Project name', 'Database', 'Connection string', 'Sign-in methods', 'Organizations (teams)', 'Billing', 'Media storage', 'Transactional emails'])
     expect(options).toMatchObject({
       name: 'Prompted App',
       slug: 'prompted-app',
@@ -248,9 +250,9 @@ describe('prompts', () => {
   })
 
   it('skips the prompts whose flags were given', async () => {
-    answers = { 'Sign-in methods': ['passkey'], 'Media storage': 'none' }
+    answers = { 'Sign-in methods': ['passkey'], 'Media storage': 'none', 'Transactional emails': true }
     const options = await run(baseFlags({ db: 'postgres', connectionString: 'postgres://x', organizations: false, billing: 'user' }), 'flagged')
-    expect(promptsShown).toEqual(['Sign-in methods', 'Media storage'])
+    expect(promptsShown).toEqual(['Sign-in methods', 'Media storage', 'Transactional emails'])
     expect(options.authMethods).toEqual(['passkey'])
     expect(options.billing).toBe('user')
   })
@@ -264,11 +266,23 @@ describe('prompts', () => {
       'Organizations (teams)': false,
       Billing: 'none',
       'Media storage': 'none',
+      'Transactional emails': true,
     }
     const options = await run(baseFlags())
     expect(options.authMethods).toEqual(['email-password'])
     expect(options.social).toEqual(['google'])
     expect(warns.join('\n')).toMatch(/adding email \+ password/)
+  })
+
+  it('takes --emails / --no-emails without asking', async () => {
+    answers = { 'Sign-in methods': ['passkey'], 'Media storage': 'none' }
+    const flags = { db: 'postgres', connectionString: 'postgres://x', organizations: false, billing: 'user' }
+    const on = await run(baseFlags({ ...flags, emails: true }), 'with-emails')
+    expect(on.emails).toBe(true)
+    expect(promptsShown).not.toContain('Transactional emails')
+    const off = await run(baseFlags({ ...flags, emails: false }), 'without-emails')
+    expect(off.emails).toBe(false)
+    expect(promptsShown).not.toContain('Transactional emails')
   })
 
   it('does not offer per-organization billing when organizations are off', async () => {
@@ -281,6 +295,7 @@ describe('prompts', () => {
       'Organizations (teams)': false,
       Billing: 'none',
       'Media storage': 'none',
+      'Transactional emails': true,
     }
     await run(baseFlags())
     const billingPrompt = (prompts.select as unknown as { mock: { calls: Array<[{ message: string; options: Array<{ value: string }> }]> } }).mock.calls.find(

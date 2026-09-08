@@ -1,0 +1,210 @@
+---
+title: Defining emails
+description: Every field of defineEmail — the key, the input schema, the variable manifest, resolve, recipients, default copy — and the rules the plugin enforces.
+---
+
+An email definition is a plain object. `defineEmail()` is an identity function whose only job is to give `resolve`, `to` and `sample` the types generated for that slug.
+
+```ts
+import { defineEmail } from '@payload-solutions/plugin-emails'
+```
+
+## Identity
+
+| Field | Required | |
+| --- | --- | --- |
+| `slug` | yes | Stable kebab-case key. The database key and the generated type key. |
+| `label` | yes | What editors see in the list. |
+| `description` | | One line, shown in the sidebar. Explain when it goes out. |
+| `trigger` | | Where it fires from, in human words: `users afterChange hook`. Editors use this to reason about consequences. |
+| `group` | | Admin grouping — `Auth`, `Billing`, `Notifications`. |
+| `required` | | The email cannot be disabled. Use it for password reset, verification, receipts. |
+| `previousSlugs` | | Old keys. A document found under one is renamed rather than orphaned. |
+| `template` | | Which registered template to render in. Defaults to `default`. |
+
+Renaming a `slug` without `previousSlugs` orphans the old document and creates a fresh one with default copy — the editor's words are not lost, but they are no longer attached. Add the old key instead:
+
+```ts
+defineEmail({ slug: 'password-reset', previousSlugs: ['forgot-password'], /* … */ })
+```
+
+## `inputSchema` — what callers pass
+
+Payload fields describing the `input` argument of `send()`. They do three jobs: they type the call site, they drive the sample-data form in the admin, and they are checked at send time in development.
+
+```ts
+inputSchema: [
+  { name: 'user', type: 'relationship', relationTo: 'users', required: true },
+  { name: 'organizationName', type: 'text', required: true },
+  { name: 'role', type: 'select', options: ['member', 'admin'] },
+  { name: 'expiresInHours', type: 'number', defaultValue: 48 },
+]
+```
+
+Supported: `text`, `textarea`, `email`, `number`, `checkbox`, `date`, `select`, `radio`, `relationship` (single, one collection), `json`, `group`, and `array` of those. Anything else — rich text, uploads, blocks — is rejected at startup with a message naming the field, because none of them can be typed into a preview form or serialized into a queued job.
+
+A relationship accepts **either an id or a populated document**, and `populate()` normalizes:
+
+```ts
+import { populate } from '@payload-solutions/plugin-emails'
+
+resolve: async ({ input, payload }) => {
+  const user = await populate(payload, 'users', input.user) // id → document, document → itself
+  return { 'user.name': user.name }
+}
+```
+
+## `variables` — what editors may write
+
+The manifest is the contract with the editor. Keys are the `{{dotted.paths}}` they can type; the plugin uses it for the chips in the sidebar, for validating what they save, and for the shape of `resolve`'s return type.
+
+```ts
+variables: {
+  'user.name': { description: 'Display name', example: 'Ada Lovelace' },
+  'order.total': { type: 'number', example: 1299 },
+  'order.placedAt': { type: 'date' },
+  url: { type: 'url', example: 'https://app.example.com/orders/1' },
+}
+```
+
+| `type` | Formatting | In HTML |
+| --- | --- | --- |
+| `string` (default) | as given | escaped |
+| `number` | `Intl.NumberFormat` in the render locale | escaped |
+| `date` | `Intl.DateTimeFormat`, `dateFormat` option or long date | escaped |
+| `url` | must be absolute `http(s):`, `mailto:` or `tel:`, else empty | safe in `href` |
+| `html` | none | **inserted as markup** |
+
+`html` exists for values only your code can produce — a rendered order table, say. Editors cannot create one, and everything else is escaped by React, so an editor cannot inject markup through the copy.
+
+Omit `variables` entirely and every scalar top-level field of `inputSchema` becomes a variable of the same name.
+
+<Callout type="warn">
+A variable whose name ends in `token`, `secret`, `password` or `apiKey` is rejected at startup. Reset and verification links belong in a `url`-typed variable, which is what the button and link fields expect anyway. Set `allowSensitiveVariables: true` if you really mean it.
+</Callout>
+
+## `resolve` — input becomes variables
+
+```ts
+resolve: async ({ input, payload, locale, req, settings }) => ({
+  'user.name': (await populate(payload, 'users', input.user)).name,
+  'order.total': input.total,
+})
+```
+
+Typed both ways: `input` is `EmailInput<'welcome'>`, and the return type must satisfy `EmailVariables<'welcome'>` — forget a variable and it is a compile error. A nested object is flattened to dotted paths, so `{ user: { name } }` and `{ 'user.name': name }` are the same thing. Omit `resolve` and the input is used as the variables directly.
+
+In development the renderer warns when `resolve` returns fewer variables than the manifest declares. In production a missing variable renders as empty rather than as a raw `{{token}}`.
+
+## `to` — who receives it
+
+```ts
+audience: 'user',
+to: ({ input, variables, settings, payload }) => variables['user.email'],
+```
+
+`audience` describes the intent and decides the fallback:
+
+- **`user`** — code decides, via `to`. The document's recipient list is hidden in the admin.
+- **`admin`** — falls back to `adminRecipients` in Email Settings.
+- **`custom`** — falls back to whatever the editor put in the document's Recipients tab.
+
+Resolution order at send time is always: the `to` passed to `send()` → the definition's `to()` → the document's recipients → admin recipients (for `audience: 'admin'`). If all of them come up empty the send is skipped with `reason: 'no-recipient'` and a warning — it never throws.
+
+## `defaults` — the copy to start from
+
+```ts
+defaults: {
+  subject: 'Your {{site.name}} receipt',
+  preheader: 'Order {{order.number}}',
+  body: `
+Thanks, {{user.name}}.
+
+<Button label="View your receipt" url="{{url}}" />
+`,
+}
+```
+
+Markdown, converted once when the document is created. `**bold**`, `_italic_`, `[links](url)`, headings, lists, `---` and `<Button label="…" url="…" />` all import into the editor as real editor content — a Button in Markdown becomes a Button block an editor can click and change.
+
+Each field can also be a per-locale map:
+
+```ts
+defaults: {
+  subject: { en: 'Welcome', de: 'Willkommen' },
+  body: { en: '…', de: '…' },
+}
+```
+
+Defaults are used in exactly two situations: seeding the document, and rendering when no document exists at all (a safety net, with a warning). They are never re-applied over an editor's work — the **Reset to defaults** action in the admin is the only way back, and it is a person's decision.
+
+## `sample` — what the preview uses
+
+```ts
+sample: async ({ payload }) => ({
+  user: (await payload.find({ collection: 'users', limit: 1 })).docs[0]?.id,
+  url: 'https://app.example.com/dashboard',
+})
+```
+
+An object or a function. The preview falls back through: what the editor typed in the form → the document's saved sample → this → the `example` values in the manifest. Giving a good `sample` is the difference between a preview that shows *Ada Lovelace* and one that shows `[user.name]`.
+
+## `shouldSend` — a last-minute veto
+
+```ts
+shouldSend: ({ input, payload }) =>
+  input.organization.plan === 'free' ? { skip: 'free-plan' } : true,
+```
+
+Return `false` or `{ skip: reason }` and the send returns `{ status: 'skipped', reason }` without rendering. The plugin-wide `hooks.shouldSend` runs after this one.
+
+## The whole thing
+
+```ts
+export const invoice = defineEmail({
+  slug: 'invoice-paid',
+  label: 'Invoice paid',
+  description: 'Receipt sent after a successful charge.',
+  trigger: 'Stripe invoice.paid webhook',
+  group: 'Billing',
+  audience: 'user',
+  required: true,
+  template: 'receipt',
+  inputSchema: [
+    { name: 'user', type: 'relationship', relationTo: 'users', required: true },
+    { name: 'amount', type: 'number', required: true },
+    { name: 'paidAt', type: 'date', required: true },
+    { name: 'url', type: 'text', required: true },
+  ],
+  variables: {
+    'user.name': { example: 'Ada Lovelace' },
+    'invoice.total': { type: 'number', example: 1299 },
+    'invoice.paidAt': { type: 'date' },
+    url: { type: 'url', description: 'Link to the hosted invoice' },
+  },
+  resolve: async ({ input, payload }) => {
+    const user = await populate(payload, 'users', input.user)
+    return {
+      'user.name': user.name || user.email,
+      'invoice.total': input.amount,
+      'invoice.paidAt': input.paidAt,
+      url: input.url,
+    }
+  },
+  to: async ({ input, payload }) => (await populate(payload, 'users', input.user)).email,
+  defaults: {
+    subject: 'Your receipt from {{site.name}}',
+    preheader: 'Paid {{invoice.paidAt}}',
+    body: `
+Hi {{user.name}},
+
+We received your payment of {{invoice.total}} on {{invoice.paidAt}}.
+
+<Button label="View invoice" url="{{url}}" />
+`,
+  },
+  sample: { amount: 1299, paidAt: '2026-09-08T10:00:00.000Z', url: 'https://pay.stripe.com/…', user: 1 },
+})
+```
+
+Next: [Templates](/docs/plugins/payload-emails/templates) for the design, or [Sending](/docs/plugins/payload-emails/sending) for the call sites.

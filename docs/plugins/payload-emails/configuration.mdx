@@ -1,0 +1,142 @@
+---
+title: Configuration
+description: Every option of emailsPlugin(), what it defaults to, and when to change it.
+---
+
+```ts
+emailsPlugin({
+  emails: [welcome, passwordReset, invoicePaid],
+})
+```
+
+`emails` is the only required option. Everything below has a default that suits a normal project.
+
+## Options
+
+| Option | Default | What it does |
+| --- | --- | --- |
+| `emails` | — | The definitions. Duplicated slugs fail at startup. |
+| `templates` | `{ default: DefaultTemplate }` | Your React Email components. See [Templates](/docs/plugins/payload-emails/templates). |
+| `collectionSlug` | `transactional-emails` | Rename if it collides with a collection of yours. |
+| `settings` | `{}` | `false` removes the global entirely; otherwise `{ slug, adminRecipients, mediaCollection }`. |
+| `log` | off | `{ enabled, slug, retentionDays, storeHtml, storeVariables, includeTests }`. |
+| `queue` | off | `{ enabled, default, queue, retries }` — deliver through Payload Jobs. |
+| `editor` | email-safe Lexical | Replace the editor used for the body and footer. |
+| `globalVariables` | site/support/year | Variables every email gets. |
+| `globalVariableManifest` | matching the above | Their chips and descriptions in the admin. |
+| `hooks` | — | `shouldSend`, `beforeRender`, `beforeSend`, `afterSend`. |
+| `access` | any admin user | `read`, `update`, `delete`. |
+| `versions` | `{ drafts: true }` | `false` turns off versioning on the copy. |
+| `seed` | `always` | `development` or `false`. |
+| `validateInput` | `development` | `always` or `never`. |
+| `dateFormat` | long date | `Intl.DateTimeFormatOptions` for `date` variables. |
+| `disabled` | `false` | Keep the collections (so migrations stay valid) but stop all runtime behaviour. |
+
+## `settings`
+
+```ts
+settings: {
+  adminRecipients: ['ops@example.com'],   // seeded on first run only
+  mediaCollection: 'media',               // enables an upload field for a logo
+  slug: 'email-settings',
+}
+```
+
+`settings: false` removes the global. You then supply everything through `globalVariables` and the definitions' own `to`, and there is no footer.
+
+## `globalVariables`
+
+Available in every email without any definition declaring them.
+
+```ts
+globalVariables: ({ settings, payload, locale }) => ({
+  'site.name': settings.siteName ?? 'Acme',
+  'site.url': settings.siteUrl ?? 'https://acme.com',
+  'support.email': 'support@acme.com',
+  'support.url': 'https://acme.com/help',
+  year: new Date().getFullYear(),
+}),
+globalVariableManifest: {
+  'support.url': { description: 'Help centre', type: 'url' },
+},
+```
+
+Overriding `globalVariables` replaces the defaults entirely, so re-declare the ones you still want. The manifest is what editors see as the "available everywhere" chips — keep the two in step or a variable will work but not be discoverable.
+
+## `log`
+
+```ts
+log: {
+  enabled: true,
+  retentionDays: 90,
+  storeHtml: false,      // the full rendered body — large, and personal data
+  storeVariables: false, // the resolved values — same caveat
+  includeTests: false,   // also log Send-a-test
+}
+```
+
+The default records addressing and outcome, which is what support questions need. Turn the other two on while debugging, then off.
+
+## `queue`
+
+```ts
+queue: { enabled: true, default: false, queue: 'emails', retries: 3 }
+```
+
+`default: true` queues everything unless a call opts out. Requires something to run jobs.
+
+## `versions`
+
+Drafts are on by default: an editor saves a draft, someone reviews, then publishes — and sending always uses the published version. `versions: false` removes versioning and every save is live.
+
+## `seed`
+
+Controls the startup routine that creates missing documents, refreshes code-owned metadata, applies `previousSlugs` renames, and flags orphans.
+
+- `always` (default) — every boot, in every environment.
+- `development` — skipped in production, for teams that prefer a migration.
+- `false` — never; call `payload.emails.sync()` yourself.
+
+It only ever *creates* copy. Existing copy is never touched.
+
+## `validateInput`
+
+The structural check of `input` against `inputSchema` — required keys, primitive types, select options.
+
+- `development` (default) — a loud error where you will see it, no cost in production.
+- `always` — also in production, when input comes from somewhere you do not control.
+- `never`.
+
+## `editor`
+
+The body editor is Lexical narrowed to what mail clients render. To change the feature set:
+
+```ts
+import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { ButtonBlock, emailEditorFeatures } from '@payload-solutions/plugin-emails'
+
+emailsPlugin({
+  emails,
+  editor: lexicalEditor({ features: [...emailEditorFeatures(), MyFeature()] }),
+})
+```
+
+Keep `ButtonBlock` if you want buttons, and remember the plugin's link field carries a hook that stops `{{url}}` being percent-encoded — dropping it breaks variables inside links.
+
+## `disabled`
+
+```ts
+emailsPlugin({ emails, disabled: process.env.EMAILS_OFF === 'true' })
+```
+
+Collections, the global and the type hook stay, so your database schema and generated types do not change; the seed and `payload.emails` do not. Useful for a migration or a maintenance window.
+
+## Endpoints it adds
+
+| Endpoint | Auth | Purpose |
+| --- | --- | --- |
+| `POST /api/<collection>/:id/preview` | admin user | Render one email with sample input. |
+| `POST /api/<collection>/:id/send-test` | admin user | Send that render to one address. |
+| `POST /api/email-templates/preview` | admin user | Render a template with placeholder copy. |
+
+All three require an authenticated admin-panel user and are used by the admin UI. Nothing the plugin adds is public.

@@ -20,6 +20,7 @@
     "./liquid-mark": "./src/liquid-mark.tsx",
     "./parallax": "./src/parallax.tsx",
     "./ambient-backdrop": "./src/ambient-backdrop.tsx",
+    "./crt-grain": "./src/crt-grain.tsx",
     "./grid-columns": "./src/grid-columns.tsx",
     "./crosshairs": "./src/crosshairs.tsx",
     "./media-stack": "./src/media-stack.tsx",

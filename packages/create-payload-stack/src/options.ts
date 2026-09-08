@@ -24,6 +24,8 @@ export interface ProjectOptions {
   billing: BillingMode
   /** Media storage adapter, or 'none' for local disk. */
   storage: StorageKey
+  /** Manage transactional email copy in the Payload admin with the Payload Emails plugin. */
+  emails: boolean
   packageManager: PackageManager
   install: boolean
   git: boolean
@@ -39,6 +41,7 @@ export interface CliFlags {
   organizations?: boolean
   billing?: string
   storage?: string
+  emails?: boolean
   packageManager?: PackageManager
   install: boolean
   git: boolean

@@ -1,6 +1,16 @@
 {
   "title": "Payload Emails",
-  "description": "Automated email copy, edited in the admin",
+  "description": "Transactional email copy your team can edit",
   "root": true,
-  "pages": ["index"]
+  "pages": [
+    "index",
+    "installation",
+    "defining-emails",
+    "templates",
+    "sending",
+    "admin",
+    "typescript",
+    "configuration",
+    "recipes"
+  ]
 }

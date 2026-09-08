@@ -150,6 +150,8 @@ export type SanitizedEmailDefinition = {
 export type TemplateStyles = {
   blockquote: CSSProperties
   button: CSSProperties
+  /** Small print: the link repeated under a button, and anything else set apart from the body. */
+  fine: CSSProperties
   h1: CSSProperties
   h2: CSSProperties
   h3: CSSProperties

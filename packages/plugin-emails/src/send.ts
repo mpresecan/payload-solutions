@@ -235,9 +235,10 @@ function maybeValidate(options: SanitizedEmailsPluginOptions, definition: Saniti
 
 function localeOf(payload: Payload, args: { locale?: string; req?: PayloadRequest }): string | undefined {
   return (
-    args.locale ??
-    (args.req?.locale as string | undefined) ??
-    (payload.config.localization ? payload.config.localization.defaultLocale : undefined)
+    args.locale ||
+    (args.req?.locale as null | string | undefined) ||
+    (payload.config.localization ? payload.config.localization.defaultLocale : undefined) ||
+    undefined
   )
 }
 
@@ -368,7 +369,7 @@ export async function sendTest(
   const prepared = await prepare(ctx, definition, args.input ?? {}, { draft: args.draft ?? true })
   const message = buildMessage(prepared, [args.to], {})
   message.subject = `[TEST] ${message.subject}`
-  return deliver(payload, options, prepared, message, args.input ?? {}, { isTest: true, locale: ctx.locale })
+  return deliver(payload, options, prepared, message, args.input ?? {}, { isTest: true, locale: ctx.locale ?? undefined })
 }
 
 /** Resolve the input the preview should use: explicit → document sample → code sample → examples. */

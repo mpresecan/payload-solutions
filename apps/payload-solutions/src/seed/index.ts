@@ -62,10 +62,10 @@ export async function seed(payload: Payload) {
         name: 'Payload Emails',
         slug: 'payload-emails',
         packageName: '@payload-solutions/plugin-emails',
-        summary: 'Edit the copy of every automated email from the admin dashboard.',
+        summary: 'Transactional emails defined in code, written by your team in the admin.',
         description:
-          'Verification, password reset, invitation and billing emails become documents your team can edit, preview and version in the Payload admin, with variables for names, links and organizations.',
-        status: 'planned',
+          'Declare each email once in TypeScript — the input callers pass, the variables editors may use, its default copy — and your team edits the subject and body in the admin, previews it with real sample data and sends itself a test. Rendered through your own React Email template and sent through the adapter you already configured, with every call site typed from generate:types.',
+        status: 'available',
         docsPath: '/docs/plugins/payload-emails',
       },
       {
@@ -106,9 +106,9 @@ export async function seed(payload: Payload) {
     for (const [order, data] of [
       { title: 'Payload Stack 0.1', description: 'Better Auth, organizations, Stripe, shadcn dashboard, CLI.', stage: 'shipped', quarter: 'Q3 2026' },
       { title: 'Payload Consent plugin 0.1', description: 'Consent banner, script gating, cookie table and consent records managed in the Payload admin.', stage: 'shipped', quarter: 'Q3 2026' },
+      { title: 'Payload Emails plugin 0.1', description: 'Code-defined transactional emails with admin-editable copy, React Email templates, preview and test sends.', stage: 'shipped', quarter: 'Q3 2026' },
       { title: 'Payload Stack documentation', description: 'Guides for configuration, authentication, organizations, billing, deployment.', stage: 'in-progress', quarter: 'Q3 2026' },
       { title: 'Payload Clock beta', description: 'Hosted scheduler for serverless Payload job queues, with the companion plugin.', stage: 'planned', quarter: 'Q4 2026' },
-      { title: 'Payload Emails plugin', description: 'Editable transactional email copy in the admin.', stage: 'planned', quarter: 'Q4 2026' },
       { title: 'Payload Action Scheduler plugin', description: 'Scheduled and recurring actions on top of job queues.', stage: 'planned', quarter: 'Q1 2027' },
       { title: 'Vercel Integration plugin', description: 'Deploy hooks and deployment status in the admin.', stage: 'planned', quarter: 'Q1 2027' },
       { title: 'Payload Stack on Payload 4', description: 'Move the boilerplate to Payload 4 once payload-auth supports it.', stage: 'exploring' },

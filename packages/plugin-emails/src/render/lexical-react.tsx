@@ -29,7 +29,7 @@ type AnyNode = {
 
 export type ReactRenderOptions = {
   dateFormat?: Intl.DateTimeFormatOptions
-  locale?: string
+  locale?: null | string
   manifest?: VariableManifest
   styles?: Partial<TemplateStyles>
   variables: Record<string, unknown>
@@ -54,11 +54,11 @@ export function interpolateToNodes(text: string, options: ReactRenderOptions): R
       nodes.push(full.slice(1))
       continue
     }
-    const type: undefined | VariableType = options.manifest?.[name]?.type
-    if (!Object.prototype.hasOwnProperty.call(options.variables, name)) {
+    const type: undefined | VariableType = options.manifest?.[name!]?.type
+    if (!Object.prototype.hasOwnProperty.call(options.variables, name!)) {
       continue
     }
-    const value = formatValue(options.variables[name], type, {
+    const value = formatValue(options.variables[name!], type, {
       dateFormat: options.dateFormat,
       locale: options.locale,
     })
@@ -127,15 +127,34 @@ function inlineChildren(children: AnyNode[] | undefined, options: ReactRenderOpt
   })
 }
 
+/**
+ * The call-to-action, and — unless the block turns it off — the same URL repeated underneath as
+ * plain text. Plain text on purpose: if the button did not work, a second link would not either,
+ * and what the reader needs is something they can select and paste.
+ */
 function buttonBlock(fields: Record<string, unknown>, options: ReactRenderOptions, styles: TemplateStyles, key: number) {
   const label = interpolateToNodes(String(fields.label ?? ''), options)
   const href = interpolateToNodes(String(fields.url ?? ''), options).join('')
   const centered = fields.align === 'center'
+  const showFallback = fields.fallback !== false
+  const fallbackText = String(fields.fallbackText ?? '')
   return (
     <Section key={key} style={{ margin: '24px 0', textAlign: centered ? 'center' : 'left' }}>
       <Button className={EMAIL_CLASS.button} href={href} style={{ ...styles.button, display: 'inline-block' }}>
         {label}
       </Button>
+      {showFallback && href ? (
+        <>
+          {fallbackText ? (
+            <Text className={EMAIL_CLASS.fine} style={{ ...styles.fine, margin: '18px 0 2px' }}>
+              {interpolateToNodes(fallbackText, options)}
+            </Text>
+          ) : null}
+          <Text className={EMAIL_CLASS.fine} style={{ ...styles.fine, margin: fallbackText ? 0 : '18px 0 0' }}>
+            {href}
+          </Text>
+        </>
+      ) : null}
     </Section>
   )
 }
@@ -143,7 +162,7 @@ function buttonBlock(fields: Record<string, unknown>, options: ReactRenderOption
 function blockNode(node: AnyNode, options: ReactRenderOptions, styles: TemplateStyles, key: number): ReactNode {
   switch (node.type) {
     case 'block': {
-      const fields = (node.fields ?? {})
+      const fields = (node.fields ?? {}) as Record<string, unknown>
       if (fields.blockType === 'button') {
         return buttonBlock(fields, options, styles, key)
       }

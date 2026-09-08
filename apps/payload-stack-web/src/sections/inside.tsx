@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import {
   Buildings,
   CreditCard,
+  EnvelopeSimple,
   Fingerprint,
   ShieldCheck,
   SlidersHorizontal,
@@ -132,22 +133,40 @@ const CELLS: Cell[] = [
     ),
   },
   {
+    id: 'emails',
+    icon: <EnvelopeSimple size={24} />,
+    title: 'Transactional emails your team can edit',
+    body: 'Every email is declared in code with typed variables and a sender. Subject, preheader and body are then edited in the Payload admin, with a live preview and a test send. Branding stays in one React Email template, so editors change the words and never the markup.',
+    span: 2,
+    extra: (
+      <pre className="code-block mt-6 whitespace-pre-wrap border border-border bg-surface p-4 text-[0.75rem]">
+        <code>
+          <span className="tok-k">defineEmail</span>
+          <span className="tok-p">({'{ '}</span>
+          <span className="tok-k">slug</span>
+          <span className="tok-p">: </span>
+          <span className="tok-s">&apos;invitation&apos;</span>
+          <span className="tok-p">, </span>
+          <span className="tok-k">to</span>
+          <span className="tok-p">: (</span>
+          <span className="tok-s">i</span>
+          <span className="tok-p">) =&gt; </span>
+          <span className="tok-s">i</span>
+          <span className="tok-p">.</span>
+          <span className="tok-s">email</span>
+          <span className="tok-p">{' })'}</span>
+        </code>
+      </pre>
+    ),
+  },
+  {
     id: 'config',
     icon: <SlidersHorizontal size={24} />,
-    title: 'Config, email, legal, SEO',
-    body: 'One typed config for name, plans, auth methods and feature flags. React Email templates, legal pages as a collection, metadata and sitemap included.',
-    span: 4,
+    title: 'Config, legal, SEO',
+    body: 'One typed config for name, plans, auth methods and feature flags. Legal pages as a collection, metadata, sitemap and robots included.',
+    span: 2,
     extra: (
-      <Chips
-        items={[
-          'stack.config.ts',
-          'React Email',
-          'Legal pages',
-          'Feature flags',
-          'Metadata',
-          'Sitemap',
-        ]}
-      />
+      <Chips items={['stack.config.ts', 'Legal pages', 'Feature flags', 'Metadata', 'Sitemap']} />
     ),
   },
 ]
@@ -170,10 +189,7 @@ export function Inside() {
           />
         </Reveal>
 
-        <ul
-          className="list-grid mt-16 grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
-          role="list"
-        >
+        <ul className="list-grid mt-16 grid-cols-1 md:grid-cols-2 lg:grid-cols-4" role="list">
           {CELLS.map((cell, i) => (
             <Reveal
               as="li"

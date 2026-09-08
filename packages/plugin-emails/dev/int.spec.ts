@@ -188,7 +188,7 @@ describe('settings and template', () => {
 })
 
 describe('admin endpoints', () => {
-  async function call(pathname: string, body: unknown, asUser = true) {
+  async function call(pathname: string, body: unknown, asUser = true, localeIsNull = false) {
     const request = new Request(`http://localhost:3300/api/transactional-emails/${pathname}`, {
       body: JSON.stringify(body),
       headers: { 'Content-Type': 'application/json' },
@@ -197,6 +197,10 @@ describe('admin endpoints', () => {
     const req = await createPayloadRequest({ config, request })
     if (asUser) {
       req.user = (await payload.findByID({ collection: 'users', id: userId })) as never
+    }
+    if (localeIsNull) {
+      // What Payload's HTTP handler actually gives a project with no localization configured.
+      ;(req as { locale?: null | string }).locale = null
     }
     const collection = payload.collections['transactional-emails'].config
     const endpoint = collection.endpoints && collection.endpoints.find((e) => pathname.endsWith(e.path.split('/').pop()!))
@@ -213,8 +217,6 @@ describe('admin endpoints', () => {
     expect(data.to).toEqual(['ada@example.com'])
     expect(data.html).toContain('Open your dashboard')
     expect(data.variables['user.email']).toBe('ada@example.com')
-    expect(Object.keys(data.manifest.email)).toContain('user.email')
-    expect(Object.keys(data.manifest.global)).toContain('site.name')
   })
 
   test('preview falls back to example values when the sample cannot be resolved', async () => {
@@ -224,6 +226,20 @@ describe('admin endpoints', () => {
     expect(res.status).toBe(200)
     expect(data.warning).toMatch(/could not be resolved/)
     expect(data.subject).toContain('Ada Lovelace') // manifest example
+  })
+
+  test('previews an email with number and date variables (req.locale is null without localization)', async () => {
+    const reset = await docFor('password-reset')
+    const res = await call(`${reset.id}/preview`, {}, true, true)
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data.variables['expires.minutes']).toBe(60)
+    expect(data.html).toContain('60')
+
+    const notify = await docFor('new-user-notification')
+    const dateRes = await call(`${notify.id}/preview`, {}, true, true)
+    expect(dateRes.status).toBe(200)
+    expect((await dateRes.json()).html).toMatch(/\d{4}/)
   })
 
   test('send-test requires a user and a valid address, then sends with a [TEST] prefix', async () => {

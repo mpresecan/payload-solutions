@@ -164,6 +164,20 @@ export async function run(flags: CliFlags, positionalName?: string) {
     }),
   ))
 
+  // 8. Transactional emails
+  const emails =
+    flags.emails ??
+    (flags.defaults
+      ? true
+      : guard(
+          await p.confirm({
+            message: 'Transactional emails',
+            initialValue: true,
+            active: 'Editable in the admin (Payload Emails)',
+            inactive: 'React Email components in code',
+          }),
+        ))
+
   const packageManager = flags.packageManager ?? (await detectPackageManager())
 
   const options: ProjectOptions = {
@@ -177,6 +191,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
     organizations,
     billing,
     storage,
+    emails,
     packageManager,
     install: flags.install,
     git: flags.git,
@@ -188,7 +203,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
     return
   }
 
-  // 7. Template
+  // 9. Template
   const s = p.spinner()
   s.start(flags.localTemplate ? 'Copying local template' : 'Downloading template')
   try {
@@ -201,7 +216,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
     bail(error instanceof Error ? error.message : String(error))
   }
 
-  // 8. Install
+  // 10. Install
   if (options.install) {
     const s2 = p.spinner()
     s2.start(`Installing dependencies with ${packageManager}`)
@@ -217,7 +232,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
     }
   }
 
-  // 9. Git
+  // 11. Git
   if (options.git && !existsSync(path.join(directory, '.git'))) {
     try {
       await execa('git', ['init', '-b', 'main'], { cwd: directory })
@@ -237,6 +252,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
     ...(storage !== 'none' ? [`# add ${listWords(STORAGE_CHOICES[storage].envVars)} to .env to store uploads in ${STORAGE_CHOICES[storage].label} (local disk until then)`] : []),
     runCommand(packageManager, 'dev'),
     'open http://localhost:3000/admin',
+    ...(emails ? ['# email copy is under Emails in the admin; the design is src/emails/template.tsx'] : []),
   ]
   p.note(steps.join('\n'), 'Done. Next steps:')
   p.outro(`Docs: ${pc.underline(DOCS)}`)

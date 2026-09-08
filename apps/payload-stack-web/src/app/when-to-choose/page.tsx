@@ -4,7 +4,11 @@ import { Check, X } from '@phosphor-icons/react/dist/ssr'
 import { SOLUTIONS_URL, brands } from '@payload-solutions/brand'
 import { GridColumns } from '@payload-solutions/brand/grid-columns'
 import { ActionRow, Eyebrow, SectionHead } from '@payload-solutions/brand/lattice'
+import { MediaStack } from '@payload-solutions/brand/media-stack'
+import { screens } from '@payload-solutions/brand/screens'
 import { ThemeBand } from '@payload-solutions/brand/theme-band'
+import { ThemedImage } from '@payload-solutions/brand/themed-image'
+import { CliTranscript } from '@/components/cli-transcript'
 import { CopyCommand } from '@/components/copy-command'
 import { Reveal } from '@/components/reveal'
 import { SiteFooter } from '@/components/site-footer'
@@ -14,7 +18,7 @@ const brand = brands.stack
 
 const TITLE = 'When to choose Payload Stack'
 const DESCRIPTION =
-  'Payload Stack makes strong choices: Payload CMS as the backend, organizations as the unit of billing, Next.js and shadcn/ui in front. Which products those choices serve, and which they get in the way of.'
+  'Payload Stack makes two strong choices — Payload CMS as the backend, Next.js and shadcn/ui in front — and leaves the shape of your product to a config file. Which products those choices serve, and which they get in the way of.'
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -31,8 +35,8 @@ interface Point {
 
 const FIT: Point[] = [
   {
-    title: 'You sell to teams.',
-    body: 'Organizations, invitations, roles and seat-based Stripe billing are the parts every B2B product needs and every team rebuilds. Here they are connected on day one, and bridged into Payload’s multi-tenant plugin so each collection is scoped to the active organization in the app and in the admin.',
+    title: 'The hard part is the wiring, and it is already done.',
+    body: 'Auth, tenancy, subscriptions and access control are each a solved library on their own. What nobody hands you is the seams: a session that knows the active organization, a subscription that gates a route, a collection scoped the same way in your app and in the admin. Those are connected on day one — and whether a subscription attaches to an organization or to a single user is a prompt at scaffold time, not a fork you are committed to.',
   },
   {
     title: 'You need a back office and would rather not build one.',
@@ -54,13 +58,15 @@ const NOT_FIT: Point[] = [
     body: 'Payload is opinionated. Data modelling, hooks and access control follow the Payload way, and the payoff comes from staying on it. If you would rather hand-roll routes in Express or Hono and choose every library yourself, the framework will feel like a constraint before it feels like a head start.',
   },
   {
-    title: 'Your product has users, not teams.',
+    title: 'Your product is small and will stay small.',
     body: (
       <>
-        A consumer app where people sign up alone has no use for organizations. You can switch
-        them off with <code className="text-fg">organizations.enabled: false</code> in{' '}
-        <code className="text-fg">stack.config.ts</code>, and scoping falls back to per-user
-        ownership, but a lighter starter may still serve a simple B2C product better.
+        Turning teams off is one prompt —{' '}
+        <code className="text-fg">organizations.enabled: false</code> in{' '}
+        <code className="text-fg">stack.config.ts</code>, with scoping falling back to per-user
+        ownership — but the scaffold underneath does not shrink. A landing page with a waiting
+        list, or a single-purpose tool with no accounts to speak of, carries a CMS, an admin and
+        a billing layer it never uses.
       </>
     ),
   },
@@ -71,7 +77,7 @@ const NOT_FIT: Point[] = [
 ]
 
 const CHOOSE = [
-  'Your users work in teams and pay per seat or per organization.',
+  'You are charging for something, and want auth, tenancy and billing already wired to each other.',
   'You want a shadcn dashboard for customers and a Payload admin for your own staff, without building either.',
   'You are at home in Next.js and willing to learn Payload’s conventions.',
 ]
@@ -109,18 +115,36 @@ function Points({ items, columns }: { items: Point[]; columns: 2 | 3 }) {
   )
 }
 
+/**
+ * The opener states the question and shows what asks it: the three scaffold prompts this
+ * page argues about, in the CLI's own words. The condensed cut of the transcript, not a
+ * screenshot of one — a picture of terminal text is unreadable at this size on a phone.
+ */
 function Opener() {
   return (
-    <section className="container-content py-20 lg:py-28" aria-labelledby="fit-heading">
-      <Eyebrow>Is it a fit?</Eyebrow>
-      <h1 id="fit-heading" className="display-xl mt-7 max-w-[16ch]">
-        When to choose Payload Stack.
-      </h1>
-      <p className="lead mt-7 max-w-[38rem]">
-        It makes strong choices for you: Payload as the backend, organizations as the unit of
-        billing, Next.js and shadcn/ui in front. Those choices are a head start for some products
-        and dead weight for others. This page is for telling which one yours is.
-      </p>
+    <section
+      className="container-content col-grid items-center gap-y-12 py-20 lg:py-28"
+      aria-labelledby="fit-heading"
+    >
+      <div className="lg:col-span-2 lg:pr-12">
+        <Eyebrow>Is it a fit?</Eyebrow>
+        <h1 id="fit-heading" className="display-xl mt-7 max-w-[16ch]">
+          When to choose Payload Stack.
+        </h1>
+        <p className="lead mt-7 max-w-[34rem]">
+          It makes two strong choices for you — Payload as the backend, Next.js and shadcn/ui in
+          front — and leaves the shape of your product to a config file: teams or single users,
+          billing per organization, per user or not at all. The choices it does make are a head
+          start for some products and dead weight for others. This page is for telling which one
+          yours is.
+        </p>
+      </div>
+
+      {/* The prompts the stack does not answer for you: three of the seven, and the three
+          this page turns on. */}
+      <div className="min-w-0 lg:col-span-2">
+        <CliTranscript variant="decisions" className="lg:p-7" />
+      </div>
     </section>
   )
 }
@@ -196,6 +220,14 @@ function Verdict() {
   )
 }
 
+const SHOT_SIZES = '(min-width: 1280px) 1024px, 90vw'
+
+/**
+ * The closer shows the two organization screens, not the dashboard/admin pair the home page
+ * showcases: teams are the hinge this page turns on, so the payoff image is the thing you
+ * get for answering "Organizations: yes" — the members screen your customers use and the
+ * same organization open in the admin.
+ */
 function Decide() {
   return (
     <section className="hairline-t py-section" aria-labelledby="decide-heading">
@@ -213,6 +245,21 @@ function Decide() {
             <ActionRow href={brand.docsUrl}>Documentation</ActionRow>
             <ActionRow href={`${SOLUTIONS_URL}/#contact`}>Ask us a question</ActionRow>
           </div>
+        </Reveal>
+
+        <Reveal className="lg:col-span-4">
+          <MediaStack
+            back={
+              <ThemedImage
+                {...screens.adminOrgEdit}
+                sizes={SHOT_SIZES}
+                className="block h-auto w-full"
+              />
+            }
+            front={
+              <ThemedImage {...screens.people} sizes={SHOT_SIZES} className="block h-auto w-full" />
+            }
+          />
         </Reveal>
       </div>
     </section>

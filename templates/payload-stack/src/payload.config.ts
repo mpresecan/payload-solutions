@@ -5,6 +5,7 @@ import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
 import { sentryPlugin } from '@payloadcms/plugin-sentry'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import * as Sentry from '@sentry/nextjs'
+// emails-plugin-import
 // storage-adapter-import
 import path from 'path'
 import { buildConfig, type Field, type Plugin } from 'payload'
@@ -146,7 +147,13 @@ if (sentryReady) {
   )
 }
 
-// 4. Media storage (the CLI writes your choice here; keep the markers so it can be swapped again).
+// 4. Transactional emails. Without the emails plugin the app still sends every message in
+// src/emails/index.ts through Payload's email adapter; with it, the copy moves into the admin.
+// Scaffold with `create-payload-stack --emails` to fill this in (keep the markers).
+// emails-plugin-config-start
+// emails-plugin-config-end
+
+// 5. Media storage (the CLI writes your choice here; keep the markers so it can be swapped again).
 // storage-adapter-config-start
 // Local disk (./media): fine for development, lost on redeploy on Vercel and other ephemeral hosts.
 // Move uploads to Vercel Blob, S3, R2, Azure, GCS or Uploadthing: https://payload.solutions/docs/payload-stack/storage

@@ -1,7 +1,7 @@
 import type { Endpoint, PayloadRequest } from 'payload'
 
 import { type RenderContext, resolveVariables } from '../render/render.js'
-import { DEFAULT_GLOBAL_MANIFEST, getEmailDoc } from '../render/render.js'
+import { getEmailDoc } from '../render/render.js'
 import { prepare, resolveRecipients, resolveSampleInput, sendTest } from '../send.js'
 import type { SanitizedEmailsPluginOptions, TransactionalEmailDoc } from '../types.js'
 
@@ -53,7 +53,7 @@ export function createPreviewEndpoint(options: SanitizedEmailsPluginOptions): En
         return Response.json({ message: 'Unauthorized' }, { status: 401 })
       }
       const body = await readBody(req)
-      const locale = body.locale ?? (req.locale as string | undefined)
+      const locale = body.locale || (req.locale as null | string | undefined) || undefined
       const draft = body.draft ?? true
       const doc = await loadDoc(req, options, draft, locale)
       const definition = doc ? options.definitions.get(doc.key) : undefined
@@ -83,12 +83,6 @@ export function createPreviewEndpoint(options: SanitizedEmailsPluginOptions): En
       return Response.json({
         html: rendered.html,
         input,
-        // Split so the panel can show what this email defines and what is available everywhere,
-        // each next to the value it actually resolved to for this render.
-        manifest: {
-          email: definition.variables,
-          global: options.globalVariableManifest ?? DEFAULT_GLOBAL_MANIFEST,
-        },
         preheader: rendered.preheader,
         subject: rendered.subject,
         text: rendered.text,
@@ -114,7 +108,7 @@ export function createSendTestEndpoint(options: SanitizedEmailsPluginOptions): E
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
         return Response.json({ message: 'Enter a valid email address.' }, { status: 400 })
       }
-      const locale = body.locale ?? (req.locale as string | undefined)
+      const locale = body.locale || (req.locale as null | string | undefined) || undefined
       const draft = body.draft ?? true
       const doc = await loadDoc(req, options, draft, locale)
       const definition = doc ? options.definitions.get(doc.key) : undefined

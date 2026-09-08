@@ -1,0 +1,95 @@
+---
+title: TypeScript
+description: How Config['emails'] is generated, what it makes safe, and how the types behave before the first generate.
+---
+
+The plugin adds a hook to `config.typescript.schema`, so `payload generate:types` emits your emails alongside your collections:
+
+```ts title="payload-types.ts"
+export interface Config {
+  collections: { /* … */ }
+  emails: {
+    welcome: EmailWelcome
+    'password-reset': EmailPasswordReset
+  }
+}
+
+export interface EmailWelcome {
+  input: {
+    user: number | User
+    url: string
+  }
+  variables: {
+    /** Display name, falls back to the email */
+    'user.name': string
+    'user.email': string
+    url: string
+  }
+}
+```
+
+`input` comes from `inputSchema` through the same `fieldsToJSONSchema` Payload uses for job tasks — so a relationship becomes `number | User` (or `string | User`, matching your id type), a select becomes a literal union, an optional field becomes nullable. `variables` comes from the manifest, with `number`-typed variables as `number`, `date` as `Date | string`, and each `description` carried through as a doc comment.
+
+## What that buys you
+
+```ts
+await payload.emails.send('welcom', { input: {} })
+//                        ~~~~~~~~ unknown slug
+
+await payload.emails.send('welcome', { input: { user } })
+//                                            ~~~~~~~~ property 'url' is missing
+
+await payload.emails.send('organization-invitation', { input: { role: 'owner', /* … */ } })
+//                                                           ~~~~~~~~~~~~~ not 'member' | 'admin'
+
+defineEmail({
+  slug: 'welcome',
+  resolve: () => ({ 'user.name': 'a' }),
+  //                ~~~~~~~~~~~~~~~~~ 'user.email' and 'url' are missing
+})
+```
+
+All four are compile errors, not runtime surprises. This is the reason the plugin bothers with a code-side declaration at all: the admin gets the words, and the compiler still guards the wiring.
+
+## Before the first generate
+
+A fresh clone has no `emails` key in `payload-types.ts` yet. The types fall back to a permissive record, so every call still compiles and nothing goes red while you are setting up. Run `generate:types` and the same code gets checked properly.
+
+The same fallback applies if you never run it at all — the plugin works, you just do not get the safety.
+
+## Keeping types fresh
+
+`typescript.autoGenerate` defaults to `true`, and `payload.init` regenerates outside production, so in development a restart is enough. In CI, run it explicitly and fail on a diff:
+
+```bash
+pnpm payload generate:types && git diff --exit-code src/payload-types.ts
+```
+
+## The exported types
+
+```ts
+import type {
+  EmailDefinition,   // one definition, generic over its slug
+  EmailInput,        // EmailInput<'welcome'>
+  EmailSlug,         // union of every declared slug
+  EmailVariables,    // EmailVariables<'welcome'>
+  EmailSettings,     // what a template receives
+  EmailTemplate,     // your React Email component
+  EmailTemplateProps,
+  TemplateStyles,
+  SampleFieldSpec,
+  SendArgs,
+  SendResult,
+  VariableSpec,
+} from '@payload-solutions/plugin-emails'
+```
+
+Useful when you write helpers around the plugin:
+
+```ts
+export async function notify<S extends EmailSlug>(payload: Payload, slug: S, input: EmailInput<S>) {
+  return payload.emails.send(slug, { input })
+}
+```
+
+`interfaceName` on a definition overrides the generated name if `Email<PascalSlug>` collides with something of yours.

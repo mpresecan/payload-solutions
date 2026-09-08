@@ -1,0 +1,133 @@
+---
+title: Installation
+description: Install the plugin, declare your first email, regenerate types, and see it in the admin.
+---
+
+## Install
+
+```bash
+pnpm add @payload-solutions/plugin-emails
+```
+
+Payload 3.88+, `@payloadcms/richtext-lexical`, `@payloadcms/ui`, React 19 and `react-dom` are peer dependencies you already have in a Payload project. `@react-email/components` and `@react-email/render` come along with the plugin — they do the rendering.
+
+You also need an email adapter configured on your Payload config. The plugin never sends mail itself; it hands the finished message to `payload.sendEmail`. In development, Payload's console adapter is enough.
+
+## Declare an email
+
+```ts title="src/emails/welcome.ts"
+import { defineEmail, populate } from '@payload-solutions/plugin-emails'
+
+export const welcome = defineEmail({
+  slug: 'welcome',
+  label: 'Welcome',
+  description: 'Sent once after a user creates an account.',
+  trigger: 'users afterChange hook (operation: create)',
+  group: 'Auth',
+  audience: 'user',
+
+  inputSchema: [
+    { name: 'user', type: 'relationship', relationTo: 'users', required: true },
+    { name: 'url', type: 'text', required: true },
+  ],
+
+  variables: {
+    'user.name': { description: 'Display name, falls back to the email', example: 'Ada Lovelace' },
+    'user.email': { example: 'ada@example.com' },
+    url: { type: 'url', example: 'https://app.example.com/dashboard' },
+  },
+
+  resolve: async ({ input, payload }) => {
+    const user = await populate(payload, 'users', input.user)
+    return { 'user.name': user.name || user.email, 'user.email': user.email, url: input.url }
+  },
+
+  to: ({ variables }) => variables['user.email'],
+
+  defaults: {
+    subject: 'Welcome to {{site.name}}, {{user.name}}',
+    preheader: 'Your account is ready.',
+    body: `
+Hi {{user.name}},
+
+Thanks for creating an account on [{{site.name}}]({{site.url}}).
+
+<Button label="Open your dashboard" url="{{url}}" />
+
+Regards,
+The {{site.name}} team
+`,
+  },
+})
+```
+
+`defaults.body` is Markdown; it is converted to the editor's own format once, when the document is first created. After that it is the editor's to change. See [Defining emails](/docs/plugins/payload-emails/defining-emails) for every field.
+
+## Add the plugin
+
+```ts title="payload.config.ts"
+import { emailsPlugin } from '@payload-solutions/plugin-emails'
+
+import { welcome, passwordReset } from './emails'
+
+export default buildConfig({
+  // …
+  plugins: [
+    emailsPlugin({
+      emails: [welcome, passwordReset],
+      settings: { adminRecipients: ['ops@example.com'] },
+      log: { enabled: true, retentionDays: 90 },
+    }),
+  ],
+})
+```
+
+`emails` is the only required option. Everything else has a default — see [Configuration](/docs/plugins/payload-emails/configuration).
+
+## Regenerate what Payload derives from the config
+
+```bash
+pnpm payload generate:types
+pnpm payload generate:importmap
+```
+
+The first writes `Config['emails']` into `payload-types.ts`, which is what makes `payload.emails.send()` typed. The second registers the plugin's admin components. Run both again whenever you add or remove an email.
+
+<Callout>
+`typescript.autoGenerate` is on by default, so in development a restart refreshes the types on its own. `generate:types` is what you want in CI.
+</Callout>
+
+## First boot
+
+Start the app. The plugin logs what it did:
+
+```
+[plugin-emails] synced: 2 created, 0 refreshed, 0 renamed, 0 orphaned
+```
+
+It creates one **published** document per definition, using your default copy. Open **Emails → Transactional Emails** and the emails are there, ready to edit. Nothing else is required.
+
+## Send it
+
+```ts
+await payload.emails.send('welcome', {
+  input: { user: doc.id, url: `${payload.config.serverURL}/dashboard` },
+  req,
+})
+```
+
+Pass `req` whenever you have one — it carries the transaction and the locale.
+
+## Verify before you ship
+
+Open any email, go to the **Preview & test** tab, and send yourself a test. That path exercises the whole pipeline — the document's copy, your `resolve`, your template, and the real adapter — so if the test arrives looking right, production will too.
+
+## Where things live afterwards
+
+| In the admin | What it is |
+| --- | --- |
+| Emails → Transactional Emails | the copy, one document per definition |
+| Emails → Email Settings | sender, admin recipients, site name, footer, template preview |
+| Emails → Email Log | every send, if you enabled `log` |
+
+Next: [Defining emails](/docs/plugins/payload-emails/defining-emails), or [Templates](/docs/plugins/payload-emails/templates) if you want your branding in place first.

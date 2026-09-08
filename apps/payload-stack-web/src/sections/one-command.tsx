@@ -1,4 +1,5 @@
 import { SectionHead } from '@payload-solutions/brand/lattice'
+import { CliTranscript } from '@/components/cli-transcript'
 import { Reveal } from '@/components/reveal'
 
 const STEPS: Array<{ title: string; body: string }> = [
@@ -24,38 +25,6 @@ const STEPS: Array<{ title: string; body: string }> = [
   },
 ]
 
-/* This transcript mirrors the real create-payload-stack prompt flow. Keep them in sync. */
-const TRANSCRIPT = [
-  { t: 'cmd', v: '$ npx create-payload-stack@latest' },
-  { t: 'blank' },
-  { t: 'ui', v: '┌  create-payload-stack' },
-  { t: 'ui', v: '│' },
-  { t: 'q', k: '◇  Project name', v: '│  ridgeline' },
-  { t: 'ui', v: '│' },
-  { t: 'q', k: '◇  Database', v: '│  PostgreSQL' },
-  { t: 'ui', v: '│' },
-  {
-    t: 'q',
-    k: '◇  Connection string',
-    v: '│  postgres://postgres:<password>@127.0.0.1:5432/ridgeline',
-  },
-  { t: 'ui', v: '│' },
-  { t: 'q', k: '◇  Sign-in methods', v: '│  Email + password, Magic link, Passkeys' },
-  { t: 'ui', v: '│' },
-  { t: 'q', k: '◇  Organizations (teams)', v: '│  Yes' },
-  { t: 'ui', v: '│' },
-  { t: 'q', k: '◇  Billing', v: '│  Stripe subscriptions, per organization' },
-  { t: 'ui', v: '│' },
-  { t: 'q', k: '◇  Media storage', v: '│  Vercel Blob' },
-  { t: 'ui', v: '│' },
-  { t: 'q', k: '◇  Installed dependencies with pnpm', v: null },
-  { t: 'ui', v: '│' },
-  { t: 'ui', v: '└  Done. Next steps:' },
-  { t: 'blank' },
-  { t: 'next', v: '   cd ridgeline' },
-  { t: 'next', v: '   pnpm dev' },
-  { t: 'next', v: '   open http://localhost:3000/admin' },
-] as const
 
 export function OneCommand() {
   return (
@@ -93,51 +62,7 @@ export function OneCommand() {
         </div>
 
         <Reveal className="min-w-0 lg:col-span-2">
-          <pre
-            className="code-block border border-border bg-surface p-5 text-[0.75rem] sm:p-6 sm:text-[0.8125rem] lg:p-8"
-            aria-label="Terminal transcript of create-payload-stack"
-          >
-            <code>
-              {TRANSCRIPT.map((line, i) => {
-                if (line.t === 'blank') return <span key={i}>{'\n'}</span>
-                if (line.t === 'cmd')
-                  return (
-                    <span key={i}>
-                      <span className="tok-c">$ </span>
-                      <span className="tok-s">{line.v.slice(2)}</span>
-                      {'\n'}
-                    </span>
-                  )
-                if (line.t === 'q')
-                  return (
-                    <span key={i}>
-                      <span className="tok-p">{line.k}</span>
-                      {'\n'}
-                      {line.v ? (
-                        <>
-                          <span className="tok-c">{line.v.slice(0, 3)}</span>
-                          <span className="tok-k">{line.v.slice(3)}</span>
-                          {'\n'}
-                        </>
-                      ) : null}
-                    </span>
-                  )
-                if (line.t === 'next')
-                  return (
-                    <span key={i}>
-                      <span className="tok-s">{line.v}</span>
-                      {'\n'}
-                    </span>
-                  )
-                return (
-                  <span key={i} className="tok-c">
-                    {line.v}
-                    {'\n'}
-                  </span>
-                )
-              })}
-            </code>
-          </pre>
+          <CliTranscript className="lg:p-8" />
         </Reveal>
       </div>
     </section>

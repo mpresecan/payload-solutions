@@ -12,6 +12,7 @@ import { GITHUB_REPO_URL } from '@payload-solutions/brand'
 const SOURCE_PATHS: Record<string, string> = {
   '/docs/payload-stack': 'templates/payload-stack',
   '/docs/plugins/payload-consent': 'packages/plugin-consent',
+  '/docs/plugins/payload-emails': 'packages/plugin-emails',
 }
 
 export interface DocsSource {

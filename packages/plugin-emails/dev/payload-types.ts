@@ -532,6 +532,8 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * Applies to every automated email. The design itself comes from the template.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "email-settings".
  */
@@ -566,45 +568,8 @@ export interface EmailSetting {
    * Available in every email as {{site.url}}. Defaults to the server URL.
    */
   siteUrl?: string | null;
-  brand?: {
-    logo?: (number | null) | Media;
-    /**
-     * Absolute URL of the logo (PNG or JPG; SVG is not supported by most mail clients).
-     */
-    logoUrl?: string | null;
-    /**
-     * Buttons and links.
-     */
-    primaryColor?: string | null;
-    /**
-     * Outside the email card.
-     */
-    backgroundColor?: string | null;
-    /**
-     * Body text.
-     */
-    textColor?: string | null;
-  };
   /**
-   * Shown above the body of every email. Variables are allowed.
-   */
-  header?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * Shown below the body of every email, e.g. the company address. Variables are allowed.
+   * Shown under the body of every email — company address, an unsubscribe note, a legal line.
    */
   footer?: {
     root: {
@@ -645,16 +610,6 @@ export interface EmailSettingsSelect<T extends boolean = true> {
   testRecipient?: T;
   siteName?: T;
   siteUrl?: T;
-  brand?:
-    | T
-    | {
-        logo?: T;
-        logoUrl?: T;
-        primaryColor?: T;
-        backgroundColor?: T;
-        textColor?: T;
-      };
-  header?: T;
   footer?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -743,6 +698,14 @@ export interface EmailButtonBlock {
    */
   url: string;
   align?: ('left' | 'center') | null;
+  /**
+   * Repeats the URL as plain text under the button, in smaller type. Some clients strip links, and some readers forward the message as text.
+   */
+  fallback?: boolean | null;
+  /**
+   * Leave empty to show the link on its own.
+   */
+  fallbackText?: string | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'button';

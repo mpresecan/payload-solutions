@@ -73,7 +73,9 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@payload-solutions/plugin-emails": "workspace:*",
     "@playwright/test": "1.58.2",
+    "@react-email/components": "^1.0.12",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/react": "16.3.0",
     "@types/node": "22.19.9",

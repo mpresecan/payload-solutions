@@ -17,7 +17,7 @@ import { lexicalToReact } from './lexical-react.js'
 import { isSerializedEditorState, markdownToLexical } from './markdown.js'
 
 export type RenderContext = {
-  locale?: string
+  locale?: null | string
   options: SanitizedEmailsPluginOptions
   payload: Payload
   req?: PayloadRequest
@@ -110,7 +110,9 @@ export async function resolveVariables(
   input: Record<string, unknown>,
   settings: EmailSettings,
 ): Promise<Record<string, unknown>> {
-  const { locale, options, payload, req } = ctx
+  const { options, payload, req } = ctx
+  // `req.locale` is null on projects without localization; user code should only ever see a string.
+  const locale = ctx.locale ?? undefined
   const globals = options.globalVariables
     ? await options.globalVariables({ locale, payload, settings })
     : defaultGlobalVariables(settings)
@@ -163,7 +165,8 @@ export async function resolveCopy(
   definition: SanitizedEmailDefinition,
   doc: null | TransactionalEmailDoc,
 ): Promise<Copy> {
-  const { locale, payload } = ctx
+  const { payload } = ctx
+  const locale = ctx.locale ?? undefined
   if (doc?.subject && doc.body) {
     return { body: doc.body, preheader: doc.preheader ?? undefined, subject: doc.subject }
   }
@@ -218,7 +221,7 @@ export async function renderEmail(
     children: body,
     definition,
     footer,
-    locale,
+    locale: locale ?? undefined,
     preheader,
     settings,
     subject,

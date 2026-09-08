@@ -77,13 +77,76 @@ describe('scaffolded project', () => {
     for (const file of ['package.json', 'src/stack.config.ts', 'src/payload.config.ts', '.env', '.env.example', 'AGENTS.md', 'README.md', 'tsconfig.json', 'src/lib/stack.ts', 'tests/unit/setup.ts']) {
       expect(existsSync(path.join(dir, file)), file).toBe(true)
     }
-    for (const file of ['node_modules', '.next', 'CLAUDE.md', '.git', 'test-results', 'tsconfig.tsbuildinfo']) {
+    // `variants/` holds the branch that was not chosen; a scaffolded project keeps neither copy.
+    for (const file of ['node_modules', '.next', 'CLAUDE.md', '.git', 'test-results', 'tsconfig.tsbuildinfo', 'variants']) {
       expect(existsSync(path.join(dir, file)), file).toBe(false)
     }
     // Untouched files are byte-identical to the template.
     for (const file of ['src/lib/stack.ts', 'src/collections/Projects.ts', 'tsconfig.json', 'README.md']) {
       expect(readFileSync(path.join(dir, file), 'utf8')).toBe(readFileSync(path.join(templateDir, file), 'utf8'))
     }
+  })
+
+  describe('transactional emails', () => {
+    it('--emails moves the plugin branch into src/emails and registers the plugin', () => {
+      const { dir } = scaffold('with-emails', ['-d', 'sqlite', '--emails', '-y'])
+
+      for (const file of ['src/emails/index.ts', 'src/emails/hooks.ts', 'src/emails/template.tsx', 'src/emails/variables.ts', 'src/emails/definitions/index.ts', 'tests/unit/emails.spec.ts']) {
+        expect(existsSync(path.join(dir, file)), file).toBe(true)
+      }
+      // The React Email branch is gone: one way to change an email, not two.
+      for (const file of ['src/emails/send.ts', 'src/components/auth/email', 'variants']) {
+        expect(existsSync(path.join(dir, file)), file).toBe(false)
+      }
+
+      const payloadConfig = readFileSync(path.join(dir, 'src/payload.config.ts'), 'utf8')
+      expect(payloadConfig).toContain("import { emailsPlugin } from '@payload-solutions/plugin-emails'")
+      expect(payloadConfig).toContain('emails: emailDefinitions')
+      expect(payloadConfig).toContain('templates: { default: StackEmailTemplate }')
+
+      const pkg = JSON.parse(readFileSync(path.join(dir, 'package.json'), 'utf8')) as {
+        dependencies: Record<string, string>
+        devDependencies: Record<string, string>
+        scripts: Record<string, string>
+      }
+      expect(pkg.dependencies['@payload-solutions/plugin-emails']).toBeDefined()
+      expect(pkg.dependencies['@react-email/components']).toBeDefined()
+      expect(pkg.dependencies['react-email']).toBeUndefined()
+      expect(pkg.scripts['email:dev']).toBeUndefined()
+      // Nothing that only resolves inside the monorepo may reach a scaffolded project.
+      for (const version of Object.values({ ...pkg.dependencies, ...pkg.devDependencies })) {
+        expect(version.startsWith('workspace:')).toBe(false)
+      }
+
+      // The call sites are the template's own files, unchanged by the choice.
+      for (const file of ['src/lib/auth/options.ts', 'src/collections/Users.ts']) {
+        expect(readFileSync(path.join(dir, file), 'utf8')).toBe(readFileSync(path.join(templateDir, file), 'utf8'))
+      }
+    })
+
+    it('--no-emails keeps the React Email components and never mentions the plugin', () => {
+      const { dir } = scaffold('without-emails', ['-d', 'sqlite', '--no-emails', '-y'])
+
+      for (const file of ['src/emails/index.ts', 'src/emails/send.ts', 'src/emails/hooks.ts', 'src/components/auth/email/magic-link.tsx']) {
+        expect(existsSync(path.join(dir, file)), file).toBe(true)
+      }
+      for (const file of ['src/emails/definitions', 'src/emails/template.tsx', 'variants']) {
+        expect(existsSync(path.join(dir, file)), file).toBe(false)
+      }
+
+      const payloadConfig = readFileSync(path.join(dir, 'src/payload.config.ts'), 'utf8')
+      expect(payloadConfig).not.toContain('emailsPlugin')
+      // The markers stay, so the plugin can be added later by hand.
+      expect(payloadConfig).toContain('// emails-plugin-config-start')
+
+      const pkg = JSON.parse(readFileSync(path.join(dir, 'package.json'), 'utf8')) as {
+        dependencies: Record<string, string>
+        scripts: Record<string, string>
+      }
+      expect(pkg.dependencies['@payload-solutions/plugin-emails']).toBeUndefined()
+      expect(pkg.dependencies['react-email']).toBeDefined()
+      expect(pkg.scripts['email:dev']).toBeDefined()
+    })
   })
 
   it.each(DB_KEYS)('with the %s database', (dbKey) => {

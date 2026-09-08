@@ -1,4 +1,5 @@
 import { AmbientBackdrop } from '@payload-solutions/brand/ambient-backdrop'
+import { CrtGrain } from '@payload-solutions/brand/crt-grain'
 import { GridColumns } from '@payload-solutions/brand/grid-columns'
 import { ThemeBand } from '@payload-solutions/brand/theme-band'
 import { SiteFooter } from '@/components/site-footer'
@@ -30,6 +31,7 @@ export default function HomePage() {
           <Showcase />
         </ThemeBand>
         <div className="relative z-10 bg-bg">
+          <CrtGrain />
           <GridColumns />
           <Inside />
           <OneCommand />

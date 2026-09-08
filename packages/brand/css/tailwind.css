@@ -485,6 +485,30 @@
   mix-blend-mode: overlay;
 }
 
+/*
+  CRT grain: an animated tile served from the app's public/ folder, the moving counterpart
+  to `noise`. Where `noise` is a static turbulence blended with `overlay` — which by
+  definition leaves pure black untouched, so it only textures the lit parts of the frame —
+  this one is blended with `screen`, and screen over black is the tile itself. That is the
+  whole point: on a true-black page the CRT layer is the only thing that puts light into
+  the black, and it is what gives it the live, broadcast quality rather than the flatness
+  of ink.
+
+  The tile is bright by design (near-white speckle); the opacity token, not the file, sets
+  how far it lifts. Under `prefers-reduced-motion` and when the file is absent
+  --crt-image resolves to nothing and the layer simply is not painted, leaving `noise` to
+  carry the surface on its own — so this is additive, and never load-bearing.
+
+  Same rules as `noise`: fixed or absolute, pointer-events-none layers only.
+*/
+@utility crt {
+  background-image: var(--crt-image);
+  background-size: var(--crt-size);
+  background-repeat: repeat;
+  opacity: var(--crt-opacity);
+  mix-blend-mode: screen;
+}
+
 /* Isometric floor: two families of lines at 30 degrees, matching the IsoStack projection.
    Kept for pages that want it; the Payload Stack hero deliberately does not (see SheenBackdrop). */
 @utility iso-floor {
@@ -536,6 +560,11 @@
   .ambient-glow,
   .ambient-sheen {
     animation: none;
+  }
+  /* A GIF has no pause control, so the CRT layer goes entirely; the static SVG turbulence
+     of `noise` keeps the surface from turning flat. */
+  :root {
+    --crt-image: none;
   }
   /* Parallax collapses to static: the backdrop scrolls with its section. */
   .ambient-sticky {

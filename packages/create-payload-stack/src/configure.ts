@@ -2,6 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 import { DB_CHOICES, type DbChoice } from './databases'
+import { addEmailsPlugin, applyEmailsChoice, swapEmailsPackages } from './emails'
 import type { ProjectOptions } from './options'
 import { LOCAL_STORAGE_CONFIG, STORAGE_CHOICES, STORAGE_PACKAGES, type StorageChoice, type StorageKey } from './storage'
 import { generateSecret } from './utils'
@@ -11,8 +12,9 @@ import { generateSecret } from './utils'
  *   1. src/stack.config.ts written from their answers
  *   2. database adapter swapped in payload.config.ts and package.json
  *   3. media storage adapter written into payload.config.ts and package.json (or left on local disk)
- *   4. .env generated from .env.example
- *   5. package.json renamed
+ *   4. transactional emails wired to the Payload Emails plugin, or left as React Email components
+ *   5. .env generated from .env.example
+ *   6. package.json renamed
  * Every function is pure over file contents so it can be unit-tested without a filesystem.
  */
 
@@ -192,6 +194,21 @@ export function swapDatabasePackage(packageJson: Record<string, unknown>, db: Db
   return { ...packageJson, dependencies: sortKeys(deps) }
 }
 
+/**
+ * A workspace protocol version (`workspace:*`) resolves only inside the monorepo the template lives
+ * in. Nothing should reach a scaffolded project with one; if it does, drop the dependency rather
+ * than hand the user a package.json that no install can resolve.
+ */
+export function stripWorkspaceDependencies(packageJson: Record<string, unknown>) {
+  const next = { ...packageJson }
+  for (const field of ['dependencies', 'devDependencies', 'peerDependencies'] as const) {
+    const deps = next[field] as Record<string, string> | undefined
+    if (!deps) continue
+    next[field] = Object.fromEntries(Object.entries(deps).filter(([, version]) => !version.startsWith('workspace:')))
+  }
+  return next
+}
+
 export function renameProject(packageJson: Record<string, unknown>, slug: string) {
   const next: Record<string, unknown> = { ...packageJson, name: slug, version: '0.1.0', private: true }
   delete next.homepage
@@ -235,12 +252,16 @@ export async function configureProject(o: ProjectOptions) {
 
   const storage = storageChoice(o.storage)
   const payloadConfig = await read('src/payload.config.ts')
-  await write('src/payload.config.ts', swapStorageAdapter(swapDatabaseAdapter(payloadConfig, db), storage))
+  const withAdapters = swapStorageAdapter(swapDatabaseAdapter(payloadConfig, db), storage)
+  await write('src/payload.config.ts', o.emails ? addEmailsPlugin(withAdapters) : withAdapters)
+
+  await applyEmailsChoice(o.directory, o.emails)
 
   const pkg = JSON.parse(await read('package.json')) as Record<string, unknown>
+  const configured = swapEmailsPackages(swapStoragePackage(swapDatabasePackage(pkg, db), storage), o.emails)
   await write(
     'package.json',
-    JSON.stringify(renameProject(swapStoragePackage(swapDatabasePackage(pkg, db), storage), o.slug), null, 2) + '\n',
+    JSON.stringify(renameProject(stripWorkspaceDependencies(configured), o.slug), null, 2) + '\n',
   )
 
   const example = await read('.env.example')

@@ -9,8 +9,9 @@ import { useReducedMotionSafe } from './reduced-motion'
    that follows the pointer through the letterforms. At rest the plate is a shade darker than the
    band behind it, so the word reads as a void; the light is what reveals it.
 
-   Everything is one inline SVG. The wordmark is live text (same as the Logo component) rather than
-   outlined paths, so it stays crisp, needs no asset per brand, and picks up Geist automatically.
+   The lockup itself is one inline SVG, with a single grain tile laid over the band. The wordmark
+   is live text (same as the Logo component) rather than outlined paths, so it stays crisp, needs
+   no asset per brand, and picks up Geist automatically.
    The coordinate space has a fixed height and a width that grows with the brand word, so the lockup
    always spans the container edge to edge whatever the word is.
    ------------------------------------------------------------------------------------------------- */
@@ -57,12 +58,58 @@ function markGeometry(crop: number) {
  * width is measured with getComputedTextLength once the font is ready.
  */
 const ADVANCE: Record<string, number> = {
-  a: 0.56, b: 0.6, c: 0.53, d: 0.6, e: 0.57, f: 0.34, g: 0.6, h: 0.58, i: 0.26, j: 0.26, k: 0.55,
-  l: 0.26, m: 0.88, n: 0.58, o: 0.6, p: 0.6, q: 0.6, r: 0.38, s: 0.52, t: 0.37, u: 0.58, v: 0.52,
-  w: 0.79, x: 0.52, y: 0.52, z: 0.49,
-  A: 0.68, B: 0.66, C: 0.68, D: 0.7, E: 0.6, F: 0.58, G: 0.72, H: 0.72, I: 0.28, J: 0.52, K: 0.66,
-  L: 0.56, M: 0.88, N: 0.74, O: 0.76, P: 0.64, Q: 0.76, R: 0.66, S: 0.63, T: 0.62, U: 0.72,
-  V: 0.68, W: 0.98, X: 0.66, Y: 0.64, Z: 0.6,
+  a: 0.56,
+  b: 0.6,
+  c: 0.53,
+  d: 0.6,
+  e: 0.57,
+  f: 0.34,
+  g: 0.6,
+  h: 0.58,
+  i: 0.26,
+  j: 0.26,
+  k: 0.55,
+  l: 0.26,
+  m: 0.88,
+  n: 0.58,
+  o: 0.6,
+  p: 0.6,
+  q: 0.6,
+  r: 0.38,
+  s: 0.52,
+  t: 0.37,
+  u: 0.58,
+  v: 0.52,
+  w: 0.79,
+  x: 0.52,
+  y: 0.52,
+  z: 0.49,
+  A: 0.68,
+  B: 0.66,
+  C: 0.68,
+  D: 0.7,
+  E: 0.6,
+  F: 0.58,
+  G: 0.72,
+  H: 0.72,
+  I: 0.28,
+  J: 0.52,
+  K: 0.66,
+  L: 0.56,
+  M: 0.88,
+  N: 0.74,
+  O: 0.76,
+  P: 0.64,
+  Q: 0.76,
+  R: 0.66,
+  S: 0.63,
+  T: 0.62,
+  U: 0.72,
+  V: 0.68,
+  W: 0.98,
+  X: 0.66,
+  Y: 0.64,
+  Z: 0.6,
 }
 
 function estimateWidth(word: string): number {
@@ -94,7 +141,6 @@ export function FooterWordmark({
   const maskId = `fw-mask-${uid}`
   const glowId = `fw-glow-${uid}`
   const sheenId = `fw-sheen-${uid}`
-  const grainId = `fw-grain-${uid}`
 
   const svgRef = useRef<SVGSVGElement | null>(null)
   const textRef = useRef<SVGTextElement | null>(null)
@@ -191,7 +237,9 @@ export function FooterWordmark({
               <mask id={maskId}>
                 <rect width={W} height={H} fill="#000" />
                 <g fill="#fff">
-                  <g transform={`translate(${mark.tx.toFixed(2)} ${mark.ty.toFixed(2)}) scale(${mark.scale.toFixed(4)})`}>
+                  <g
+                    transform={`translate(${mark.tx.toFixed(2)} ${mark.ty.toFixed(2)}) scale(${mark.scale.toFixed(4)})`}
+                  >
                     <path d="M10.5 3.49976L0.713097 8.15257V20.4896L8.2737 25.1999V12.8629L18 7.99976L10.5 3.49976Z" />
                     <path d="M11 23.5V15L18 19.5L11 23.5Z" />
                   </g>
@@ -236,11 +284,6 @@ export function FooterWordmark({
                 <stop offset="0%" stopColor="#fff" stopOpacity="0.09" />
                 <stop offset="100%" stopColor="#fff" stopOpacity="0.015" />
               </linearGradient>
-
-              <filter id={grainId} x="0" y="0" width="100%" height="100%">
-                <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="2" stitchTiles="stitch" />
-                <feColorMatrix values="0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.6 0" />
-              </filter>
             </defs>
 
             <g mask={`url(#${maskId})`}>
@@ -257,16 +300,31 @@ export function FooterWordmark({
                   transition: 'opacity 700ms var(--ease-out, cubic-bezier(0.165,0.84,0.44,1))',
                 }}
               />
-              <rect
-                width={W}
-                height={H}
-                filter={`url(#${grainId})`}
-                style={{ opacity: 'var(--noise-opacity, 0.07)', mixBlendMode: 'overlay' }}
-              />
             </g>
           </svg>
         </div>
       </div>
+
+      {/*
+        Film grain, from the tile in each app's public/ folder, tiled at its own pixel size the
+        way payloadcms.com does. The file is black speckle on alpha, so on the black plate it
+        paints nothing and the only thing it touches is the light inside the letterforms — which
+        is exactly where grain belongs. Painting it over the band rather than inside the mask
+        keeps the tile at native resolution at every viewport, with no measurement.
+
+        Optional by construction, like the `crt` layer: set --wordmark-grain to `none`, or leave
+        the file out of public/, and this layer simply is not painted.
+      */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: "var(--wordmark-grain, url('/noise.png'))",
+          backgroundRepeat: 'repeat',
+          backgroundSize: 'auto',
+          opacity: 'var(--wordmark-grain-opacity, 0.6)',
+        }}
+      />
     </div>
   )
 }

@@ -1,0 +1,137 @@
+---
+title: Sending
+description: payload.emails.send and render, what the statuses mean, queued delivery, hooks, and wiring Payload's own auth emails.
+---
+
+## `payload.emails.send()`
+
+```ts
+const result = await payload.emails.send('welcome', {
+  input: { user, url },        // typed from payload-types.ts
+  locale: req.locale,          // optional
+  to: 'override@example.com',  // optional — skips the definition's `to`
+  cc: [], bcc: [], replyTo: 'support@example.com',
+  attachments: [{ filename: 'invoice.pdf', content: buffer }],
+  queue: false,
+  req,                         // pass it whenever you have one
+})
+```
+
+`payload.emails` is attached during `onInit`, and typed through module augmentation, so it is there on any `Payload` instance without an import. There are function forms too, if you prefer explicit imports:
+
+```ts
+import { renderEmail, sendEmail } from '@payload-solutions/plugin-emails'
+
+await sendEmail(payload, 'welcome', { input })
+```
+
+Always pass `req` inside hooks and route handlers. It carries the transaction — so an email is not sent against data that later rolls back — plus the locale and the user.
+
+## What comes back
+
+```ts
+{ status: 'sent' | 'skipped' | 'queued' | 'failed', reason?, error?, messageId?, logId?, jobId? }
+```
+
+`send` does not throw for things that are allowed to happen:
+
+| Status | `reason` | When |
+| --- | --- | --- |
+| `sent` | | The adapter accepted the message. |
+| `skipped` | `disabled` | The editor switched a non-required email off. |
+| `skipped` | `no-recipient` | Nothing resolved a recipient. Logged as a warning. |
+| `skipped` | your string | `shouldSend` returned `{ skip: … }`. |
+| `queued` | | Handed to Payload Jobs; delivery happens in the worker. |
+| `failed` | | The adapter threw. `error` has the message; it is logged. |
+
+It **does** throw for programmer errors, because those are bugs to fix rather than states to handle: an unknown slug (`EmailNotDefinedError`), or input that fails the structural check against `inputSchema`. That check runs in development only unless you set `validateInput: 'always'`.
+
+So the usual call site needs no `try`/`catch`, and ignoring the result is fine for fire-and-forget notifications:
+
+```ts
+void payload.emails.send('new-user-notification', { input: { user: doc.id, registeredAt: new Date().toISOString() }, req })
+```
+
+## What happens inside one send
+
+1. Look up the definition. Unknown slug → throw.
+2. Load the published document for `(key, locale)`. Missing → render the code defaults and warn.
+3. Disabled and not `required` → return `skipped`.
+4. Run `shouldSend` (definition, then plugin options).
+5. Build the variables: the global ones, then `resolve()`, then `hooks.beforeRender`.
+6. Render subject, preheader, body and footer through the template; produce HTML and plain text.
+7. Resolve recipients. None → `skipped`.
+8. Run `hooks.beforeSend` on the message, hand it to `payload.sendEmail`, write the log, run `hooks.afterSend`.
+
+## `render()` — everything but the sending
+
+```ts
+const { subject, preheader, html, text, to, variables } =
+  await payload.emails.render('welcome', { input, locale, draft: false })
+```
+
+Useful for showing an email in your own UI, attaching one to something else, or asserting on the output in tests. `draft: true` renders the editor's unpublished changes — that is what the admin preview uses.
+
+## Queued delivery
+
+Rendering costs a database read and a React render. On a hot path — a signup flow, a webhook that must answer fast — hand it to Payload Jobs instead:
+
+```ts
+emailsPlugin({ emails, queue: { enabled: true, retries: 3 } })
+```
+
+```ts
+await payload.emails.send('welcome', { input, queue: true })
+// → { status: 'queued', jobId: 42 }
+```
+
+`queue: { waitUntil: date, queue: 'emails' }` schedules or routes it. `queue.default: true` makes every send queued unless a call passes `queue: false`.
+
+The task is registered as `pluginEmailsSend` and simply calls `send()` again inside the worker, so the copy used is the copy at delivery time. Its arguments must be JSON-serializable: populated relationship documents are reduced to ids automatically (the resolver re-fetches), and attachments must be `{ path }` or a string. Something has to run your jobs — `jobs.autoRun`, a cron, or [Payload Clock](/docs/payload-clock).
+
+## Hooks
+
+```ts
+emailsPlugin({
+  emails,
+  hooks: {
+    shouldSend: [({ definition, input }) => !isTestAccount(input) || { skip: 'test-account' }],
+    beforeRender: [({ variables }) => ({ ...variables, 'support.hours': '9–17 CET' })],
+    beforeSend: [({ message }) => ({ ...message, headers: { ...message.headers, 'X-Campaign': 'lifecycle' } })],
+    afterSend: [({ definition, result }) => metrics.increment(`email.${definition.slug}.${result.status}`)],
+  },
+})
+```
+
+`beforeRender` is the place for variables every email should have but no definition should have to declare. `beforeSend` is the place for headers, a BCC archive address, or an attachment added to a whole class of mail.
+
+## Payload's own auth emails
+
+Payload sends two emails itself for `auth: true` collections — forgot-password and verification — through `generateEmailHTML` / `generateEmailSubject`. Route them through the plugin so they are editable too:
+
+```ts title="collections/Users.ts"
+auth: {
+  forgotPassword: {
+    generateEmailSubject: async ({ req, token, user }) =>
+      (await req.payload.emails.render('password-reset', {
+        input: { email: user.email, url: `${process.env.NEXT_PUBLIC_URL}/reset?token=${token}` },
+      })).subject,
+    generateEmailHTML: async ({ req, token, user }) =>
+      (await req.payload.emails.render('password-reset', {
+        input: { email: user.email, url: `${process.env.NEXT_PUBLIC_URL}/reset?token=${token}` },
+      })).html,
+  },
+}
+```
+
+Payload asks for the subject and the body separately, so `render()` is called twice; both reads are cheap and hit the same document. For Better Auth, see [Recipes](/docs/plugins/payload-emails/recipes).
+
+## Housekeeping
+
+```ts
+await payload.emails.sync()      // seed missing docs, refresh metadata, flag orphans (runs on init)
+await payload.emails.orphans()   // [{ id, key }] for documents no longer defined in code
+payload.emails.definitions       // ReadonlyMap<slug, definition>
+```
+
+`sync()` is safe to call whenever — after a migration, or from a script. It never touches copy.

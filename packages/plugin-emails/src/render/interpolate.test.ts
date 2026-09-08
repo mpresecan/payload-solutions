@@ -26,6 +26,19 @@ describe('interpolate', () => {
     expect(interpolate('{{cta}}', vars, { manifest, mode: 'text' })).toBe('Go (https://x.y)')
   })
 
+  test('survives a null or empty locale, which is what req.locale gives without localization', () => {
+    const vars = { amount: 1234.5, when: new Date('2026-09-06T10:00:00Z') }
+    for (const locale of [null, undefined, ''] as const) {
+      expect(() => interpolate('{{amount}} {{when}}', vars, { locale, manifest, mode: 'text' })).not.toThrow()
+    }
+    expect(interpolate('{{amount}}', vars, { locale: null, manifest, mode: 'text' })).toMatch(/1[,.]?234/)
+  })
+
+  test('falls back instead of throwing on a bogus locale', () => {
+    const vars = { amount: 5, when: new Date('2026-09-06T10:00:00Z') }
+    expect(() => interpolate('{{amount}} {{when}}', vars, { locale: 'not-a-locale!!', manifest, mode: 'text' })).not.toThrow()
+  })
+
   test('formats numbers and dates by locale', () => {
     const vars = { amount: 1234.5, when: new Date('2026-09-06T10:00:00Z') }
     expect(interpolate('{{amount}}', vars, { locale: 'de-DE', manifest, mode: 'text' })).toBe('1.234,5')

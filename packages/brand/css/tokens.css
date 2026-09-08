@@ -83,6 +83,13 @@
   /* ambient layers */
   --ambient-cool: rgba(10, 10, 10, 0.05);
   --ambient-sheen: rgba(255, 255, 255, 0.55);
+  /*
+    How hard the accent shaft burns in AmbientBackdrop. The one knob for how lit the
+    hero is: 1 is the full shaft, 0 an unlit black frame. Dark runs at half, because
+    on true black the shaft at full strength reads as a blue haze over the upper half
+    of the frame rather than as a light source, and haze is the opposite of premium.
+  */
+  --ambient-glow-strength: 1;
   --ambient-grid: rgba(10, 10, 10, 0.06);
   --noise-opacity: 0.04;
   --scanline-ink: rgba(10, 10, 10, 0.07);
@@ -104,6 +111,28 @@
 
   /* shape: everything is square */
   --radius: 0px;
+
+  /*
+    CRT grain: an animated tile served from each app's public/ folder and painted by the
+    `crt` utility, which screens it onto the page. Optional by construction — set
+    --crt-image to `none`, or leave the file out of public/, and the layer is not painted;
+    the static `noise` turbulence carries the surface on its own. Reduced motion sets it to
+    `none` for exactly that reason.
+  */
+  --crt-image: url('/crt.gif');
+  --crt-size: auto; /* tile at the file's own pixel size, the way payloadcms.com does */
+  /*
+    Measured, not guessed. The tile's mean luminance is ~224, so screened onto true black
+    the lift is roughly 224 x opacity. 0.02 lands the page at ~5/255: below --surface
+    (#070707), so the first elevation step survives — at 0.03 the page background reaches
+    the surface colour and that step disappears. Past ~0.05 the 128px tile stops reading as
+    grain and starts reading as vertical banding.
+
+    One value for both themes. Screen over white is white, so on the light theme this layer
+    does nothing to the page and only touches the dark elements sitting on it, which is the
+    behaviour you want anyway.
+  */
+  --crt-opacity: 0.02;
 
   /* motion */
   --ease-out: cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -146,6 +175,7 @@
 
     --ambient-cool: rgba(255, 255, 255, 0.045);
     --ambient-sheen: rgba(255, 255, 255, 0.06);
+    --ambient-glow-strength: 0.5;
     --ambient-grid: rgba(255, 255, 255, 0.055);
     --noise-opacity: 0.05;
     --scanline-ink: rgba(255, 255, 255, 0.08);
@@ -181,6 +211,7 @@
 
   --ambient-cool: rgba(255, 255, 255, 0.045);
   --ambient-sheen: rgba(255, 255, 255, 0.06);
+  --ambient-glow-strength: 0.5;
   --ambient-grid: rgba(255, 255, 255, 0.055);
   --noise-opacity: 0.05;
   --scanline-ink: rgba(255, 255, 255, 0.08);

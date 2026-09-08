@@ -22,6 +22,14 @@ export const defaultStyles: TemplateStyles = {
     fontWeight: 600,
     padding: '12px 24px',
   },
+  fine: {
+    color: '#71717a',
+    fontSize: '13px',
+    lineHeight: '1.5',
+    margin: '0 0 16px',
+    // A token URL is long and unbreakable; without this it widens the whole email.
+    overflowWrap: 'break-word',
+  },
   h1: { fontSize: '28px', fontWeight: 700, lineHeight: '1.25', margin: '0 0 16px' },
   h2: { fontSize: '22px', fontWeight: 700, lineHeight: '1.3', margin: '24px 0 12px' },
   h3: { fontSize: '18px', fontWeight: 600, lineHeight: '1.35', margin: '20px 0 8px' },
@@ -67,6 +75,7 @@ export const EMAIL_CLASS = {
   button: 'pe-button',
   card: 'pe-card',
   code: 'pe-code',
+  fine: 'pe-fine',
   footer: 'pe-footer',
   heading: 'pe-heading',
   hr: 'pe-hr',
@@ -102,6 +111,8 @@ export const darkModeCSS = `
     .${EMAIL_CLASS.hr} { border-color: #27272a !important; }
     .${EMAIL_CLASS.code} { background-color: #27272a !important; color: #e4e4e7 !important; }
     .${EMAIL_CLASS.footer} { color: #a1a1aa !important; }
+    /* Two classes deep so it outranks the rule above that repaints body copy. */
+    .${EMAIL_CLASS.card} .${EMAIL_CLASS.fine} { color: #a1a1aa !important; }
   }
 `
 

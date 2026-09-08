@@ -5,7 +5,8 @@ export const TOKEN_PATTERN = /(\\?)(?:\{\{|%7B%7B)\s*([a-zA-Z_][\w-]*(?:\.[a-zA-
 
 export type InterpolateOptions = {
   dateFormat?: Intl.DateTimeFormatOptions
-  locale?: string
+  /** May arrive as null from `req.locale`; normalized before it reaches Intl. */
+  locale?: null | string
   manifest?: VariableManifest
   /** `html` escapes by context; `text` inserts as-is. */
   mode: 'html' | 'text'
@@ -27,6 +28,15 @@ export function escapeHtml(value: string): string {
 
 const URL_PATTERN = /^(https?:\/\/|mailto:|tel:)/i
 
+/**
+ * Intl throws on anything that is not a valid locale string — and `null` in particular throws a
+ * TypeError, not a RangeError. Payload hands us `req.locale === null` when a project has no
+ * localization, so normalize before Intl ever sees it.
+ */
+function intlLocale(locale: null | string | undefined): string | undefined {
+  return typeof locale === 'string' && locale.trim() ? locale : undefined
+}
+
 export function formatValue(
   value: unknown,
   type: VariableType | undefined,
@@ -41,11 +51,22 @@ export function formatValue(
       if (Number.isNaN(date.getTime())) {
         return String(value)
       }
-      return new Intl.DateTimeFormat(locale, dateFormat ?? { dateStyle: 'long' }).format(date)
+      try {
+        return new Intl.DateTimeFormat(intlLocale(locale), dateFormat ?? { dateStyle: 'long' }).format(date)
+      } catch {
+        return date.toISOString()
+      }
     }
     case 'number': {
       const num = typeof value === 'number' ? value : Number(value)
-      return Number.isNaN(num) ? String(value) : new Intl.NumberFormat(locale).format(num)
+      if (Number.isNaN(num)) {
+        return String(value)
+      }
+      try {
+        return new Intl.NumberFormat(intlLocale(locale)).format(num)
+      } catch {
+        return String(num)
+      }
     }
     case 'url': {
       const str = String(value).trim()

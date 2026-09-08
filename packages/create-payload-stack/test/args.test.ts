@@ -19,6 +19,7 @@ describe('parse', () => {
         organizations: undefined,
         billing: undefined,
         storage: undefined,
+        emails: undefined,
         packageManager: undefined,
         install: true,
         git: true,
@@ -71,6 +72,8 @@ describe('parse', () => {
     expect(parse(['--no-organizations']).flags.organizations).toBe(false)
     expect(parse(['--no-install']).flags.install).toBe(false)
     expect(parse(['--no-git']).flags.git).toBe(false)
+    expect(parse(['--emails']).flags.emails).toBe(true)
+    expect(parse(['--no-emails']).flags.emails).toBe(false)
     expect(parse(['--defaults']).flags.defaults).toBe(true)
     expect(parse(['-y']).flags.defaults).toBe(true)
     expect(parse(['--dry-run']).flags.dryRun).toBe(true)
@@ -115,6 +118,8 @@ describe('helpText', () => {
       '--no-organizations',
       '--billing',
       '--storage',
+      '--emails',
+      '--no-emails',
       '--use-pnpm',
       '--use-npm',
       '--use-yarn',

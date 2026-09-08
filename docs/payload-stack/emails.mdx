@@ -1,32 +1,105 @@
 ---
 title: Emails
-description: React Email templates sent through Payload's email adapter.
+description: Every transactional email a SaaS owes its users — in code, or editable in the admin.
 ---
 
-Every transactional email (verification, magic link, password reset, password changed, change-email confirmation, delete-account confirmation, organization invitation, admin invitation) is a React Email template in `src/components/auth/email`, installed from Better Auth UI's registry.
+A SaaS sends more mail than most people expect: verification and sign-in links, security notices, invitations, receipts, dunning. Payload Stack ships all of it, and one question at scaffold time decides who owns the words.
 
-`src/emails/index.ts` renders a template to HTML and plain text and calls `payload.sendEmail`. That means one pipeline for all mail: Resend in production (`RESEND_API_KEY`, `EMAIL_FROM`), console logging in development.
+```bash
+npx create-payload-stack@latest ridgeline --emails      # copy lives in the admin
+npx create-payload-stack@latest ridgeline --no-emails   # copy lives in code
+```
+
+Both answers use the same call sites, so nothing in your application code depends on the choice:
 
 ```ts
 await emails.magicLink(payload, user.email, url)
 ```
 
-## Preview
+Every message still goes out through Payload's email adapter — Resend in production (`RESEND_API_KEY`, `EMAIL_FROM`), console logging in development. Swap the adapter in `payload.config.ts` (`email:`) for any other, for example `@payloadcms/email-nodemailer` pointed at Mailpit or your SMTP relay; nothing else changes.
+
+## With `--emails`: copy in the admin
+
+The [Payload Emails plugin](/docs/plugins/payload-emails) is registered and `src/emails` becomes a catalogue of definitions. Editors open **Emails** in the admin, change a subject or a paragraph, preview it in light and dark, send themselves a test, and publish — no deploy, no developer.
+
+The division is deliberate:
+
+| | Owner | Where |
+| --- | --- | --- |
+| Subject, preheader, body | editors | Payload admin → Emails |
+| Footer, sender, reply-to, admin recipients | editors | Payload admin → Email Settings |
+| Design: colours, spacing, the shell | code | `src/emails/template.tsx` |
+| Which emails exist, and what data each may use | code | `src/emails/definitions` |
+| When each one fires | code | `src/emails/hooks.ts` |
+
+### The catalogue
+
+Twenty-four definitions, filtered by the features in `stack.config.ts` — a product without organizations never sees the membership emails, and one without billing never sees the subscription ones.
+
+| Group | Emails |
+| --- | --- |
+| Auth | verify email address, sign-in link, reset password, password changed, two-factor code, admin panel invitation |
+| Account | welcome, confirm new email address, email address changed, confirm account deletion, account deleted |
+| Organizations | invitation, welcome to the organization, invitation accepted, role changed, removed from organization |
+| Billing | subscription started, plan changed, cancelled, ended, trial ending, trial expired, payment receipt, payment failed |
+
+Every button carries a copyable version of its own link: under the call-to-action, in smaller muted type, the resolved URL repeated as plain text for readers whose client stripped the link or who are looking at the plain-text part. It is the Button block's `fallback` field, on by default, with an editable sentence above it — so it is one checkbox in the admin, not seven paragraphs of copy. Payload Stack turns it off on the buttons that point at a page of your own product (the dashboard, billing, pricing), where the reader can simply navigate: `<Button label="…" url="{{url.dashboard}}" fallback="false" />`.
+
+Each definition declares what its call site passes (`inputSchema`), what editors may type into the copy (`variables`), how one becomes the other (`resolve`), and who receives it (`to`). `pnpm generate:types` turns every definition into an interface, so `payload.emails.send('welcome', { input })` is checked against its schema at the call site.
+
+Adding your own is a `defineEmail` object next to the others plus a line in `src/emails/definitions/index.ts`:
+
+```ts
+export const projectShared = defineEmail({
+  slug: 'project-shared',
+  label: 'Project shared',
+  group: 'Projects',
+  trigger: 'projects afterChange hook',
+  inputSchema: [
+    { name: 'email', type: 'email', required: true },
+    { name: 'project', type: 'relationship', relationTo: 'projects', required: true },
+  ],
+  variables: { email: {}, 'project.name': { example: 'Q4 launch' } },
+  resolve: async ({ input, payload }) => {
+    const project = await populate(payload, 'projects', input.project)
+    return { email: input.email, 'project.name': project.name }
+  },
+  to: ({ variables }) => variables.email,
+  defaults: {
+    subject: '{{project.name}} was shared with you',
+    body: 'You now have access to **{{project.name}}** on {{site.name}}.',
+  },
+})
+```
+
+### Global variables
+
+Every email can use these without declaring them. They come from `stack.config.ts` and `src/lib/paths.ts` (`src/emails/variables.ts`), so renaming the product or moving a route updates copy editors have already changed — the copy stores tokens, not values. Email Settings overrides the first three per environment.
+
+`{{site.name}}` · `{{site.url}}` · `{{site.tagline}}` · `{{support.email}}` · `{{company.name}}` · `{{company.jurisdiction}}` · `{{year}}` · `{{url.home}}` · `{{url.signIn}}` · `{{url.dashboard}}` · `{{url.account}}` · `{{url.security}}` · `{{url.billing}}` · `{{url.pricing}}` · `{{url.privacy}}` · `{{url.terms}}`
+
+### The template
+
+`src/emails/template.tsx` is a React Email component every message renders inside: the wordmark, the accent rule, the card, the footer. It defines a light palette as inline styles (what every client honours) and a dark palette in a `prefers-color-scheme` block (which Apple Mail, iOS Mail, Outlook for Mac and Thunderbird honour), and it exports the styles the body converter uses so copy typed in the admin matches copy written here. Rebranding is the `palette` object and the font stack at the top of that file.
+
+When Email Settings has no footer — how every project starts — the template renders one from the global variables: the company, the year, and links to your privacy policy, terms and support address.
+
+### When each email fires
+
+`src/emails/hooks.ts` holds the callbacks that `src/lib/auth/options.ts` and `src/collections/Users.ts` spread into Better Auth: organization membership hooks, the Stripe subscription lifecycle, trial reminders, invoice webhooks, email one-time codes as a second factor, and the account-lifecycle notices Better Auth has no callback for. Nothing there throws — a notice that cannot be sent must never undo the sign-up or the webhook that triggered it.
+
+## With `--no-emails`: copy in code
+
+Each email is a React Email component in `src/components/auth/email`, installed from Better Auth UI's registry. `src/emails/index.ts` renders one to HTML and plain text and calls `payload.sendEmail`.
 
 ```bash
 pnpm email:dev
 ```
 
-Opens the React Email preview at http://localhost:3001 with each template's `PreviewProps`.
+Opens the React Email preview at http://localhost:3001 with each template's `PreviewProps`. Templates accept `appName`, `logoURL`, `colors` and `darkMode`; defaults live in `src/emails/send.ts` (`emailDefaults`).
 
-## Branding
+This branch sends the eight messages Better Auth triggers — verification, magic link, password reset, password changed, change-email confirmation, delete-account confirmation, organization invitation, admin invitation. The membership, subscription and payment notices are part of the plugin branch.
 
-Templates accept `appName`, `logoURL`, `colors` and `darkMode`. Defaults are set in `src/emails/send.ts` (`emailDefaults`). Pass a hosted logo URL and your brand colours there.
+## Changing your mind later
 
-## Other providers
-
-Swap the adapter in `payload.config.ts` (`email:`) for any Payload email adapter, for example `@payloadcms/email-nodemailer` pointed at Mailpit in development or at your SMTP relay. Nothing else changes.
-
-## Roadmap
-
-The planned [Payload Emails plugin](/docs/plugins/payload-emails) will move the copy of these emails into the admin so editors can change wording without a deploy.
+The scaffolded project keeps the `emails-plugin` markers in `payload.config.ts`, so adding the plugin by hand later is [installing it](/docs/plugins/payload-emails/installation) and writing the registration between them. Going the other way means writing the copy back into components; the definitions are the better place to keep it.
