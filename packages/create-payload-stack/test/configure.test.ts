@@ -70,7 +70,7 @@ describe('renderStackConfig', () => {
   it.each(combos.map((c) => [`auth=${c.authMethods.join('+')} social=${c.social.join('+') || '-'} orgs=${c.organizations} billing=${c.billing}`, c] as const))(
     '%s renders a config the template accepts and that reflects the answers',
     (_label, c) => {
-      const source = renderStackConfig({ name: 'Ridgeline', ...c })
+      const source = renderStackConfig({ name: 'Ridgeline', ...c, consent: false })
       const stack = evaluateStackConfig(source)
 
       expect(stack.name).toBe('Ridgeline')
@@ -99,7 +99,7 @@ describe('renderStackConfig', () => {
   )
 
   it('reads Stripe price ids from NEXT_PUBLIC_STRIPE_PRICE_* with placeholders as fallback', () => {
-    const source = renderStackConfig({ name: 'X', authMethods: ['email-password'], social: [], organizations: true, billing: 'organization' })
+    const source = renderStackConfig({ name: 'X', authMethods: ['email-password'], social: [], organizations: true, billing: 'organization', consent: false })
     const placeholders = evaluateStackConfig(source)
     const withEnv = evaluateStackConfig(source, {
       NEXT_PUBLIC_STRIPE_PRICE_STARTER_MONTHLY: 'price_1',
@@ -113,19 +113,41 @@ describe('renderStackConfig', () => {
   })
 
   it('reads the app url from NEXT_PUBLIC_APP_URL with localhost as fallback', () => {
-    const source = renderStackConfig({ name: 'X', authMethods: ['email-password'], social: [], organizations: true, billing: 'none' })
+    const source = renderStackConfig({ name: 'X', authMethods: ['email-password'], social: [], organizations: true, billing: 'none', consent: false })
     expect(evaluateStackConfig(source).url).toBe('http://localhost:3000')
     expect(evaluateStackConfig(source, { NEXT_PUBLIC_APP_URL: 'https://ridgeline.app' }).url).toBe('https://ridgeline.app')
   })
 
   it('escapes quotes in the project name', () => {
-    const source = renderStackConfig({ name: "Ridge's \"Line\"", authMethods: ['email-password'], social: [], organizations: true, billing: 'none' })
+    const source = renderStackConfig({ name: "Ridge's \"Line\"", authMethods: ['email-password'], social: [], organizations: true, billing: 'none', consent: false })
     expect(evaluateStackConfig(source).name).toBe("Ridge's \"Line\"")
     expect(evaluateStackConfig(source).legal.company).toBe("Ridge's \"Line\" Ltd")
   })
 
+  it('--consent asks for the company details the legal pages are written from', () => {
+    const base = { name: 'Ridgeline', authMethods: ['email-password' as const], social: [], organizations: true, billing: 'none' as const }
+    const off = renderStackConfig({ ...base, consent: false })
+    const on = renderStackConfig({ ...base, consent: true })
+
+    // Both parse, and the shared keys mean the same thing.
+    for (const source of [off, on]) {
+      expect(evaluateStackConfig(source).legal.company).toBe('Ridgeline Ltd')
+      expect(evaluateStackConfig(source).legal.jurisdiction).toBe('Ireland')
+    }
+
+    // Without consent the extra keys would be noise: nothing reads them.
+    expect(off).not.toContain('legalName')
+    expect(off).not.toContain('REGISTERED ADDRESS')
+
+    // With it, the address is a placeholder loud enough for `payload-consent scan` to report.
+    const stack = evaluateStackConfig(on)
+    expect(stack.legal.legalName).toBe('Ridgeline Ltd')
+    expect(stack.legal.address).toMatch(/\[.+\]/)
+    expect(on).toContain('payload-consent scan')
+  })
+
   it('renders the same key order and comments as the template config so diffs stay readable', () => {
-    const source = renderStackConfig({ name: 'Payload Stack', authMethods: ['email-password', 'magic-link', 'passkey'], social: [], organizations: true, billing: 'organization' })
+    const source = renderStackConfig({ name: 'Payload Stack', authMethods: ['email-password', 'magic-link', 'passkey'], social: [], organizations: true, billing: 'organization', consent: false })
     const template = readFileSync(path.join(templateDir, 'src/stack.config.ts'), 'utf8')
     const keys = (s: string) => [...s.matchAll(/^  ([a-zA-Z]+):/gm)].map((m) => m[1])
     expect(keys(source)).toEqual(keys(template))

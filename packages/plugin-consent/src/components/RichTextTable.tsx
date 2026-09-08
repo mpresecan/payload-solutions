@@ -5,8 +5,13 @@ import type { CSSProperties, ReactNode } from 'react'
  * markdown transformer that seeds the legal documents).
  *
  * `headerState` is a bitmask: 1 = header row cell, 2 = header column cell.
+ *
+ * `version` is declared even though nothing here reads it: without it these converters are not
+ * assignable to the host's `JSXConverters` map, because the host's `nodesToJSX` demands
+ * `SerializedLexicalNode[]` and a node type missing a required property fails contravariantly.
+ * Hosts would have to cast, which defeats the point of exporting them.
  */
-type LexicalNode = { type: string; [key: string]: unknown }
+type LexicalNode = { type: string; version: number; [key: string]: unknown }
 type TableCellNode = LexicalNode & { backgroundColor?: null | string; colSpan?: number; headerState?: number; rowSpan?: number }
 type TableRowNode = LexicalNode & { children?: TableCellNode[] }
 type TableNode = LexicalNode & { children?: TableRowNode[] }

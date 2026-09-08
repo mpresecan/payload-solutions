@@ -11,7 +11,7 @@ import sharp from 'sharp'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { toPayloadId } from '@/lib/ids'
-import { seedLegalPages } from '@/seed/legal'
+import { seedLegal } from '@/consent/seed'
 import {
   api,
   type Actor,
@@ -256,8 +256,8 @@ describe('legal pages', () => {
   it('are seeded exactly once and stay put on later boots', async () => {
     const before = await payload.count({ collection: 'legal-pages', overrideAccess: true })
     expect(before.totalDocs).toBeGreaterThanOrEqual(3)
-    await seedLegalPages(payload)
-    await seedLegalPages(payload)
+    await seedLegal(payload)
+    await seedLegal(payload)
     const after = await payload.count({ collection: 'legal-pages', overrideAccess: true })
     expect(after.totalDocs).toBe(before.totalDocs)
   })

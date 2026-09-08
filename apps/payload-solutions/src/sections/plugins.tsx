@@ -70,7 +70,9 @@ export function Plugins({ plugins }: { plugins: Plugin[] }) {
                 </div>
               ))}
             </dl>
-            <ActionRow href="/docs/plugins" className="mt-8">
+            {/* The row's own 1.5rem inset would put this label 1.5rem past the ledger labels above
+                it, so it is zeroed: on this block the grid line is the only left edge. */}
+            <ActionRow href="/docs/plugins" className="mt-8 [--slide-pad-x:0px]">
               All plugin documentation
             </ActionRow>
           </Reveal>
@@ -83,6 +85,10 @@ export function Plugins({ plugins }: { plugins: Plugin[] }) {
           className="col-grid mt-20 hidden border-b border-border pb-3.5 lg:grid"
         >
           <span className="label-mono">Plugin</span>
+          {/* The header cells are not merged: the centre line runs through this band and
+              terminates on the rule under it, which is where the merged body cells start.
+              Ending a vertical rule on a horizontal one is the point — stopping it in open
+              space above the labels left it hanging. */}
           <span className="label-mono lg:col-span-2 lg:pl-8">What it does</span>
           <span className="label-mono lg:pl-8 lg:text-right">Status</span>
         </div>
@@ -92,7 +98,7 @@ export function Plugins({ plugins }: { plugins: Plugin[] }) {
             const pkg = plugin.packageName ? splitPackage(plugin.packageName) : null
             const row = (
               <>
-                <div className="min-w-0 lg:pr-8">
+                <div className="min-w-0 lg:py-7 lg:pr-8">
                   <h3 className="display-sm transition-colors duration-150 ease-standard group-hover:text-accent">
                     {plugin.name}
                   </h3>
@@ -103,25 +109,32 @@ export function Plugins({ plugins }: { plugins: Plugin[] }) {
                     </code>
                   ) : null}
                 </div>
-                <p className="max-w-[54ch] text-pretty text-[0.9375rem] leading-relaxed text-fg-muted lg:col-span-2 lg:mt-1 lg:max-w-none lg:pl-8 lg:pr-8">
+                {/* Read the table as four columns with the middle two merged: a merged cell has
+                    no rule inside it, so this one paints the page colour from the row's top rule
+                    to its bottom (which is why the vertical padding sits on the cells rather than
+                    on the row) and the centre line of the lattice is simply absent across the
+                    table. The 1px side margins keep the quarter and three-quarter lines — the
+                    cell's own edges — drawn. */}
+                <p className="max-w-[54ch] text-pretty text-[0.9375rem] leading-relaxed text-fg-muted lg:col-span-2 lg:mx-px lg:max-w-none lg:bg-bg lg:px-8 lg:pb-7 lg:pt-8">
                   {plugin.summary}
                 </p>
-                <div className="flex items-center gap-3 lg:mt-1 lg:justify-end lg:pl-8">
+                <div className="flex items-center gap-3 lg:items-start lg:justify-end lg:pb-7 lg:pl-8 lg:pt-8">
                   <StatusChip status={plugin.status} />
-                  {plugin.docsPath ? (
-                    <ArrowGlyph
-                      size={12}
-                      className="shrink-0 text-accent opacity-0 transition-opacity duration-150 ease-standard group-hover:opacity-100"
-                    />
-                  ) : (
-                    <span aria-hidden className="w-3 shrink-0" />
-                  )}
+                  {/* Always in flow and always last in the DOM, so the chip keeps the right
+                      edge on desktop, nothing shifts on hover, and rows without docs keep
+                      the same rhythm as rows that have them. */}
+                  <ArrowGlyph
+                    size={12}
+                    className={`shrink-0 text-accent opacity-0 transition-opacity duration-150 ease-standard lg:order-first ${
+                      plugin.docsPath ? 'group-hover:opacity-100' : ''
+                    }`}
+                  />
                 </div>
               </>
             )
 
             const rowClass =
-              'grid grid-cols-1 gap-y-3 border-b border-border py-7 transition-colors duration-150 ease-standard hover:border-accent-line lg:grid-cols-4 lg:items-start lg:gap-y-0'
+              'grid grid-cols-1 gap-y-3 border-b border-border py-7 transition-colors duration-150 ease-standard hover:border-accent-line lg:grid-cols-4 lg:gap-y-0 lg:py-0'
 
             return (
               <Reveal

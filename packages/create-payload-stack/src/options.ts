@@ -26,6 +26,8 @@ export interface ProjectOptions {
   storage: StorageKey
   /** Manage transactional email copy in the Payload admin with the Payload Emails plugin. */
   emails: boolean
+  /** Cookie banner, consent records and audited legal pages with the Payload Consent plugin. */
+  consent: boolean
   packageManager: PackageManager
   install: boolean
   git: boolean
@@ -42,6 +44,7 @@ export interface CliFlags {
   billing?: string
   storage?: string
   emails?: boolean
+  consent?: boolean
   packageManager?: PackageManager
   install: boolean
   git: boolean

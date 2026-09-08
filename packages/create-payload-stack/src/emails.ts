@@ -2,6 +2,8 @@ import { cp, rm } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 
+import { variantPath, VARIANT_DIR } from './variants'
+
 /**
  * The optional Payload Emails step.
  *
@@ -34,9 +36,10 @@ export const REACT_EMAIL_ONLY_PACKAGES: Record<string, string> = {
 /** The preview server the un-plugged branch ships. Replaced by Emails → Preview & test. */
 export const EMAIL_DEV_SCRIPT = ['email:dev', 'email dev --dir src/components/auth/email --port 3001'] as const
 
-/** Directory inside the template holding the plugin branch. Removed either way. */
-export const VARIANT_DIR = 'variants'
-const VARIANT_EMAILS = path.join(VARIANT_DIR, 'emails-plugin')
+/** Re-exported for the tests that check the template ships both branches. */
+export { VARIANT_DIR }
+/** Directory inside the template holding the plugin branch. `variants/` is removed either way. */
+const VARIANT_EMAILS = variantPath('emails-plugin')
 
 const IMPORT_MARKER = '// emails-plugin-import'
 const CONFIG_START = '// emails-plugin-config-start'
@@ -118,8 +121,8 @@ function sortKeys<T extends Record<string, unknown>>(obj: T): T {
 const REACT_EMAIL_FILES = ['src/emails/send.ts', 'src/components/auth/email']
 
 /**
- * Moves the chosen branch into place and removes the other, then deletes `variants/` so the
- * scaffolded project has one obvious set of files.
+ * Moves the chosen branch into place and removes the other. `variants/` itself is deleted by
+ * `removeVariants` once every optional step has been applied.
  */
 export async function applyEmailsChoice(directory: string, enabled: boolean) {
   const variant = path.join(directory, VARIANT_EMAILS)
@@ -136,6 +139,4 @@ export async function applyEmailsChoice(directory: string, enabled: boolean) {
       await rm(path.join(directory, name), { force: true, recursive: true })
     }
   }
-
-  await rm(path.join(directory, VARIANT_DIR), { force: true, recursive: true })
 }

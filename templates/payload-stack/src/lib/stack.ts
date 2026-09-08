@@ -135,9 +135,18 @@ const stackSchema = z.strictObject({
     .prefault({}),
 
   legal: z.strictObject({
+    /** Trading name, shown in the footer and used throughout the legal pages. */
     company: z.string().min(1),
+    /** Governing law of the terms, and the law the privacy policy is written for. */
     jurisdiction: z.string().min(1),
+    /** Registered entity name, when it differs from `company`. */
+    legalName: z.string().optional(),
+    /** Registered address. GDPR Art. 13(1)(a) wants the controller's identity and contact details. */
     address: z.string().optional(),
+    /** Privacy contact address. Falls back to `support.email`. */
+    email: z.string().optional(),
+    /** Regions the documents are written for, e.g. ['EEA', 'GB']. Defaults to `[jurisdiction]`. */
+    jurisdictions: z.array(z.string()).optional(),
   }),
 
   /** Marketing navigation. Dashboard navigation lives in components/dashboard/nav-config.tsx. */

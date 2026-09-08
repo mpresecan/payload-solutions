@@ -134,6 +134,26 @@
   */
   --crt-opacity: 0.02;
 
+  /*
+    Footer wordmark. The giant lockup is cut out of a plate the colour of the page, and the
+    letterforms are revealed only by a light of the OPPOSITE polarity: white on the dark
+    theme, ink on the light one. The plate follows --bg so a light page no longer ends on a
+    black slab — the one element in the footer that used to pin itself to dark.
+  */
+  --wordmark-ink: var(--bg);
+  --wordmark-reveal: #0a0a0a;
+  /*
+    Ink on white reads harder than white on black at the same alpha, so the light theme runs
+    the reveal layers (resting sheen + pointer light) at three quarters strength.
+  */
+  --wordmark-reveal-opacity: 0.72;
+  /*
+    The grain tile is black speckle on alpha. On the dark plate it paints nothing and only
+    touches the light inside the letterforms, which is where grain belongs; on a white plate
+    it would speckle the whole band, so the light theme switches it off.
+  */
+  --wordmark-grain-opacity: 0;
+
   /* motion */
   --ease-out: cubic-bezier(0.165, 0.84, 0.44, 1);
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
@@ -181,6 +201,10 @@
     --scanline-ink: rgba(255, 255, 255, 0.08);
     --display-light: none;
     --display-dark: block;
+
+    --wordmark-reveal: #ffffff;
+    --wordmark-reveal-opacity: 1;
+    --wordmark-grain-opacity: 0.6;
   }
 }
 
@@ -217,6 +241,10 @@
   --scanline-ink: rgba(255, 255, 255, 0.08);
   --display-light: none;
   --display-dark: block;
+
+  --wordmark-reveal: #ffffff;
+  --wordmark-reveal-opacity: 1;
+  --wordmark-grain-opacity: 0.6;
 }
 
 /* ---------------------------------------------------------------------------------------

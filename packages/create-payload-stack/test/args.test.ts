@@ -20,6 +20,7 @@ describe('parse', () => {
         billing: undefined,
         storage: undefined,
         emails: undefined,
+        consent: undefined,
         packageManager: undefined,
         install: true,
         git: true,
@@ -74,6 +75,8 @@ describe('parse', () => {
     expect(parse(['--no-git']).flags.git).toBe(false)
     expect(parse(['--emails']).flags.emails).toBe(true)
     expect(parse(['--no-emails']).flags.emails).toBe(false)
+    expect(parse(['--consent']).flags.consent).toBe(true)
+    expect(parse(['--no-consent']).flags.consent).toBe(false)
     expect(parse(['--defaults']).flags.defaults).toBe(true)
     expect(parse(['-y']).flags.defaults).toBe(true)
     expect(parse(['--dry-run']).flags.dryRun).toBe(true)
@@ -120,6 +123,8 @@ describe('helpText', () => {
       '--storage',
       '--emails',
       '--no-emails',
+      '--consent',
+      '--no-consent',
       '--use-pnpm',
       '--use-npm',
       '--use-yarn',

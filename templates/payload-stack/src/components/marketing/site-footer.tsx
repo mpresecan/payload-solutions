@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 import { Logo } from '@/components/marketing/logo'
+import { ConsentSettingsLink } from '@/consent/consent-settings-link'
 import { paths } from '@/lib/paths'
 import { getPayloadClient } from '@/lib/payload'
 import stack from '@/stack.config'
@@ -65,6 +66,8 @@ export async function SiteFooter() {
                 Contact support
               </a>
             </li>
+            {/* Renders its own <li>, or nothing at all without Payload Consent. */}
+            <ConsentSettingsLink />
           </ul>
         </div>
       </div>

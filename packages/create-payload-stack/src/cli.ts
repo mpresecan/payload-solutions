@@ -20,6 +20,7 @@ import { copyLocalTemplate, downloadTemplate } from './template'
 import { detectPackageManager, installCommand, isDirectoryEmpty, runCommand, slugify } from './utils'
 
 const DOCS = 'https://payload.solutions/docs/payload-stack'
+const CONSENT_DOCS = 'https://payload.solutions/docs/plugins/payload-consent/audit'
 
 function bail(message = 'Cancelled.'): never {
   p.cancel(message)
@@ -178,6 +179,20 @@ export async function run(flags: CliFlags, positionalName?: string) {
           }),
         ))
 
+  // 9. Cookie consent and legal pages
+  const consent =
+    flags.consent ??
+    (flags.defaults
+      ? true
+      : guard(
+          await p.confirm({
+            message: 'Cookie consent and legal pages',
+            initialValue: true,
+            active: 'Banner, consent records and audited legal pages (Payload Consent)',
+            inactive: 'Plain legal pages, no banner',
+          }),
+        ))
+
   const packageManager = flags.packageManager ?? (await detectPackageManager())
 
   const options: ProjectOptions = {
@@ -192,6 +207,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
     billing,
     storage,
     emails,
+    consent,
     packageManager,
     install: flags.install,
     git: flags.git,
@@ -203,7 +219,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
     return
   }
 
-  // 9. Template
+  // 10. Template
   const s = p.spinner()
   s.start(flags.localTemplate ? 'Copying local template' : 'Downloading template')
   try {
@@ -216,7 +232,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
     bail(error instanceof Error ? error.message : String(error))
   }
 
-  // 10. Install
+  // 11. Install
   if (options.install) {
     const s2 = p.spinner()
     s2.start(`Installing dependencies with ${packageManager}`)
@@ -232,7 +248,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
     }
   }
 
-  // 11. Git
+  // 12. Git
   if (options.git && !existsSync(path.join(directory, '.git'))) {
     try {
       await execa('git', ['init', '-b', 'main'], { cwd: directory })
@@ -253,6 +269,12 @@ export async function run(flags: CliFlags, positionalName?: string) {
     runCommand(packageManager, 'dev'),
     'open http://localhost:3000/admin',
     ...(emails ? ['# email copy is under Emails in the admin; the design is src/emails/template.tsx'] : []),
+    ...(consent
+      ? [
+          '# the seeded legal pages are templates, not policy: the homepage shows the six steps in development',
+          `# ${CONSENT_DOCS}`,
+        ]
+      : []),
   ]
   p.note(steps.join('\n'), 'Done. Next steps:')
   p.outro(`Docs: ${pc.underline(DOCS)}`)

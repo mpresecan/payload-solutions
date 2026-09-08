@@ -14,15 +14,16 @@ import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
 import { isAdmin } from '@/access'
-import { LegalPages } from '@/collections/LegalPages'
 import { Media } from '@/collections/Media'
 import { Organizations } from '@/collections/Organizations'
 import { Projects } from '@/collections/Projects'
 import { Users } from '@/collections/Users'
+import { legalCollections } from '@/consent/collections'
+import { consentPlugins } from '@/consent/plugin'
+import { seedLegal } from '@/consent/seed'
 import { ADMIN_ROLES, ROLES, betterAuthOptions } from '@/lib/auth/options'
 import { silenceKnownPayloadAuthWarnings } from '@/lib/auth/payload-auth-workarounds'
 import { env, sentryReady } from '@/lib/env'
-import { seedLegalPages } from '@/seed/legal'
 import stack from '@/stack.config'
 import { TENANT_SCOPED_COLLECTIONS, withTenantCleanup } from '@/tenancy/cleanup'
 import { withMembershipSync } from '@/tenancy/sync-memberships'
@@ -153,7 +154,11 @@ if (sentryReady) {
 // emails-plugin-config-start
 // emails-plugin-config-end
 
-// 5. Media storage (the CLI writes your choice here; keep the markers so it can be swapped again).
+// 5. Consent, cookie banner and legal pages. Empty without the Payload Consent plugin; scaffold
+// with `create-payload-stack --consent` to fill it in (src/consent/plugin.ts).
+plugins.push(...consentPlugins)
+
+// 6. Media storage (the CLI writes your choice here; keep the markers so it can be swapped again).
 // storage-adapter-config-start
 // Local disk (./media): fine for development, lost on redeploy on Vercel and other ephemeral hosts.
 // Move uploads to Vercel Blob, S3, R2, Azure, GCS or Uploadthing: https://payload.solutions/docs/payload-stack/storage
@@ -172,7 +177,7 @@ export default buildConfig({
     ...(stack.features.organizations ? [Organizations] : []),
     Projects,
     Media,
-    LegalPages,
+    ...legalCollections,
   ],
   editor: lexicalEditor(),
   secret: env.PAYLOAD_SECRET,
@@ -199,6 +204,6 @@ export default buildConfig({
   sharp,
   plugins,
   onInit: async (payload) => {
-    await seedLegalPages(payload)
+    await seedLegal(payload)
   },
 })

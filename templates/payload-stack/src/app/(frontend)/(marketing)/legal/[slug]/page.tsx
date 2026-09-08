@@ -1,7 +1,7 @@
-import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
+import { LegalPageContent } from '@/consent/legal-page'
 import { getPayloadClient } from '@/lib/payload'
 
 type Params = { params: Promise<{ slug: string }> }
@@ -45,7 +45,7 @@ export default async function LegalPage({ params }: Params) {
       <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{page.title}</h1>
       <p className="mt-2 text-sm text-muted-foreground">Effective {effective}</p>
       <div className="prose-legal mt-8">
-        <RichText data={page.content} />
+        <LegalPageContent page={page} effectiveDate={effective} />
       </div>
     </article>
   )

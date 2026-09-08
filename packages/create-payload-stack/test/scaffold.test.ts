@@ -149,6 +149,84 @@ describe('scaffolded project', () => {
     })
   })
 
+  describe('cookie consent and legal pages', () => {
+    /** Files that use the seam. They are the template's own, whichever answer was given. */
+    const CALL_SITES = [
+      'src/app/(frontend)/layout.tsx',
+      'src/app/(frontend)/(marketing)/page.tsx',
+      'src/app/(frontend)/(marketing)/legal/[slug]/page.tsx',
+      'src/components/marketing/site-footer.tsx',
+    ]
+
+    it('--consent moves the plugin branch into src/consent and drops the plain legal pages', () => {
+      const { dir } = scaffold('with-consent', ['-d', 'sqlite', '--consent', '-y'])
+
+      for (const file of ['src/consent/plugin.ts', 'src/consent/consent-root.tsx', 'src/consent/legal-page.tsx', 'src/consent/legal-setup-notice.tsx', 'src/consent/consent-banner.tsx', 'src/consent/consent-preferences-dialog.tsx', 'tests/unit/consent.spec.ts']) {
+        expect(existsSync(path.join(dir, file)), file).toBe(true)
+      }
+      // The plugin registers the same `legal-pages` slug: two would fail Payload's config sanitiser.
+      for (const file of ['src/collections/LegalPages.ts', 'src/seed/legal.ts', 'src/seed', 'tests/unit/seed-legal.spec.ts', 'variants']) {
+        expect(existsSync(path.join(dir, file)), file).toBe(false)
+      }
+
+      const plugin = readFileSync(path.join(dir, 'src/consent/plugin.ts'), 'utf8')
+      expect(plugin).toContain("import { consentPlugin } from '@payload-solutions/plugin-consent'")
+      expect(plugin).toContain("recording: { mode: 'linked' }")
+
+      // The homepage note points at the audit docs, and only at them: one link, not a reading list.
+      const notice = readFileSync(path.join(dir, 'src/consent/legal-setup-notice.tsx'), 'utf8')
+      expect(notice).toContain('https://payload.solutions/docs/plugins/payload-consent/audit')
+      expect(notice).toContain('npx payload-consent init')
+      expect(notice).toContain('npx payload-consent scan')
+      // Never shown to a real visitor.
+      expect(notice).toContain("process.env.NODE_ENV === 'production'")
+
+      // stack.config.ts asks for what the documents are written from.
+      const stackConfig = readFileSync(path.join(dir, 'src/stack.config.ts'), 'utf8')
+      expect(stackConfig).toContain('legalName:')
+      expect(stackConfig).toContain('[REGISTERED ADDRESS]')
+
+      const pkg = JSON.parse(readFileSync(path.join(dir, 'package.json'), 'utf8')) as {
+        dependencies: Record<string, string>
+        devDependencies: Record<string, string>
+      }
+      expect(pkg.dependencies['@payload-solutions/plugin-consent']).toBeDefined()
+      expect(pkg.dependencies['@payload-solutions/consent-react']).toBeDefined()
+      for (const version of Object.values({ ...pkg.dependencies, ...pkg.devDependencies })) {
+        expect(version.startsWith('workspace:')).toBe(false)
+      }
+
+      for (const file of CALL_SITES) {
+        expect(readFileSync(path.join(dir, file), 'utf8'), file).toBe(readFileSync(path.join(templateDir, file), 'utf8'))
+      }
+    })
+
+    it('--no-consent keeps the plain legal pages and never mentions the plugin', () => {
+      const { dir } = scaffold('without-consent', ['-d', 'sqlite', '--no-consent', '-y'])
+
+      for (const file of ['src/collections/LegalPages.ts', 'src/seed/legal.ts', 'src/consent/plugin.ts', 'tests/unit/seed-legal.spec.ts']) {
+        expect(existsSync(path.join(dir, file)), file).toBe(true)
+      }
+      for (const file of ['src/consent/consent-banner.tsx', 'tests/unit/consent.spec.ts', 'variants']) {
+        expect(existsSync(path.join(dir, file)), file).toBe(false)
+      }
+
+      const pkg = JSON.parse(readFileSync(path.join(dir, 'package.json'), 'utf8')) as {
+        dependencies: Record<string, string>
+        devDependencies: Record<string, string>
+      }
+      expect(pkg.dependencies['@payload-solutions/plugin-consent']).toBeUndefined()
+      expect(pkg.devDependencies['@payload-solutions/plugin-consent']).toBeUndefined()
+      expect(pkg.dependencies['@payload-solutions/consent-react']).toBeUndefined()
+
+      // Nothing on the homepage to delete, and the seam still reads the same from every call site.
+      expect(readFileSync(path.join(dir, 'src/consent/legal-setup-notice.tsx'), 'utf8')).toContain('return null')
+      for (const file of CALL_SITES) {
+        expect(readFileSync(path.join(dir, file), 'utf8'), file).toBe(readFileSync(path.join(templateDir, file), 'utf8'))
+      }
+    })
+  })
+
   it.each(DB_KEYS)('with the %s database', (dbKey) => {
     const db = DB_CHOICES[dbKey]
     const { dir } = scaffold(`db-${dbKey}`, ['-d', dbKey, '-y'])

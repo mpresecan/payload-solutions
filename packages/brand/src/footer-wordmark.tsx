@@ -5,9 +5,13 @@ import { brands, type BrandId } from './brands'
 import { useReducedMotionSafe } from './reduced-motion'
 
 /* -------------------------------------------------------------------------------------------------
-   Oversized footer lockup: the mark and the brand word cut out of a black plate, with a soft light
-   that follows the pointer through the letterforms. At rest the plate is a shade darker than the
-   band behind it, so the word reads as a void; the light is what reveals it.
+   Oversized footer lockup: the mark and the brand word cut out of a plate the colour of the page,
+   with a soft light that follows the pointer through the letterforms. The glyphs are filled with
+   the plate colour itself, so at rest the word is a void; the light is what reveals it.
+
+   The plate FOLLOWS THE THEME (--wordmark-ink is --bg) and the light inverts with it
+   (--wordmark-reveal is white on dark, ink on light). Do not pin this block to one theme: it is
+   the last thing on the page, and a black slab under a light footer reads as a broken section.
 
    The lockup itself is one inline SVG, with a single grain tile laid over the band. The wordmark
    is live text (same as the Logo component) rather than outlined paths, so it stays crisp, needs
@@ -24,6 +28,13 @@ const GIANT = 430
 const CAP = 0.72
 /** Tracking of the giant word, in em. Matches the Logo wordmark. */
 const TRACKING = -0.035
+
+/**
+ * The colour that reveals the letterforms. `var()` is not allowed in an SVG presentation
+ * attribute (`stopColor="var(...)"` silently falls back), so every reveal stop takes it as a
+ * style instead.
+ */
+const REVEAL = { stopColor: 'var(--wordmark-reveal, #fff)' } as const
 
 const KICKER_SIZE = 40
 const KICKER_BASELINE = 72
@@ -213,7 +224,6 @@ export function FooterWordmark({
 
   return (
     <div
-      data-theme="dark"
       className={`relative isolate overflow-hidden bg-bg ${className ?? ''}`}
       onPointerMove={onPointerMove}
       onPointerEnter={onPointerEnter}
@@ -272,34 +282,38 @@ export function FooterWordmark({
 
               {/* The light itself. Soft enough that no blur filter is needed. */}
               <radialGradient id={glowId}>
-                <stop offset="0%" stopColor="#fff" stopOpacity="0.42" />
-                <stop offset="32%" stopColor="#fff" stopOpacity="0.17" />
-                <stop offset="66%" stopColor="#fff" stopOpacity="0.04" />
-                <stop offset="100%" stopColor="#fff" stopOpacity="0" />
+                <stop offset="0%" style={REVEAL} stopOpacity="0.42" />
+                <stop offset="32%" style={REVEAL} stopOpacity="0.17" />
+                <stop offset="66%" style={REVEAL} stopOpacity="0.04" />
+                <stop offset="100%" style={REVEAL} stopOpacity="0" />
               </radialGradient>
 
               {/* Resting state: a quiet top-down sheen so the word is discoverable without a pointer
                   (and on touch, where there is none). */}
               <linearGradient id={sheenId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#fff" stopOpacity="0.09" />
-                <stop offset="100%" stopColor="#fff" stopOpacity="0.015" />
+                <stop offset="0%" style={REVEAL} stopOpacity="0.09" />
+                <stop offset="100%" style={REVEAL} stopOpacity="0.015" />
               </linearGradient>
             </defs>
 
             <g mask={`url(#${maskId})`}>
-              <rect width={W} height={H} fill="var(--wordmark-ink, #000)" />
-              <rect width={W} height={H} fill={`url(#${sheenId})`} />
-              <circle
-                ref={glowRef}
-                r={W * 0.36}
-                cx={W * 0.5}
-                cy={H * 0.3}
-                fill={`url(#${glowId})`}
-                style={{
-                  opacity: lit ? 1 : 0,
-                  transition: 'opacity 700ms var(--ease-out, cubic-bezier(0.165,0.84,0.44,1))',
-                }}
-              />
+              <rect width={W} height={H} style={{ fill: 'var(--wordmark-ink, #000)' }} />
+              {/* Both reveal layers share one strength knob: ink on white carries further than
+                  white on black, so the light theme runs them below full. */}
+              <g style={{ opacity: 'var(--wordmark-reveal-opacity, 1)' }}>
+                <rect width={W} height={H} fill={`url(#${sheenId})`} />
+                <circle
+                  ref={glowRef}
+                  r={W * 0.36}
+                  cx={W * 0.5}
+                  cy={H * 0.3}
+                  fill={`url(#${glowId})`}
+                  style={{
+                    opacity: lit ? 1 : 0,
+                    transition: 'opacity 700ms var(--ease-out, cubic-bezier(0.165,0.84,0.44,1))',
+                  }}
+                />
+              </g>
             </g>
           </svg>
         </div>

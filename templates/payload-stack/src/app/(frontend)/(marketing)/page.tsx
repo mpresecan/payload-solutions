@@ -2,6 +2,7 @@ import { ArrowRightIcon } from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
+import { LegalSetupNotice } from '@/consent/legal-setup-notice'
 import { getSession } from '@/lib/auth/session'
 import { paths } from '@/lib/paths'
 import stack from '@/stack.config'
@@ -15,6 +16,9 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* Development-only, and only with Payload Consent: how to get the legal pages right. */}
+      <LegalSetupNotice />
+
       <section className="mx-auto max-w-6xl px-4 pt-20 pb-16 sm:px-6 sm:pt-28">
         <div className="max-w-2xl">
           <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">{stack.tagline}</h1>

@@ -4,6 +4,7 @@ import { GeistSans } from 'geist/font/sans'
 import type { ReactNode } from 'react'
 
 import { Providers } from '@/components/providers'
+import { ConsentHead, ConsentRoot } from '@/consent/consent-root'
 import { billingReady } from '@/lib/env'
 import stack from '@/stack.config'
 import './globals.css'
@@ -42,8 +43,14 @@ export const viewport: Viewport = {
 export default function FrontendLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Google Consent Mode defaults, before any third-party tag. Nothing without Payload Consent. */}
+        <ConsentHead />
+      </head>
       <body className="min-h-dvh font-sans">
-        <Providers billingReady={billingReady}>{children}</Providers>
+        <Providers billingReady={billingReady}>
+          <ConsentRoot>{children}</ConsentRoot>
+        </Providers>
       </body>
     </html>
   )

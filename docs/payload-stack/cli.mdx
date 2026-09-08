@@ -18,6 +18,7 @@ npx create-payload-stack@latest [name] [options]
 | `--billing <mode>` | `organization`, `user`, `none` | prompt |
 | `--storage <adapter>` | `none`, `vercel-blob`, `s3`, `r2`, `azure`, `gcs`, `uploadthing` | prompt (none = local disk) |
 | `--emails` / `--no-emails` | Edit email copy in the admin with [Payload Emails](/docs/plugins/payload-emails) | prompt (on) |
+| `--consent` / `--no-consent` | Cookie banner and audited legal pages with [Payload Consent](/docs/plugins/payload-consent) | prompt (on) |
 | `--use-pnpm`, `--use-npm`, `--use-yarn`, `--use-bun` | Package manager | detected |
 | `--no-install` | Skip dependency installation | install |
 | `--no-git` | Skip `git init` | init |
@@ -36,6 +37,7 @@ npx create-payload-stack@latest ridgeline \
   --billing organization \
   --storage vercel-blob \
   --emails \
+  --consent \
   -y
 ```
 
@@ -45,6 +47,7 @@ npx create-payload-stack@latest ridgeline \
 - `src/payload.config.ts` with the chosen database adapter (between the `database-adapter` markers) and the chosen [storage adapter](/docs/payload-stack/storage) (between the `storage-adapter` markers; local disk when skipped).
 - `package.json` with the matching `@payloadcms/db-*` and `@payloadcms/storage-*` dependencies and your project name.
 - `src/emails` in one of two shapes, and the plugin registration between the `emails-plugin` markers of `payload.config.ts` — see [Emails](/docs/payload-stack/emails).
+- `src/consent` in one of two shapes: a plain `legal-pages` collection, or Payload Consent with the banner, the consent records and the audited legal pages — see [Legal pages and consent](/docs/payload-stack/legal).
 - `.env` from `.env.example`, with `DATABASE_URL`, a generated `PAYLOAD_SECRET` and `BETTER_AUTH_SECRET`, and `NEXT_PUBLIC_APP_URL`.
 
 The template itself is downloaded from the `templates/payload-stack` directory of the [payload-solutions repository](https://github.com/mpresecan/payload-solutions), exactly like `create-payload-app` downloads Payload's templates.

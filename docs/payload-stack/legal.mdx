@@ -1,0 +1,78 @@
+---
+title: Legal pages and consent
+description: A privacy policy, terms and a cookie policy that agree with what the project actually does — and a banner in front of them.
+---
+
+Every SaaS owes its users three documents and a way to say no. Payload Stack ships all of it, and one question at scaffold time decides how much machinery comes with it.
+
+```bash
+npx create-payload-stack@latest ridgeline --consent      # banner, records, audited legal pages
+npx create-payload-stack@latest ridgeline --no-consent   # three plain documents at /legal
+```
+
+Both answers use the same call sites. `payload.config.ts`, the frontend layout, the footer, `/legal/[slug]` and the homepage are the template's own files either way; the difference is entirely inside `src/consent`, which both branches export the same names from.
+
+<Callout type="warn">
+None of this is legal advice, and none of it tells you whether your business is lawful. The documents you get are templates, and the tooling reports where your documents and your configuration disagree. Have a lawyer read the result.
+</Callout>
+
+## With `--consent`: the documents are checked
+
+[Payload Consent](/docs/plugins/payload-consent) registers the `legal-pages` collection — with drafts, an effective date history and a document kind — plus cookie categories, a tracker register, consent records, a processor register and the `/api/consent/*` endpoints. Under **Privacy** in the admin an editor owns every word a visitor reads.
+
+On first boot it seeds a privacy policy, terms of service, a cookie policy and a processor register from the `legal` block of `stack.config.ts`:
+
+```ts title="src/stack.config.ts"
+legal: {
+  company: 'Ridgeline Ltd',
+  jurisdiction: 'Ireland',
+  legalName: 'Ridgeline Ltd',
+  address: '[REGISTERED ADDRESS]',
+},
+```
+
+The address arrives as a placeholder on purpose. A blank gets noticed; a plausible invention gets published.
+
+### The banner
+
+`src/consent/consent-root.tsx` reads the config through the local API — no HTTP request to your own server — and renders two things: the Google Consent Mode defaults in `<head>`, before any third-party tag, and the provider that gates scripts and shows the banner. The request cookie is passed to the provider, so the first client render matches the server one: no flash of a banner that should not be there.
+
+`src/consent/consent-banner.tsx` and its preferences dialog are copied into your project, not imported, so you can restyle them without fighting the plugin. They are a card, not a full-width bar, and accept and reject sit side by side at the same size — a cookie wall is not valid consent, and a nudged button is not a free choice.
+
+The footer carries a permanent **Manage cookies** entry, because withdrawing consent has to be as easy as giving it.
+
+### Generated tables
+
+A legal page is Lexical rich text plus three blocks an editor can drop in: the cookie table, a processor table (recipients, sub-processors or the DPA annex) and the policy version line. They render from the trackers and processors the project declares, so the published document cannot drift from the configuration the way a hand-maintained table does.
+
+### Getting the documents right
+
+The scaffolded homepage carries the six steps in development, and [Legal audit](/docs/plugins/payload-consent/audit) is the long version. Briefly:
+
+```bash
+npx payload-consent init     # MCP server entry + the legal skill, for the agent you already use
+npx payload-consent profile  # the legal facts only you know: retention, bases, whether a DPO exists
+npx payload-consent scan     # deterministic findings: placeholders, undisclosed vendors, empty tables
+npx payload-consent apply --allow-drafts
+```
+
+The scan involves no model and no network. The drafting is done by *your* coding agent over MCP — the plugin ships no model code and no API key — and everything it produces lands as a draft version. A person publishes, in the admin, and nothing else can.
+
+## With `--no-consent`: three plain documents
+
+`src/collections/LegalPages.ts` is an ordinary collection — title, slug, effective date, rich text — and `src/seed/legal.ts` writes a starter privacy policy, terms and cookie policy from `stack.legal` on first boot. `/legal/[slug]` renders them and the footer lists them.
+
+There is no banner and no consent record, which is the right answer only while the app sets no cookies beyond its own session. The moment you add analytics, a chat widget or an embedded video, you need consent before they load, and that is what the plugin is for.
+
+## Changing your mind later
+
+Both directions are a small edit, because the seam is a module:
+
+```bash
+pnpm add @payload-solutions/plugin-consent @payload-solutions/consent-react
+npx shadcn@latest add https://payload.solutions/r/consent-banner.json
+```
+
+Then rewrite the six files in `src/consent` (see the plugin's [installation guide](/docs/plugins/payload-consent/installation)), delete `src/collections/LegalPages.ts` and `src/seed/legal.ts` — the plugin registers the same `legal-pages` slug, and two collections with one slug will not boot — and run `pnpm generate:types` and `pnpm generate:importmap`.
+
+Going the other way, delete the plugin from `src/consent/plugin.ts` and put the collection back. Your documents stay in the database either way; only the fields around them change.

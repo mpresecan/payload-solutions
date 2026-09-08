@@ -15,6 +15,7 @@ This project was scaffolded with `npx create-payload-stack`. It is a SaaS on Pay
 ## Where things are
 
 - `src/stack.config.ts`: the single product config (name, auth methods, organizations, plans, legal). Validated by `src/lib/stack.ts`. Read `stack.features.*` instead of re-deriving flags.
+- `src/consent/`: the seam for legal pages and cookie consent. Both branches export the same names (`consentPlugins`, `legalCollections`, `seedLegal`, `ConsentHead`, `ConsentRoot`, `ConsentSettingsLink`, `LegalPageContent`, `LegalSetupNotice`), so `payload.config.ts`, the frontend layout, the footer, `/legal/[slug]` and the homepage never change with the answer. Change the seam, not the call sites.
 - `src/payload.config.ts`: Payload config. Plugin order matters: `betterAuthPlugin` first (it generates users/sessions/accounts/organizations/members/subscriptions), then `multiTenantPlugin` pointed at `organizations`.
 - `src/lib/auth/options.ts`: Better Auth server options derived from the config. `nextCookies()` must stay last.
 - `src/lib/auth/auth-client.ts`: Better Auth browser client. `src/components/providers.tsx`: TanStack Query + next-themes + Better Auth UI provider; plugin list derived from config.

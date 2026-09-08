@@ -1,11 +1,13 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
+import { applyConsentChoice, swapConsentPackages } from './consent'
 import { DB_CHOICES, type DbChoice } from './databases'
 import { addEmailsPlugin, applyEmailsChoice, swapEmailsPackages } from './emails'
 import type { ProjectOptions } from './options'
 import { LOCAL_STORAGE_CONFIG, STORAGE_CHOICES, STORAGE_PACKAGES, type StorageChoice, type StorageKey } from './storage'
 import { generateSecret } from './utils'
+import { removeVariants } from './variants'
 
 /**
  * Turns the downloaded template into the user's project:
@@ -13,12 +15,13 @@ import { generateSecret } from './utils'
  *   2. database adapter swapped in payload.config.ts and package.json
  *   3. media storage adapter written into payload.config.ts and package.json (or left on local disk)
  *   4. transactional emails wired to the Payload Emails plugin, or left as React Email components
- *   5. .env generated from .env.example
- *   6. package.json renamed
+ *   5. consent and legal pages wired to the Payload Consent plugin, or left as a plain collection
+ *   6. .env generated from .env.example
+ *   7. package.json renamed
  * Every function is pure over file contents so it can be unit-tested without a filesystem.
  */
 
-export function renderStackConfig(o: Pick<ProjectOptions, 'name' | 'authMethods' | 'social' | 'organizations' | 'billing'>) {
+export function renderStackConfig(o: Pick<ProjectOptions, 'name' | 'authMethods' | 'social' | 'organizations' | 'billing' | 'consent'>) {
   const list = (items: readonly string[]) => `[${items.map((i) => `'${i}'`).join(', ')}]`
   const billingBlock =
     o.billing === 'none'
@@ -52,6 +55,24 @@ export function renderStackConfig(o: Pick<ProjectOptions, 'name' | 'authMethods'
         limits: { projects: -1 },
       },
     ],
+  },`
+
+  // With Payload Consent every seeded legal document is written from this block, and
+  // `payload-consent scan` reports each value still left as a placeholder. Without it the block is
+  // only quoted in the footer and the three starter pages, so the extra keys would be noise.
+  const legalBlock = o.consent
+    ? `  legal: {
+    company: '${o.name.replace(/'/g, "\\'")} Ltd',
+    jurisdiction: 'Ireland',
+    // The seeded legal pages are written from here. Fill these in before you publish them:
+    // \`npx payload-consent scan\` lists every value still left as a placeholder.
+    // https://payload.solutions/docs/plugins/payload-consent/audit
+    legalName: '${o.name.replace(/'/g, "\\'")} Ltd',
+    address: '[REGISTERED ADDRESS]',
+  },`
+    : `  legal: {
+    company: '${o.name.replace(/'/g, "\\'")} Ltd',
+    jurisdiction: 'Ireland',
   },`
 
   return `import { defineStack } from '@/lib/stack'
@@ -96,10 +117,7 @@ ${billingBlock}
     sendPII: false,
   },
 
-  legal: {
-    company: '${o.name.replace(/'/g, "\\'")} Ltd',
-    jurisdiction: 'Ireland',
-  },
+${legalBlock}
 
   nav: [${o.billing !== 'none' ? "{ label: 'Pricing', href: '/pricing' }, " : ''}{ label: 'Docs', href: 'https://payload.solutions/docs/payload-stack' }],
 
@@ -256,9 +274,14 @@ export async function configureProject(o: ProjectOptions) {
   await write('src/payload.config.ts', o.emails ? addEmailsPlugin(withAdapters) : withAdapters)
 
   await applyEmailsChoice(o.directory, o.emails)
+  await applyConsentChoice(o.directory, o.consent)
+  await removeVariants(o.directory)
 
   const pkg = JSON.parse(await read('package.json')) as Record<string, unknown>
-  const configured = swapEmailsPackages(swapStoragePackage(swapDatabasePackage(pkg, db), storage), o.emails)
+  const configured = swapConsentPackages(
+    swapEmailsPackages(swapStoragePackage(swapDatabasePackage(pkg, db), storage), o.emails),
+    o.consent,
+  )
   await write(
     'package.json',
     JSON.stringify(renameProject(stripWorkspaceDependencies(configured), o.slug), null, 2) + '\n',

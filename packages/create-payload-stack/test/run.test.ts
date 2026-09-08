@@ -115,6 +115,7 @@ describe('--defaults', () => {
       billing: 'organization',
       storage: 'none',
       emails: true,
+      consent: true,
       packageManager: 'pnpm',
       install: true,
       git: true,
@@ -233,9 +234,10 @@ describe('prompts', () => {
       Billing: 'none',
       'Media storage': 'vercel-blob',
       'Transactional emails': true,
+      'Cookie consent and legal pages': true,
     }
     const options = await run(baseFlags())
-    expect(promptsShown).toEqual(['Project name', 'Database', 'Connection string', 'Sign-in methods', 'Organizations (teams)', 'Billing', 'Media storage', 'Transactional emails'])
+    expect(promptsShown).toEqual(['Project name', 'Database', 'Connection string', 'Sign-in methods', 'Organizations (teams)', 'Billing', 'Media storage', 'Transactional emails', 'Cookie consent and legal pages'])
     expect(options).toMatchObject({
       name: 'Prompted App',
       slug: 'prompted-app',
@@ -250,9 +252,9 @@ describe('prompts', () => {
   })
 
   it('skips the prompts whose flags were given', async () => {
-    answers = { 'Sign-in methods': ['passkey'], 'Media storage': 'none', 'Transactional emails': true }
+    answers = { 'Sign-in methods': ['passkey'], 'Media storage': 'none', 'Transactional emails': true, 'Cookie consent and legal pages': true }
     const options = await run(baseFlags({ db: 'postgres', connectionString: 'postgres://x', organizations: false, billing: 'user' }), 'flagged')
-    expect(promptsShown).toEqual(['Sign-in methods', 'Media storage', 'Transactional emails'])
+    expect(promptsShown).toEqual(['Sign-in methods', 'Media storage', 'Transactional emails', 'Cookie consent and legal pages'])
     expect(options.authMethods).toEqual(['passkey'])
     expect(options.billing).toBe('user')
   })
@@ -267,6 +269,7 @@ describe('prompts', () => {
       Billing: 'none',
       'Media storage': 'none',
       'Transactional emails': true,
+      'Cookie consent and legal pages': true,
     }
     const options = await run(baseFlags())
     expect(options.authMethods).toEqual(['email-password'])
@@ -275,7 +278,7 @@ describe('prompts', () => {
   })
 
   it('takes --emails / --no-emails without asking', async () => {
-    answers = { 'Sign-in methods': ['passkey'], 'Media storage': 'none' }
+    answers = { 'Sign-in methods': ['passkey'], 'Media storage': 'none', 'Cookie consent and legal pages': true }
     const flags = { db: 'postgres', connectionString: 'postgres://x', organizations: false, billing: 'user' }
     const on = await run(baseFlags({ ...flags, emails: true }), 'with-emails')
     expect(on.emails).toBe(true)
@@ -283,6 +286,17 @@ describe('prompts', () => {
     const off = await run(baseFlags({ ...flags, emails: false }), 'without-emails')
     expect(off.emails).toBe(false)
     expect(promptsShown).not.toContain('Transactional emails')
+  })
+
+  it('takes --consent / --no-consent without asking', async () => {
+    answers = { 'Sign-in methods': ['passkey'], 'Media storage': 'none', 'Transactional emails': true }
+    const flags = { db: 'postgres', connectionString: 'postgres://x', organizations: false, billing: 'user' }
+    const on = await run(baseFlags({ ...flags, consent: true }), 'with-consent')
+    expect(on.consent).toBe(true)
+    expect(promptsShown).not.toContain('Cookie consent and legal pages')
+    const off = await run(baseFlags({ ...flags, consent: false }), 'without-consent')
+    expect(off.consent).toBe(false)
+    expect(promptsShown).not.toContain('Cookie consent and legal pages')
   })
 
   it('does not offer per-organization billing when organizations are off', async () => {
@@ -296,6 +310,7 @@ describe('prompts', () => {
       Billing: 'none',
       'Media storage': 'none',
       'Transactional emails': true,
+      'Cookie consent and legal pages': true,
     }
     await run(baseFlags())
     const billingPrompt = (prompts.select as unknown as { mock: { calls: Array<[{ message: string; options: Array<{ value: string }> }]> } }).mock.calls.find(
