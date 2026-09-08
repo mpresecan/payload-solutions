@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Working name | `@payload-solutions/plugin-emails` (product name "Payload Emails" pending the Payload trademark answer; same rule as the consent plugin) |
-| Status | Draft v0.1 for review, 6 September 2026 |
+| Status | Implemented as `packages/plugin-emails` (v0.1.0, 8 September 2026). Scaffolded with `create-payload-app -t plugin`; 18 unit + 17 integration tests pass. This document remains the design reference — where code and spec differ, the code wins. |
 | Scope | Payload 3.x plugin: code-defined transactional emails, admin-editable copy, typed send API, preview/test, optional queue and log |
 | Reference implementation | Klick17 `k17-200-products` email framework (`includes/classes/emails/framework/*`, PHP/WordPress) |
 | Related | `docs/plugins/payload-emails.mdx` (public stub), `templates/payload-stack/src/emails/*` (pipeline this plugin replaces), `notes/plugin-consent-spec.md` (format precedent) |

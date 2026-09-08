@@ -1,0 +1,417 @@
+/* Preview & test tab.
+   Laid out like Payload's native Live Preview view: the inputs sit in a scrolling column on the
+   left, and the rendered email lives in a sticky window on the right with a static toolbar on top.
+   Everything leans on Payload's theme variables so it matches the admin in light and dark. */
+
+.emails-preview {
+  align-items: flex-start;
+  display: flex;
+  width: 100%;
+}
+
+.emails-preview__notice {
+  padding: 0 var(--gutter-h);
+}
+
+/* ------------------------------------------------------------------ left column: the inputs */
+
+.emails-preview__fields {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 0;
+  flex-shrink: 0;
+  padding: 0 0 calc(var(--base) * 2);
+  width: 40%;
+}
+
+.emails-preview--is-expanded .emails-preview__fields {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .emails-preview {
+    flex-direction: column;
+  }
+
+  .emails-preview__fields {
+    width: 100%;
+  }
+}
+
+/* Sections are divided by hairlines rather than boxed in cards, the way Payload's own document
+   fields column reads. */
+/* The horizontal gutter lives on the section, not the column, so each divider runs edge to edge. */
+.emails-preview__panel {
+  border-bottom: 1px solid var(--theme-elevation-100);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--base) * 0.75);
+  padding: calc(var(--base) * 1.75) var(--gutter-h);
+}
+
+.emails-preview__panel:last-child {
+  border-bottom: 0;
+}
+
+.emails-preview__panel-header {
+  align-items: center;
+  display: flex;
+  gap: calc(var(--base) * 0.5);
+  justify-content: space-between;
+}
+
+/* Payload's %h3 token: base(1) over base(1.2), weight 500. */
+.emails-preview__panel-title {
+  font-family: var(--font-body);
+  font-size: var(--base);
+  font-weight: 500;
+  line-height: calc(var(--base) * 1.2);
+  margin: 0;
+}
+
+.emails-preview__panel-actions .btn {
+  margin: 0;
+}
+
+.emails-preview__hint {
+  color: var(--theme-elevation-500);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin: calc(var(--base) * -0.35) 0 0;
+  max-width: 60ch;
+}
+
+.emails-preview__error {
+  color: var(--theme-error-500);
+  font-size: 0.8rem;
+  margin: calc(var(--base) * 0.25) 0 0;
+}
+
+.emails-preview__link-button {
+  font-size: 0.8rem;
+  text-decoration: underline;
+}
+
+.emails-preview__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--base) * 0.5);
+}
+
+.emails-preview__controls > * {
+  flex: 1 1 140px;
+  margin-bottom: 0;
+}
+
+.emails-preview__recipients {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--base) * 0.25);
+}
+
+/* The panels space themselves; field wrappers must not add Payload's default bottom margin. */
+.emails-preview__panel .field-type {
+  margin-bottom: 0;
+}
+
+/* ------------------------------------------------------------ right column: the preview window */
+
+/* Native live preview offsets by `--doc-controls-height` because the Save/Publish bar is pinned
+   above it. This view has no pinned bar, so the same offset just left an empty band over the
+   toolbar once the page scrolled — the window pins to the top of the viewport instead. */
+.emails-preview__window {
+  background-color: var(--theme-bg);
+  border-left: 1px solid var(--theme-elevation-100);
+  flex-grow: 1;
+  flex-shrink: 0;
+  height: 100vh;
+  overflow: hidden;
+  position: sticky;
+  top: 0;
+  width: 60%;
+}
+
+.emails-preview--is-expanded .emails-preview__window {
+  border-left: 0;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .emails-preview__window {
+    border-left: 0;
+    border-top: 1px solid var(--theme-elevation-100);
+    position: static;
+    width: 100%;
+  }
+}
+
+.emails-preview__window-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: flex-start;
+}
+
+.emails-preview__toolbar {
+  align-items: center;
+  background-color: var(--theme-bg);
+  border-bottom: 1px solid var(--theme-elevation-100);
+  display: grid;
+  flex-shrink: 0;
+  gap: calc(var(--base) * 0.25);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-height: calc(var(--base) * 1.75);
+  padding: calc(var(--base) * 0.25) calc(var(--base) * 0.5);
+}
+
+.emails-preview__toolbar-start,
+.emails-preview__toolbar-center,
+.emails-preview__toolbar-end {
+  align-items: center;
+  display: flex;
+  gap: calc(var(--base) * 0.25);
+}
+
+.emails-preview__toolbar-center {
+  justify-content: center;
+}
+
+.emails-preview__toolbar-end {
+  justify-content: flex-end;
+}
+
+.emails-preview__toolbar .btn {
+  margin: 0;
+}
+
+.emails-preview__toolbar-divider {
+  background: var(--theme-elevation-150);
+  height: calc(var(--base) * 0.7);
+  margin: 0 calc(var(--base) * 0.15);
+  width: 1px;
+}
+
+.emails-preview__size {
+  background: var(--theme-elevation-100);
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 2px;
+  color: var(--theme-elevation-600);
+  font-size: small;
+  padding: 1px 6px;
+}
+
+.emails-preview__subject {
+  border-bottom: 1px solid var(--theme-elevation-100);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 2px;
+  padding: calc(var(--base) * 0.5) var(--base);
+}
+
+.emails-preview__subject-label {
+  color: var(--theme-elevation-500);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.emails-preview__subject-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.emails-preview__preheader {
+  color: var(--theme-elevation-600);
+  font-size: 0.8rem;
+}
+
+.emails-preview__subject-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--base) * 0.3);
+}
+
+.emails-preview__main {
+  flex-grow: 1;
+  overflow: auto;
+  padding: var(--base);
+  width: 100%;
+}
+
+.emails-preview__device {
+  margin: 0 auto;
+  max-width: 100%;
+  min-height: 100%;
+}
+
+.emails-preview__frame {
+  background: #fff;
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: 4px;
+  height: 100%;
+  min-height: 640px;
+  width: 100%;
+}
+
+/* Matches the default template's dark body, so the frame does not flash white around the email. */
+.emails-preview__frame--dark {
+  background: #09090b;
+}
+
+.emails-preview__skeleton-body {
+  background: var(--theme-elevation-0);
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--base) * 0.5);
+  min-height: 640px;
+  padding: calc(var(--base) * 1.5);
+}
+
+.emails-preview__text {
+  background: var(--theme-elevation-0);
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin: 0;
+  padding: var(--base);
+  white-space: pre-wrap;
+}
+
+/* -------------------------------------------------------------------------- Sample form */
+
+.emails-sample-form {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--base) * 0.5);
+}
+
+.emails-sample-form__description {
+  color: var(--theme-elevation-500);
+  font-size: 0.75rem;
+  margin: calc(var(--base) * 0.15) 0 0;
+}
+
+.emails-sample-form__nested,
+.emails-sample-form__array {
+  border-left: 1px solid var(--theme-elevation-100);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--base) * 0.4);
+  padding: calc(var(--base) * 0.25) 0 calc(var(--base) * 0.25) var(--base);
+}
+
+.emails-sample-form__array .btn {
+  align-self: flex-start;
+  margin: 0;
+}
+
+.emails-sample-relationship {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--base) * 0.25);
+}
+
+.emails-sample-relationship__actions {
+  display: flex;
+}
+
+.emails-sample-relationship__actions .btn {
+  margin: 0;
+}
+
+/* -------------------------------------------------------------------------- Variables */
+
+.emails-variables {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base);
+}
+
+.emails-variables__group {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--base) * 0.35);
+}
+
+.emails-variables__group-title {
+  color: var(--theme-elevation-600);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.emails-variables__row {
+  border-bottom: 1px solid var(--theme-elevation-100);
+  display: grid;
+  gap: 2px calc(var(--base) * 0.5);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  padding-bottom: calc(var(--base) * 0.35);
+}
+
+.emails-variables__row:last-child {
+  border-bottom: 0;
+}
+
+.emails-variables__token {
+  align-items: center;
+  display: flex;
+  gap: calc(var(--base) * 0.25);
+  min-width: 0;
+}
+
+.emails-variables__token code {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emails-variables__value {
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emails-variables__value--empty {
+  overflow: visible;
+}
+
+.emails-variables__description {
+  color: var(--theme-elevation-500);
+  font-size: 0.7rem;
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.emails-variables__empty {
+  color: var(--theme-elevation-500);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+/* -------------------------------------------------------- Email Settings → Template tab */
+
+.emails-template-preview__controls {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--base) * 0.4);
+  margin-bottom: calc(var(--base) * 0.5);
+}
+
+.emails-template-preview__controls .field-type {
+  margin-bottom: 0;
+  min-width: 180px;
+}
+
+.emails-template-preview__controls .btn {
+  margin: 0;
+}

@@ -7,7 +7,10 @@ import { StackVisual } from '@/components/stack-visual'
 const brand = brands.stack
 
 /**
- * The hero. The headline is the only large thing on the page; everything you can do with it
+ * The hero. The headline states the transformation rather than the category — the category
+ * itself ("SaaS boilerplate") is carried by the lead, the title tag and brands.stack.tagline,
+ * so the page answers "what is this?" without spending the h1 on it.
+ * The headline is the only large thing on the page; everything you can do with it
  * is a row of the lattice under the headline rather than a cluster of buttons, which is what
  * gives payloadcms.com its document-like calm. The stack illustration keeps the right half
  * and now stands on true black — the isometric floor that used to sit behind it competed
@@ -21,11 +24,11 @@ export function Hero() {
             fill the cell, so they start on the left grid line and end on the centre one. */}
         <div className="lg:col-span-2">
           <h1 id="hero-heading" className="display-xl max-w-[15ch]">
-            The SaaS boilerplate for <ProseLink href={PAYLOAD_URL}>Payload CMS</ProseLink>.
+            Turn <ProseLink href={PAYLOAD_URL}>Payload CMS</ProseLink> into a SaaS.
           </h1>
           <p className="lead mt-7 max-w-[30rem]">
-            Better Auth, organizations, Stripe subscriptions and a shadcn dashboard, wired into
-            Payload and Next.js. Open source, one command.
+            An open-source SaaS boilerplate: Better Auth, organizations, Stripe subscriptions and a
+            shadcn dashboard, wired into Payload and Next.js. One command.
           </p>
 
           <div className="mt-11 border-t border-border">

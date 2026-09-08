@@ -122,3 +122,22 @@ export function accentForSlug(slug?: string | null): AccentId {
   if (s.includes('vercel')) return 'vercel'
   return 'solutions'
 }
+
+/**
+ * The dark-theme value of each accent, as a literal colour. Anything that renders outside a
+ * browser has no CSS variables and no `light-dark()` to resolve — the Open Graph images are
+ * drawn by Satori, on the dark field, so they read their accent from here.
+ *
+ * Mirrors the dark side of each `[data-brand]` block in css/tokens.css and must be kept in
+ * step with it. Typing it as `Record<AccentId, …>` is the guard: a new entity added to
+ * `AccentId` will not compile until it has a colour here too.
+ */
+export const ACCENT_COLORS: Record<AccentId, { accent: string; glow: string }> = {
+  solutions: { accent: '#5b9dff', glow: 'rgba(91, 157, 255, 0.16)' },
+  stack: { accent: '#b4cee7', glow: 'rgba(180, 206, 231, 0.13)' },
+  clock: { accent: '#f0b84d', glow: 'rgba(240, 184, 77, 0.14)' },
+  consent: { accent: '#3dd98a', glow: 'rgba(61, 217, 138, 0.14)' },
+  emails: { accent: '#ff7a8a', glow: 'rgba(255, 122, 138, 0.14)' },
+  scheduler: { accent: '#3aced3', glow: 'rgba(58, 206, 211, 0.14)' },
+  vercel: { accent: '#c175fc', glow: 'rgba(193, 117, 252, 0.16)' },
+}
