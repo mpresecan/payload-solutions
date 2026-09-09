@@ -71,8 +71,9 @@ export function Plugins({ plugins }: { plugins: Plugin[] }) {
               ))}
             </dl>
             {/* The row's own 1.5rem inset would put this label 1.5rem past the ledger labels above
-                it, so it is zeroed: on this block the grid line is the only left edge. */}
-            <ActionRow href="/docs/plugins" className="mt-8 [--slide-pad-x:0px]">
+                it, so it is zeroed from lg: on this block the grid line is the only left edge.
+                Below lg the row carries its own sides, so it keeps the inset. */}
+            <ActionRow href="/docs/plugins" className="mt-8 lg:[--slide-pad-x:0px]">
               All plugin documentation
             </ActionRow>
           </Reveal>
@@ -80,10 +81,7 @@ export function Plugins({ plugins }: { plugins: Plugin[] }) {
 
         {/* Column labels, desktop only: on a phone the row is a stack and has no columns to
             label. They sit on the same four columns and paddings as the rows below. */}
-        <div
-          aria-hidden
-          className="col-grid mt-20 hidden border-b border-border pb-3.5 lg:grid"
-        >
+        <div aria-hidden className="col-grid mt-20 hidden border-b border-border pb-3.5 lg:grid">
           <span className="label-mono">Plugin</span>
           {/* The header cells are not merged: the centre line runs through this band and
               terminates on the rule under it, which is where the merged body cells start.

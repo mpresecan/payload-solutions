@@ -311,6 +311,21 @@
   flex: 0 1 auto;
 }
 
+/*
+  Sides, below lg. The face is opaque (see below), so it paints over the two content-edge
+  hairlines GridColumns draws behind it — and below lg those edges are the only vertical
+  lines on the page, which left a stack of rows reading as underlined labels floating on
+  black. So the row draws its own sides on a phone. From lg the lattice has its quarter and
+  centre lines back and the button is two columns of it again, where a side of its own would
+  double the line it sits on.
+*/
+@media (max-width: 1023.98px) {
+  .slide-btn:not(.slide-btn-sm) {
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+}
+
 .slide-btn__face {
   position: relative;
   z-index: 1;

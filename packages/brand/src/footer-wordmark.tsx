@@ -242,7 +242,9 @@ export function FooterWordmark({
             aria-label={b.name}
             style={{ display: 'block', width: '100%', height: 'auto' }}
           >
-            <title>{b.name}</title>
+            {/* No <title>: on an element this large the browser's native tooltip follows the
+                pointer across the whole footer. role="img" + aria-label names it for assistive
+                technology without one. */}
             <defs>
               <mask id={maskId}>
                 <rect width={W} height={H} fill="#000" />

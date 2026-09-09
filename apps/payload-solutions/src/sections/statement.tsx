@@ -72,7 +72,10 @@ export function Statement() {
                       {pkg.name}
                     </span>
                   </span>
-                  <span className="flex shrink-0 items-center gap-2 label-mono">
+                  {/* The licence column is the table's third field on a wide row; on a phone
+                      there is only room for the package name, and the paragraph opposite has
+                      already said every product here is MIT. */}
+                  <span className="hidden shrink-0 items-center gap-2 label-mono sm:flex">
                     MIT
                     <ArrowGlyph
                       size={12}
