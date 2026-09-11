@@ -1,0 +1,154 @@
+---
+title: Configuration
+description: Every plugin option with its default — targets, tracked collections and globals, automatic deploys, ticks, access, retention, hooks, admin surfaces, slugs.
+---
+
+```ts
+vercelPlugin({
+  targets: [{ slug: 'production', label: 'Website', hook: process.env.VERCEL_DEPLOY_HOOK, url: 'https://example.com' }],
+  token: process.env.VERCEL_TOKEN,
+  teamId: process.env.VERCEL_TEAM_ID,
+  webhookSecret: process.env.VERCEL_WEBHOOK_SECRET,
+  collections: { pages: true, posts: { targets: ['production'], on: 'change' } },
+  globals: { header: true },
+  autoDeploy: { quietPeriod: '60s', maxWait: '10m' },
+  tick: { adminHeartbeat: true, beacon: true, job: { cron: '* * * * *', queue: 'vercel' }, secret: process.env.VERCEL_TICK_SECRET },
+  access: { read, deploy, rollback },
+  retention: { days: 90, keep: 200 },
+  recordExternalDeployments: true,
+  hooks: { onTriggered, onStateChange, onReady, onError, shouldTrack },
+  admin: { header: true, view: true, documentPill: true, group: 'Vercel' },
+  slugs: { deployments: 'vercel-deployments', changes: 'vercel-changes', targets: 'vercel-targets' },
+  apiBase: 'https://api.vercel.com',
+  disabled: false,
+})
+```
+
+Only `targets` is required. Everything below lists each option with its default.
+
+## `targets`
+
+One entry per site or environment.
+
+| Field | Default | Meaning |
+| --- | --- | --- |
+| `slug` | — | letters, digits, `-` and `_`; used in URLs, the ledger and `collections[].targets` |
+| `label` | the slug | shown in the admin |
+| `hook` | — | the deploy hook URL. `undefined` (an unset env var) registers the target as *not configured*: shown greyed, never triggered, never an error |
+| `url` | — | public site URL for the *Open site* link |
+| `projectId` | parsed from `hook` | Vercel project id used by the status API |
+| `token`, `teamId` | plugin-level values | per-target overrides for projects on another team |
+| `buildCache` | `true` | `false` appends `?buildCache=false` to every trigger of this target |
+
+<Callout>
+A hook that is present but is not a `…/v1/integrations/deploy/<projectId>/<hookId>` URL throws at config time. A missing hook does not — so a fresh clone with no `.env` boots, and the admin explains what is missing.
+</Callout>
+
+## `token`, `teamId`
+
+Optional. Without a token the plugin triggers and tracks changes but cannot read status, cancel or roll back. Vercel tokens are account- or team-scoped, never project-scoped; for a team project pass `teamId` too. Prefer a dedicated token from a service account — the plugin uses only the deployments and rollback endpoints.
+
+## `webhookSecret`
+
+Optional. When set, `POST /api/vercel/webhook` is registered and verifies `x-vercel-signature` (HMAC-SHA1 of the raw body). When unset the endpoint does not exist. Account webhooks need a Pro or Enterprise team.
+
+## `collections`, `globals`
+
+Which content reaches which targets.
+
+```ts
+collections: {
+  pages: true,                                        // all targets, default semantics
+  posts: { targets: ['production'] },                 // one target
+  previews: { on: 'change' },                         // count drafts too
+},
+globals: { header: true, footer: { targets: ['production'] } },
+```
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `targets` | every target | which targets a change to this collection or global reaches |
+| `on` | `'publish'` when the collection has `versions.drafts`, else `'change'` | `publish`: only saves that leave the document published, plus unpublish and delete. `change`: every save |
+
+Globals count every save. Deletes always count. Each change is one row per target per document; a document saved twenty times before the next deploy is one pending change with `saves: 20`, titled from the collection's `admin.useAsTitle`.
+
+Slugs that do not exist in the config, and `targets` that are not declared, throw at config time.
+
+## `autoDeploy`
+
+`{ quietPeriod: '60s', maxWait: '10m' }`. Durations take a number of milliseconds or a string (`'45s'`, `'2m'`, `'1h'`). `maxWait` must be at least `quietPeriod`. `false` disables automatic deployments; the button, the API and `flush` still work. Details in [Automatic deploys](/docs/plugins/vercel-integration/auto-deploy).
+
+## `tick`
+
+Who is allowed to fire due windows and refresh statuses.
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `adminHeartbeat` | `true` | the header widget's status poll runs a tick on the server |
+| `beacon` | `true` | `navigator.sendBeacon('/api/vercel/flush')` when an admin tab closes fires pending targets at once |
+| `job` | `{ cron: '* * * * *', queue: 'vercel' }` | the `vercel:tick` scheduled task; `false` registers no task |
+| `secret` | — | accepted in the `x-vercel-plugin-secret` header by `POST /api/vercel/tick`, for external crons |
+
+## `access`
+
+Three access functions, each `({ req }) => boolean | Promise<boolean>`, all defaulting to "any logged-in user of the admin collection".
+
+| Function | Gates |
+| --- | --- |
+| `read` | status, pending changes, history, the document pill, the Deployments view, the collection |
+| `deploy` | trigger, flush, pause and resume |
+| `rollback` | cancel, rollback, deleting ledger rows |
+
+## `retention`
+
+`{ days: 90, keep: 200 }` per target: finished rows older than `days`, and finished rows beyond the `keep` newest, are deleted on the hourly retention pass. In-flight rows are never deleted.
+
+## `recordExternalDeployments`
+
+`true`. Deployments seen on Vercel that Payload did not trigger — git pushes, dashboard redeploys, other hooks — become rows with cause *Git / Vercel*, so the history and the *Live* pointer are complete. They never clear pending changes.
+
+## `hooks`
+
+```ts
+hooks: {
+  onTriggered: ({ record, target, cause }) => {},
+  onStateChange: ({ record, previousState }) => {},
+  onReady: ({ record }) => {},
+  onError: ({ record }) => {},
+  shouldTrack: ({ collection, global, doc, previousDoc, operation, req }) => true,
+}
+```
+
+All hooks are awaited; their errors are logged, never thrown into the request that caused them. `shouldTrack` returning `false` skips a change; so does `req.context.vercelSkip = true` on the operation.
+
+## `admin`
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `header` | `true` | the header widget on every admin page |
+| `view` | `true` | the Deployments view at `/admin/deployments` and its nav link; `{ path: '/deploys' }` moves it; `false` removes it |
+| `documentPill` | `true` | the *Not deployed yet / Live* pill on tracked collections and globals |
+| `group` | `'Vercel'` | nav group of the `vercel-deployments` collection |
+
+## `slugs`
+
+`{ deployments: 'vercel-deployments', changes: 'vercel-changes', targets: 'vercel-targets' }`. Change them when they collide with your own collections. Changing them after the first boot is a schema change.
+
+## `apiBase`
+
+`'https://api.vercel.com'`. Only change it to point the plugin at the mock server (`pnpm dev:mock-vercel`, `http://localhost:3399`).
+
+## `disabled`
+
+`false`. When `true` the collections are still added (so migrations stay consistent) but no hooks, endpoints, task or admin components are registered.
+
+## Environment variables the dev app reads
+
+| Variable | Purpose |
+| --- | --- |
+| `VERCEL_DEPLOY_HOOK_PRODUCTION`, `VERCEL_DEPLOY_HOOK_STAGING` | deploy hook URLs |
+| `VERCEL_TOKEN`, `VERCEL_TEAM_ID` | status, cancel, rollback |
+| `VERCEL_WEBHOOK_SECRET` | webhook receiver |
+| `VERCEL_TICK_SECRET` | external cron authentication |
+| `VERCEL_API_BASE` | point the plugin at the mock server |
+| `VERCEL_QUIET_PERIOD`, `VERCEL_MAX_WAIT` | shorter windows while developing |

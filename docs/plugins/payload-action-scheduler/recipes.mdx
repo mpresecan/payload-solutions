@@ -1,0 +1,127 @@
+---
+title: Recipes
+description: Reminders from hooks, webhooks with backoff, nightly jobs in code, Payload Emails, serverless runners, and testing.
+---
+
+## Schedule from a collection hook
+
+The most common case: something happened, do something later. Pass `req` so the action is created in the same transaction as the document.
+
+```ts title="src/collections/Orders.ts"
+hooks: {
+  afterChange: [
+    async ({ doc, operation, req }) => {
+      if (operation === 'create' && !doc.paid) {
+        await req.payload.scheduler.schedule('orders.remind', { orderId: doc.id }, {
+          scheduleAt: addDays(new Date(), 3),
+          unique: true,   // a second save does not schedule a second reminder
+          req,
+        })
+      }
+      if (doc.paid) {
+        await req.payload.scheduler.cancelAll('orders.remind', { args: { orderId: doc.id } })
+      }
+      return doc
+    },
+  ],
+},
+```
+
+`unique: true` means "one pending reminder per order": the second call returns the existing one with `created: false`. Cancelling by arguments needs no id bookkeeping.
+
+## Webhooks with backoff and a permanent stop
+
+```ts
+export const deliverWebhook = defineAction({
+  slug: 'webhooks.deliver',
+  group: 'integrations',
+  inputSchema: [
+    { name: 'endpointId', type: 'text', required: true },
+    { name: 'eventId', type: 'text', required: true },
+  ],
+  retries: 5,
+  backoff: { type: 'exponential', base: '1m', max: '6h' },
+  timeout: '30s',
+  handler: async ({ args, req, signal }) => {
+    const endpoint = await req.payload.findByID({ collection: 'endpoints', id: args.endpointId, req })
+    const res = await fetch(endpoint.url, { body: await eventBody(args.eventId), method: 'POST', signal })
+    if (res.status === 410) throw new PermanentError('410 Gone: the receiver removed this endpoint')
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return { note: `HTTP ${res.status}` }
+  },
+})
+```
+
+Six attempts over roughly twelve hours, a fast stop when the receiver says it is gone, and the admin's Failed tab shows "permanent error · 410 Gone" with the stack collapsed underneath.
+
+## Nightly and hourly jobs, declared in code
+
+```ts title="payload.config.ts"
+actionScheduler({
+  actions: [cleanupCarts, rollupAnalytics, rebuildSitemap],
+  recurring: [
+    { key: 'carts.nightly', hook: 'carts.cleanup', cron: '0 3 * * *', tz: 'Europe/Warsaw' },
+    { key: 'analytics.hourly', hook: 'analytics.rollup', cron: '0 * * * *' },
+    { key: 'sitemap', hook: 'sitemap.rebuild', every: '30m' },
+  ],
+})
+```
+
+The series are reconciled at start-up: created when missing, replaced when their schedule changes, canceled when removed from the list. In the admin they show as "↻ series" with Pause instead of Cancel, and a note that the schedule is owned by code.
+
+## Recurring per document
+
+Runtime series with arguments — the thing Payload's config-time `schedule` cannot do:
+
+```ts
+await payload.scheduler.recurring('subscriptions.renew', { subscriptionId }, { every: '30d', startAt: nextBillingDate })
+await payload.scheduler.cron('reports.customer', { customerId }, { cron: '0 8 1 * *', tz: customer.timezone })
+```
+
+Both default to `unique: true`, so re-running the code that creates them is safe.
+
+## Sending emails later
+
+With [Payload Emails](/docs/plugins/payload-emails) installed, wrap `send` in an action and you get scheduled and retried delivery without storing the rendered message anywhere:
+
+```ts
+export const sendEmail = defineAction({
+  slug: 'emails.send',
+  inputSchema: [
+    { name: 'slug', type: 'text', required: true },
+    { name: 'input', type: 'json' },
+  ],
+  handler: async ({ args, req }) => {
+    const result = await req.payload.emails.send(args.slug, { input: args.input ?? {}, req })
+    if (result.status === 'failed') throw new Error(result.error)
+    if (result.status === 'skipped') throw new SkipAction(result.reason)
+  },
+})
+
+await payload.scheduler.schedule('emails.send', { slug: 'trial-ending', input: { user: user.id } }, { scheduleAt: trialEndsMinus3Days })
+```
+
+Keep `input` to ids (`user: user.id`, not the user document); the emails plugin's resolver repopulates.
+
+## Serverless
+
+`jobs.autoRun` does nothing between requests, so on Vercel or similar point a cron at Payload's run endpoint:
+
+```json title="vercel.json"
+{ "crons": [{ "path": "/api/payload-jobs/run?allQueues=true", "schedule": "* * * * *" }] }
+```
+
+Set `timeout` on long actions below the platform's function limit; if the function is killed first, the tick records the attempt as *lost* and retries it. The admin's runner health tells you within five minutes when the cron stops firing. [Payload Clock](/docs/payload-clock) does the same job as a hosted service with retries and alerts.
+
+## Testing actions
+
+Handlers are plain functions, so unit-test them directly. To test scheduling, use the Local API and Payload's own runner:
+
+```ts
+const ref = await payload.scheduler.enqueue('orders.remind', { orderId: order.id })
+await payload.jobs.run({ allQueues: true, overrideAccess: true })
+const row = await payload.findByID({ collection: 'scheduled-actions', id: ref.id })
+expect(row.status).toBe('complete')
+```
+
+`payload.scheduler.runQueue()` does the same and returns a summary (`ran`, `completed`, `failed`, `retried`, `durationMs`). The plugin's own integration suite (`dev/int.spec.ts`) is a good template: it covers retries, uniqueness under concurrency, exactly-once claims, recurring re-arming, and the size budget.

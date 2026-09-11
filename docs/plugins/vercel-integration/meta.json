@@ -1,6 +1,6 @@
 {
   "title": "Vercel Integration",
-  "description": "Deploy hooks and build status in the admin",
+  "description": "Deploy hooks, pending changes and deployment status in the admin",
   "root": true,
-  "pages": ["index"]
+  "pages": ["index", "installation", "configuration", "auto-deploy", "status", "admin", "api", "recipes"]
 }

@@ -1,0 +1,75 @@
+---
+title: TypeScript
+description: How Config['scheduledActions'] is generated, what it makes safe, and how the types behave before the first generate.
+---
+
+The plugin adds a hook to `config.typescript.schema`, so `payload generate:types` emits your actions alongside your collections, the same way Payload types job tasks:
+
+```ts title="payload-types.ts"
+export interface Config {
+  collections: { /* … */ }
+  scheduledActions: {
+    'orders.remind': ScheduledActionOrdersRemind
+    'webhooks.deliver': ScheduledActionWebhooksDeliver
+    'sitemap.rebuild': ScheduledActionSitemapRebuild
+  }
+}
+
+export interface ScheduledActionOrdersRemind {
+  input: {
+    orderId: string
+  }
+}
+
+export interface ScheduledActionWebhooksDeliver {
+  input: {
+    endpointId: string
+    eventId: string
+    succeedOn?: number | null
+  }
+}
+
+export interface ScheduledActionSitemapRebuild {
+  input: {
+    [k: string]: unknown
+  }
+}
+```
+
+`input` comes from `inputSchema` through the same `fieldsToJSONSchema` Payload uses for job tasks: a relationship becomes `number | User` (or `string | User`, matching your id type), a select becomes a literal union, an optional field becomes nullable. An action without an `inputSchema` accepts any JSON object.
+
+## What that buys you
+
+```ts
+await payload.scheduler.schedule('orders.remnd', { orderId })
+//                                ~~~~~~~~~~~~~~ unknown hook
+
+await payload.scheduler.schedule('orders.remind', {})
+//                                                ~~ property 'orderId' is missing
+
+await payload.scheduler.cancel('webhooks.deliver', { args: { endpointId: 'wh_1', eventId: 'evt_9' } })
+// args are the same type here, so a match can never be misspelled
+```
+
+Inside a handler, `args` is already typed: `defineAction({ slug: 'orders.remind', handler: ({ args }) => args.orderId })` resolves the slug against the generated types when they exist.
+
+## Before the first generate
+
+Until `payload-types.ts` contains `scheduledActions`, every hook is a `string` and every `args` is `Record<string, unknown>`. The plugin still validates at runtime — an unregistered hook throws `ActionNotDefined`, oversized arguments throw `ActionArgsTooLarge` — so nothing is silently accepted; you only lose the red squiggles until you run `generate:types`.
+
+## Arguments without a schema
+
+For a quick internal action you can skip `inputSchema` and pass a type parameter instead:
+
+```ts
+export const reindex = defineAction<{ collection: string }>({
+  slug: 'search.reindex',
+  handler: async ({ args }) => index(args.collection),
+})
+```
+
+The type parameter wins at call sites; the trade-off is that the admin's Create New form has no fields to render for that action, so arguments are entered as JSON.
+
+## Exported types
+
+`ActionDefinition`, `ActionHandler`, `ActionHandlerArgs`, `ActionSlug`, `ActionArgs<S>`, `ScheduledAction` (the ledger row), `ScheduledActionLog`, `ScheduleOptions`, `RecurringOptions`, `CronOptions`, `Match`, `RunSummary`, `SchedulerAPI` and `ActionSchedulerOptions` are all exported from the package root. `payload.scheduler` is added to `BasePayload` through module augmentation, so it exists on every `Payload` value once the plugin is imported anywhere in the project.

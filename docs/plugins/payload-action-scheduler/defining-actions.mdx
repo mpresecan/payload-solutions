@@ -1,0 +1,60 @@
+---
+title: Defining actions
+description: The defineAction model — handler, arguments, retries, timeouts, uniqueness and outcomes.
+---
+
+An action is a named handler plus the shape of its arguments. It lives in code; the ledger only stores which action to run and with what.
+
+```ts
+import { defineAction, PermanentError, SkipAction } from '@payload-solutions/plugin-action-scheduler'
+
+export const deliverWebhook = defineAction({
+  slug: 'webhooks.deliver',          // lowercase, dots/dashes/underscores
+  label: 'Deliver an outgoing webhook',
+  description: 'POSTs one event to one endpoint.',
+  group: 'integrations',             // default group; callers may override
+  inputSchema: [                     // Payload fields: typing + the admin form
+    { name: 'endpointId', type: 'text', required: true },
+    { name: 'eventId', type: 'text', required: true },
+  ],
+  retries: 3,                        // attempts after the first; 0 = fail on the first error
+  backoff: { type: 'exponential', base: '30s', max: '1h' },
+  timeout: '2m',
+  unique: false,                     // recurring and cron actions default to true
+  priority: 10,                      // 0–255, lower runs first
+  queue: 'default',                  // Payload job queue for the transport job
+  retain: true,                      // false: delete the row as soon as it completes
+  stopAfterFailures: null,           // recurring: stop after N failed runs in a row
+  handler: async ({ args, action, req, payload, log, signal }) => {
+    const res = await fetch(url, { signal, body: JSON.stringify(event) })
+    if (res.status === 410) throw new PermanentError('410 Gone')
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    log(`delivered in ${action.attempt} attempt(s)`)
+    return { note: `HTTP ${res.status}` }
+  },
+})
+```
+
+## Handler context
+
+| Key | What it is |
+| --- | --- |
+| `args` | The stored arguments, typed from `inputSchema`. |
+| `action` | `id`, `hook`, `group`, `attempt`, `maxAttempts`, `scheduleAt`, `runCount`, `recurring`. |
+| `req` / `payload` | The job's request (no user) and the Payload instance. |
+| `log(message, level?)` | Buffered log lines, ≤ 500 characters each, at most 20 per attempt. |
+| `signal` | Aborted on timeout — pass it to `fetch` and long loops. |
+
+## Outcomes
+
+- Return nothing or `{ note }` (≤ 256 characters) — completed.
+- Throw — the attempt failed; retried with backoff until `retries` is exhausted, then **failed**.
+- Throw `PermanentError` — failed immediately, no retries.
+- Throw `SkipAction(reason)` — completed with the reason as the note, nothing else happened.
+- Exceed `timeout` — recorded as a timeout, retried like an error. JavaScript cannot stop the handler, so keep timeouts under your platform's function limit; a late result is discarded.
+
+Handler output is never stored. If a result matters, write it to a real collection.
+
+## Arguments
+
+Arguments must be plain JSON under `maxArgsBytes` (8 KB). Pass ids, not documents — an object that looks like a document (id plus timestamps) is rejected with a hint. Two calls with the same arguments in a different key order are the same action for `unique`, `has`, `next` and `cancel`.

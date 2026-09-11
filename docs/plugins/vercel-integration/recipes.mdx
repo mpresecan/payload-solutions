@@ -1,0 +1,69 @@
+---
+title: Recipes
+description: A static marketing site next to Payload Stack, nightly rebuilds, notifying on failure, a preview target, skipping bulk imports, the mock server.
+---
+
+## A static marketing site next to a Payload app
+
+Payload runs in one Vercel project, the marketing site (Astro, static Next) in another. Create a deploy hook on the marketing project and track the collections that feed it:
+
+```ts
+vercelPlugin({
+  targets: [{ slug: 'marketing', label: 'Marketing site', hook: process.env.VERCEL_DEPLOY_HOOK_MARKETING, url: 'https://example.com' }],
+  token: process.env.VERCEL_TOKEN,
+  collections: { pages: true, posts: true, testimonials: true },
+  globals: { header: true, footer: true },
+})
+```
+
+Editors publish in Payload; a minute later the site rebuilds. The app itself keeps using ISR for its own pages.
+
+## Nightly rebuild for date-dependent content
+
+With the Action Scheduler plugin, or any cron that hits `/api/vercel/tick`:
+
+```ts
+payload.scheduler.cron('site.rebuild', {}, { cron: '0 4 * * *', tz: 'Europe/Warsaw' })
+// handler:
+defineAction({ slug: 'site.rebuild', handler: async ({ req }) => { await req.payload.vercel.deploy({ reason: 'Nightly rebuild', req }) } })
+```
+
+## Notify on failure
+
+```ts
+hooks: {
+  onError: async ({ record }) => {
+    await payload.emails.send('deploy-failed', { input: { target: record.target, message: record.errorMessage ?? 'unknown', url: record.inspectorUrl } })
+  },
+}
+```
+
+## A preview target that renders drafts
+
+A second hook on a preview branch, tracked with `on: 'change'` so every save — drafts included — rebuilds the preview:
+
+```ts
+targets: [
+  { slug: 'production', hook: process.env.VERCEL_DEPLOY_HOOK_PRODUCTION },
+  { slug: 'preview', hook: process.env.VERCEL_DEPLOY_HOOK_PREVIEW },
+],
+collections: { pages: { targets: ['production'] }, 'pages-preview': { on: 'change', targets: ['preview'] } },
+```
+
+## Bulk imports without a hundred pending rows
+
+```ts
+await payload.create({ collection: 'products', data, context: { vercelSkip: true } })
+// …then one deployment for the lot:
+await payload.vercel.deploy({ target: 'production', reason: 'Product import' })
+```
+
+## Developing without a Vercel account
+
+The package ships a mock of the Vercel surface the plugin uses:
+
+```sh
+pnpm dev:mock-vercel   # :3399 — hooks, /v7/deployments, /v13/deployments/:id, cancel, rollback
+```
+
+Point the hook URLs and `VERCEL_API_BASE` at it (see `dev/.env.example`). Builds go QUEUED → BUILDING → READY on timers; a hook id containing `fail` fails the build; `curl -X POST :3399/__mock/external` simulates a git push.

@@ -1,6 +1,16 @@
 {
   "title": "Payload Action Scheduler",
-  "description": "Named, recurring actions on Payload job queues",
+  "description": "Scheduled and recurring actions with a bounded history and a real admin view",
   "root": true,
-  "pages": ["index"]
+  "pages": [
+    "index",
+    "installation",
+    "defining-actions",
+    "scheduling",
+    "admin",
+    "runners",
+    "typescript",
+    "configuration",
+    "recipes"
+  ]
 }

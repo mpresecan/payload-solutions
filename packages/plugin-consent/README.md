@@ -120,7 +120,7 @@ This package follows the [Payload plugin template](https://github.com/payloadcms
 
 ```bash
 cp dev/.env.example dev/.env       # SQLite file, no external services
-pnpm dev                           # http://localhost:3000 (frontend demo) and /admin (dev@payloadcms.com / test)
+pnpm dev                           # http://localhost:3320 (frontend demo) and /admin (dev@payloadcms.com / test)
 pnpm test:int                      # vitest against a real Payload instance (throwaway SQLite)
 PAYLOAD_CONFIG_PATH=$PWD/dev/payload.config.ts node bin.js scan   # the CLI against the dev app
 pnpm test:e2e                      # Playwright: admin login, banner flow, cookie table (run `pnpm exec playwright install chromium` once)

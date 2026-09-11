@@ -1,0 +1,45 @@
+---
+title: Automatic deploys
+description: The quiet period, who fires it on serverless hosts, the beacon, the scheduled task, pausing, and the 60-per-hour limit.
+---
+
+Every recorded change opens or extends a **debounce window** for its targets: `dueAt = min(now + quietPeriod, pendingSince + maxWait)`. Defaults are a 60 second quiet period and a 10 minute maximum wait. When the window is due, the target is deployed once, and the pending changes are folded into that deployment's row.
+
+## Ticks: who fires the window
+
+A serverless Payload cannot hold a timer, so the plugin does not depend on a runner. The window is fired by whichever **tick** comes first:
+
+| Tick | How | When it matters |
+| --- | --- | --- |
+| Admin heartbeat | the header widget's status poll runs a tick on the server | the editor who made the change is in the admin and watches the countdown |
+| Beacon | `navigator.sendBeacon('/api/vercel/flush')` on tab close fires pending targets immediately | the editor closes the tab 20 seconds after saving |
+| `vercel:tick` task | a scheduled task (`* * * * *`, queue `vercel`) run by `jobs.autoRun`, `payload jobs:run`, a Pro cron on `/api/payload-jobs/run?queue=vercel`, or Payload Clock | headless writes with no admin open |
+| `POST /api/vercel/tick` | any cron with the `x-vercel-plugin-secret` header (or an admin session) | external schedulers, uptime monitors |
+
+Every tick also refreshes in-flight deployments, records external ones and applies retention. Ticks are safe to run concurrently: the trigger for a window is inserted under a unique key, so two ticks that observe the same window produce one deployment.
+
+<Callout type="warn">
+Vercel cron runs **once a day on Hobby** (per minute on Pro and Enterprise), so `vercel.json` crons are not a runner for a one-minute window on Hobby. That is why the admin heartbeat and the beacon exist: on Hobby they are the runner, and they cover the common case — the person who made the change is in the admin.
+</Callout>
+
+If changes are waiting and no tick has arrived for 15 minutes, the header pill turns amber (*waiting for a runner*) and the Deployments view shows how to add one. Without any runner and without an admin open, an automatic deployment simply waits for the next admin visit — nothing is lost, the pending rows are still there.
+
+## Pausing
+
+**Pause auto-deploy** on a target (Deployments view, or `payload.vercel.pause('production', true)`) keeps recording changes but never opens a window — for bulk editing sessions. Resuming opens a window at once if anything is pending.
+
+## Vercel's own coalescing
+
+Vercel cancels the previous in-flight build from the same deploy hook when a new call arrives. The plugin marks that older row *superseded* rather than failed and does not re-instate its changes, because the newer build carries them.
+
+<Callout>
+This is also why the quiet period matters even though Vercel coalesces on its own: every hook call still counts against the 60-per-hour limit and appears in the history. One call per editing session keeps both clean.
+</Callout>
+
+## The hourly limit
+
+Vercel allows 60 deploy-hook calls per hour per project. The plugin counts its own calls per target; at 60 automatic deployments wait for the hour to roll over (manual ones still go through and Vercel's answer is recorded). The count is shown in the Deployments view.
+
+## Turning it off
+
+`autoDeploy: false` disables windows entirely — deployments happen only from the button, the API and `flush`.

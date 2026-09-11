@@ -1,0 +1,48 @@
+---
+title: Status, cancel and rollback
+description: How a hook call is matched to its Vercel deployment, polling and the webhook receiver, the state machine, re-instatement, cancel and instant rollback.
+---
+
+## Matching a hook call to a deployment
+
+<Callout>
+A deploy hook answers with `{ job: { id } }`. That id is **not** a deployment id and Vercel documents no way to follow it — a long-standing gap ([vercel/vercel#3875](https://github.com/vercel/vercel/discussions/3875)).
+</Callout>
+
+The plugin does what Vercel's maintainers recommend: starting a few seconds after the call, it lists the project's deployments since the call (`GET /v7/deployments?projectId&since`), keeps those with `source: 'git-deploy-hook'` created no earlier than 30 seconds before the call, skips ids already claimed by other rows, and takes the earliest. After 10 minutes without a candidate the row becomes *Unknown*.
+
+## Polling
+
+In-flight rows are refreshed on ticks, at most every 10 seconds per row (`GET /v13/deployments/{id}`). The admin widget polls every 10 seconds while something is pending or building, every 60 seconds otherwise, and not at all while the tab is hidden. A 401/403 from Vercel is shown as *Vercel token rejected* and retried once a minute.
+
+## Webhooks (Pro and Enterprise)
+
+Create an account webhook on Vercel (**Settings → Webhooks**) for the deployment events, pointing at `https://your-payload.example.com/api/vercel/webhook`, and put the secret it shows once into `VERCEL_WEBHOOK_SECRET`.
+
+<Callout type="warn">
+The secret is shown once, at creation. Lose it and you create a new webhook. The endpoint is only registered while `webhookSecret` is set, so an unset variable cannot leave an unsigned receiver open.
+</Callout>
+
+The endpoint verifies `x-vercel-signature` (HMAC-SHA1 of the raw body), ignores duplicate event ids and unknown projects, attaches `deployment.created` to the matching trigger, and moves rows on `succeeded`/`ready`, `error`, `canceled` and `promoted`. Polling stays on as the fallback.
+
+## States
+
+`triggered → queued → building → ready | error | canceled | unknown`. Terminal states never regress. A canceled row whose target has a newer, non-canceled deployment is **superseded** (Vercel canceled it because a newer hook call arrived); its changes stay with the newer build.
+
+## Re-instatement
+
+- A **failed** or **canceled** (not superseded) build did not ship its changes: they go back into the pending set and the pill reads *Failed · 3 not deployed*.
+- A **rollback** un-ships everything newer than the restored deployment: the changes of every ready row created after it go back to pending.
+- Each row keeps at most 100 change items; beyond that only the count survives, so a very large session that fails re-instates the first 100 and shows the count. Pressing Deploy again is the remedy.
+
+## Cancel
+
+Cancel an in-flight deployment from the Deployments view, the history row menu, or `payload.vercel.cancel(deploymentId)` (`PATCH /v12/deployments/{id}/cancel` on Vercel). Requires `access.rollback`.
+
+## Instant rollback
+
+**Roll back…** lists previous `READY` production deployments that Vercel reports as rollback candidates (last 10). Confirming calls `POST /v1/projects/{id}/rollback/{deploymentId}` — no build, production traffic moves immediately — records a *Rollback* row, moves the *Live* pointer, and re-instates newer changes. Rolling forward is a normal Deploy.
+
+## External deployments
+
+Git pushes and dashboard redeploys also change the site. With `recordExternalDeployments: true` (the default) they appear in the history as *Git / Vercel* rows, and a ready production one becomes the *Live* deployment. They never clear pending changes, because the plugin cannot know whether that build included them.

@@ -20,13 +20,13 @@ export default defineConfig({
     },
   ],
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:3320',
     trace: 'on-first-retry',
   },
   webServer: {
     command: 'pnpm dev',
     reuseExistingServer: true,
-    url: 'http://localhost:3000/admin',
+    url: 'http://localhost:3320/admin',
     timeout: 240_000,
   },
 })

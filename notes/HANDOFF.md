@@ -80,3 +80,7 @@ Conventions to keep: relative imports carry `.js` extensions (NodeNext) in all t
 **Docs** are now a ten-page section at `docs/plugins/payload-consent/` (the old single `payload-consent.mdx` was moved to `_to_delete/payload-consent-single-page.mdx`; a page and a folder cannot share a slug). New page: `processors.mdx`.
 
 **Still open:** sub-processor change *emails* (log + endpoint exist, sending does not); an Art. 30 RoPA export; `pnpm install` on the Mac.
+
+## Payload Action Scheduler plugin (added 11 September 2026)
+
+`packages/plugin-action-scheduler` (`@payload-solutions/plugin-action-scheduler`, 0.1.0, unreleased) follows the `create-payload-app -t plugin` layout: `src/` is the plugin, `dev/` a Next + Payload app on SQLite (`pnpm dev` → :3310, dev@payloadcms.com / test). Spec: `notes/plugin-action-scheduler-spec.md`; docs: `docs/plugins/payload-action-scheduler/`. Architecture: a `scheduled-actions` ledger is the source of truth, each due action runs as a Payload job `scheduler:run` carrying only `{ actionId }`, claims and outcomes are atomic compare-and-set statements (`src/db/cas.ts`), a `scheduler:tick` task promotes/sweeps/purges. The admin view is Payload's list view plus `beforeListTable` (queue strip, PillSelector tabs, log Drawer), custom cells, a ui-field row menu (Popup) and `listMenuItems` bulk actions. Not yet done on the Mac: `pnpm install` (the package's node_modules are hand-made symlinks), `pnpm test:int`, `pnpm test:e2e`, a look at the dev app; 64 unit tests pass (`pnpm test:unit`). Catalogue/roadmap seeds still say planned.

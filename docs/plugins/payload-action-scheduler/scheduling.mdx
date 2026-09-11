@@ -1,0 +1,48 @@
+---
+title: Scheduling
+description: The payload.scheduler API and its Action Scheduler equivalents.
+---
+
+```ts
+const ref = await payload.scheduler.schedule('orders.remind', { orderId }, {
+  scheduleAt: new Date(Date.now() + 3600_000), // default now
+  group: 'orders',
+  unique: true,       // return the existing pending action instead of a second one
+  priority: 5,
+  queue: 'critical',
+  req,                // join the caller's transaction
+})
+ref // { id, scheduleAt, created }
+```
+
+| Call | Action Scheduler |
+| --- | --- |
+| `schedule(hook, args, { scheduleAt })` | `as_schedule_single_action` |
+| `enqueue(hook, args)` | `as_enqueue_async_action` |
+| `recurring(hook, args, { every: '15m', startAt? })` | `as_schedule_recurring_action` |
+| `cron(hook, args, { cron: '0 9 * * 1', tz?, startAt? })` | `as_schedule_cron_action` |
+| `cancel(hook, { args?, group? })` — next pending occurrence | `as_unschedule_action` |
+| `cancelAll(hook, match?)` | `as_unschedule_all_actions` |
+| `next(hook, match?)` → `Date \| 'running' \| null` | `as_next_scheduled_action` |
+| `has(hook, match?)` | `as_has_scheduled_action` |
+| `find({ hook, status, group, where, page, limit })` | `as_get_scheduled_actions` |
+| `cancelByID`, `reschedule`, `runNow`, `retry`, `stopAfterCurrent`, `runQueue` | — |
+
+`unique` is enforced by a unique index, so twenty concurrent calls create one row; the losers get the winner's reference with `created: false`.
+
+## Recurring actions
+
+One row represents the whole series. After each run the row moves to the next occurrence; `runCount` and the log carry the history. Missed occurrences are skipped, never replayed. Cron expressions are evaluated in `tz` (default `defaultTimezone`, UTC) and survive DST changes.
+
+Series that belong in code go in the plugin options and are reconciled at start-up — created if missing, replaced if the schedule changed, canceled if removed:
+
+```ts
+actionScheduler({
+  actions,
+  recurring: [{ key: 'carts.nightly', hook: 'carts.cleanup', cron: '0 3 * * *', tz: 'Europe/Warsaw' }],
+})
+```
+
+## Function style
+
+`scheduleAction(payload, hook, args, opts)`, `enqueueAction`, `scheduleRecurringAction`, `scheduleCronAction`, `unscheduleAction`, `unscheduleAllActions`, `nextScheduledAction` and `hasScheduledAction` are exported for code that only has a `Payload` value.

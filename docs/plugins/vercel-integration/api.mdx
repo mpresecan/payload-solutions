@@ -1,0 +1,71 @@
+---
+title: API
+description: The payload.vercel local API, the REST endpoints under /api/vercel, and the plugin hooks.
+---
+
+## Local API
+
+`payload.vercel` is attached in `onInit`; import `getVercelAPI(payload)` for a throwing accessor.
+
+```ts
+await payload.vercel.deploy({ target: 'production', reason: 'Nightly rebuild' })   // cause: 'api'
+await payload.vercel.deployAll({ reason: 'Redeploy everything' })
+await payload.vercel.flush()                            // fire every pending window now
+await payload.vercel.status('production')              // pending count, dueAt, current, inFlight, triggersLastHour…
+await payload.vercel.pending('production', { limit: 50 })
+await payload.vercel.history('production', { limit: 20 })
+await payload.vercel.markChanged({ collection: 'products', id, title: 'Sitemap', operation: 'update' })
+await payload.vercel.pause('production', true)
+await payload.vercel.cancel('dpl_…')
+await payload.vercel.rollbackCandidates('production')
+await payload.vercel.rollback({ target: 'production', toDeploymentId: 'dpl_…' })
+await payload.vercel.refresh('production')             // read states from Vercel now
+await payload.vercel.tick('local')                     // run one tick
+payload.vercel.options                                 // the sanitized options
+```
+
+`deploy` with a single configured target needs no `target`.
+
+<Callout>
+When calling from inside a Payload hook, pass `req` (`payload.vercel.deploy({ target, req })`) so the plugin's writes join the request's transaction and the triggering user is recorded.
+</Callout>
+
+## Endpoints
+
+All under `/api/vercel/`, JSON, authenticated with the admin session (or `Authorization: JWT …`) and then the named access function.
+
+| Method | Path | Access | Purpose |
+| --- | --- | --- | --- |
+| GET | `/status[?target=]` | read | per-target status; runs a heartbeat tick unless `?tick=0` |
+| GET | `/changes?target=&limit=` | read | pending rows |
+| GET | `/history?target=&limit=` | read | ledger rows, `triggeredBy` populated |
+| GET | `/document?collection=&id=` or `?global=` | read | `live`, `pending`, `deploying`, `failed` per target |
+| GET | `/targets` | read | public target facts (no hook, no token) |
+| POST | `/deploy` `{ target?, reason?, buildCache? }` | deploy | manual trigger |
+| POST | `/flush` | deploy | fire pending windows now (the beacon) |
+| PATCH | `/pause` `{ target, paused }` | deploy | |
+| POST | `/tick` | deploy, or `x-vercel-plugin-secret` | external runner |
+| POST | `/cancel` `{ deploymentId }` | rollback | |
+| GET | `/rollback-candidates?target=` | rollback | |
+| POST | `/rollback` `{ target, toDeploymentId }` | rollback | |
+| POST | `/webhook` | `x-vercel-signature` | Vercel account webhooks |
+
+Responses never include hook URLs, tokens or secrets.
+
+## Hooks
+
+```ts
+hooks: {
+  onTriggered: ({ record, target, cause }) => {},
+  onStateChange: ({ record, previousState }) => {},
+  onReady: ({ record }) => payload.emails.send('site-deployed', { input: { url: record.deploymentUrl } }),
+  onError: ({ record }) => notifySlack(record.errorMessage),
+  shouldTrack: ({ collection, doc }) => collection !== 'pages' || doc.slug !== 'scratch',
+}
+```
+
+All hooks are awaited and their errors are logged, never thrown into the request that caused them.
+
+## Scheduled task
+
+`vercel:tick` is registered on `config.jobs.tasks` with a native `schedule` (`* * * * *` on queue `vercel`). It carries no input and is deleted on completion like any successful job. Run it with `jobs.autoRun`, `payload jobs:run --queue vercel`, a cron on `/api/payload-jobs/run?queue=vercel`, or Payload Clock.

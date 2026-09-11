@@ -1,0 +1,61 @@
+---
+title: Installation
+description: Install the plugin, declare an action, register it, and run the queue.
+---
+
+## Install
+
+```bash
+pnpm add @payload-solutions/plugin-action-scheduler
+```
+
+Payload 3.88+, `@payloadcms/ui`, React 19 and `react-dom` are peer dependencies you already have. `croner` — the cron engine Payload itself uses — ships with the plugin.
+
+## Declare an action
+
+```ts title="src/actions/orders-remind.ts"
+import { defineAction, SkipAction } from '@payload-solutions/plugin-action-scheduler'
+
+export const ordersRemind = defineAction({
+  slug: 'orders.remind',
+  label: 'Remind customer about unpaid order',
+  group: 'orders',
+  inputSchema: [{ name: 'orderId', type: 'text', required: true }],
+  handler: async ({ args, req, log }) => {
+    const order = await req.payload.findByID({ collection: 'orders', id: args.orderId, req })
+    if (order.paid) throw new SkipAction('already paid')
+    await req.payload.emails.send('payment-reminder', { input: { order }, req })
+    log(`reminder sent to ${order.email}`)
+  },
+})
+```
+
+## Register
+
+```ts title="payload.config.ts"
+import { actionScheduler } from '@payload-solutions/plugin-action-scheduler'
+import { ordersRemind } from './actions/orders-remind'
+
+export default buildConfig({
+  plugins: [actionScheduler({ actions: [ordersRemind] })],
+  jobs: { autoRun: [{ cron: '* * * * *' }] },
+})
+```
+
+The plugin adds two collections (`scheduled-actions`, `scheduled-action-logs`) and one hidden global (`scheduler-status`); on Postgres and SQLite generate a migration. Adding or removing actions later changes nothing in the schema.
+
+## Generate types
+
+```bash
+pnpm payload generate:types
+```
+
+`Config['scheduledActions']` now lists every hook with its `input`, so `payload.scheduler.schedule('orders.remind', { orderId })` autocompletes and rejects unknown hooks or wrong arguments.
+
+## Schedule something
+
+```ts
+await payload.scheduler.schedule('orders.remind', { orderId: order.id }, { scheduleAt: addDays(new Date(), 1) })
+```
+
+Open **Scheduled Actions** in the admin. If nothing runs the queue yet, the page says so and shows the runner options; press **Run queue** to execute what is due right now.

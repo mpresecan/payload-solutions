@@ -1,0 +1,35 @@
+---
+title: Configuration
+description: Every actionScheduler option with its default.
+---
+
+```ts
+actionScheduler({
+  actions: [...],                                 // required
+  recurring: [{ key, hook, args?, every? | cron?, tz?, group?, priority? }],
+  collectionSlug: 'scheduled-actions',
+  logs: { slug: 'scheduled-action-logs', perAction: 50 }, // or false
+  statusSlug: 'scheduler-status',
+  maxArgsBytes: 8192,
+  defaultRetries: 3,
+  defaultBackoff: { type: 'exponential', base: '30s', max: '1h' },
+  defaultTimeout: '5m',
+  defaultTimezone: 'UTC',
+  dispatchHorizon: '15m',
+  tick: { cron: '* * * * *', queue: 'default' },  // or false
+  retention: { complete: '7d', canceled: '7d', failed: '90d' }, // or false per status
+  runner: { warnAfter: '5m', runQueueLimit: 25, runQueueMaxDuration: '20s' },
+  access: { read, manage, runQueue, create },     // default: any authenticated admin user
+  admin: { group: 'System', hidden: false },
+  redactError: (error) => ({ message, stack }),   // scrub before storage
+  disabled: false,                                 // keep collections, no execution
+})
+```
+
+Durations are `'30s' | '15m' | '2h' | '7d'` or a number of seconds.
+
+## Endpoints
+
+All under `/api/scheduled-actions`, for authenticated users passing the matching access option:
+
+`GET scheduler/status`, `GET scheduler/counts`, `GET scheduler/registry`, `POST scheduler/run-queue`, `POST scheduler/bulk { ids, op }`, `GET :id/logs`, `POST :id/run-now | retry | cancel | reschedule { scheduleAt } | stop-after-current | duplicate`.

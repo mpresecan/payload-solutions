@@ -1,17 +1,63 @@
 ---
 title: Payload Action Scheduler
-description: A WooCommerce-style action scheduler on top of Payload job queues. Planned.
+description: Named, typed actions scheduled at runtime with arguments — once, as soon as possible, on an interval or on a cron — executed by Payload's job queue, recorded in a small ledger, and operated from a real admin view.
 ---
 
-Inspired by WooCommerce's Action Scheduler: schedule named actions with arguments, run them once or on a recurrence, group them, and inspect everything from the admin.
+Every Payload project past a certain size grows the same drawer of deferred work: "send the reminder in three days", "retry that webhook", "rebuild the sitemap every hour", "charge the renewal on the 1st". Payload's job queue can execute all of it, but it does not remember what it ran, cannot schedule "every hour for *this* order" from application code, and has no admin view. WooCommerce solved this years ago with Action Scheduler. This plugin is that idea rebuilt on Payload primitives.
 
-## Planned behaviour
+A developer declares an action once:
 
-- `scheduleAction(hook, args, at)` and `scheduleRecurringAction(hook, args, interval)` helpers built on Payload's job queue.
-- An admin view listing pending, running, complete and failed actions with search, filters, retry and cancel.
-- Claims and concurrency limits per group.
-- Works with any runner: server cron, Vercel cron, or [Payload Clock](/docs/payload-clock).
+```ts title="src/actions/orders-remind.ts"
+export const ordersRemind = defineAction({
+  slug: 'orders.remind',
+  label: 'Remind customer about unpaid order',
+  group: 'orders',
+  inputSchema: [{ name: 'orderId', type: 'text', required: true }],
+  handler: async ({ args, req, log }) => {
+    const order = await req.payload.findByID({ collection: 'orders', id: args.orderId, req })
+    if (order.paid) throw new SkipAction('already paid')
+    await req.payload.emails.send('payment-reminder', { input: { order }, req })
+    log(`reminder sent to ${order.email}`)
+  },
+})
+```
+
+Application code schedules it, typed end to end:
+
+```ts
+await payload.scheduler.schedule('orders.remind', { orderId: order.id }, { scheduleAt: inThreeDays })
+await payload.scheduler.cron('reports.weekly', {}, { cron: '0 9 * * 1', tz: 'Europe/Warsaw' })
+```
+
+The queue you already run executes it, and the admin shows what happened.
+
+## What you get
+
+- **A typed API.** `payload.scheduler.schedule`, `enqueue`, `recurring`, `cron`, `cancel`, `cancelAll`, `next`, `has`, `find`, `runQueue`. `generate:types` adds `Config['scheduledActions']`, so hooks and their arguments autocomplete and mismatches fail at compile time.
+- **Retries and timeouts.** Three retries with exponential backoff by default, a timeout per action with an `AbortSignal`, `PermanentError` for "never retry", `SkipAction` for "nothing to do".
+- **Uniqueness, groups, priorities**, with the same semantics as Action Scheduler's `$unique`, `$group` and `$priority`.
+- **Recurring actions that re-arm in place.** One row per series, however long it runs; missed occurrences are skipped, never replayed in a burst; cron expressions evaluated in a time zone and DST-safe.
+- **A history that stays small by construction.** Arguments stored once and capped at 8 KB, no handler output, only the latest error, fifty short log lines per action, per-status retention. The transport job that carries each run holds nothing but an id and completes normally, so Payload deletes it as usual.
+- **Exactly-once execution.** Claims and outcomes are compare-and-set statements on Postgres, SQLite and MongoDB, so two runners never execute the same attempt.
+- **Recovery.** A worker that dies mid-action is detected by its lease; the attempt is recorded as lost and retried. On Payload 3.x the plugin also unsticks its own transport jobs.
+- **An admin view built from Payload's own components.** Status tabs with counts, human-readable schedules, a Run queue button with the last run and runner health, Run now / Retry / Cancel / Reschedule / Duplicate per row, bulk actions, and a log drawer.
+- **No new infrastructure.** `jobs.autoRun`, `payload jobs:run`, Vercel cron, or [Payload Clock](/docs/payload-clock) — whatever runs Payload jobs runs actions.
+
+## What it is not
+
+Not a workflow engine: an action is one handler, one attempt at a time. Payload workflows remain the tool for multi-step, resumable work, and an action may queue one. Not a place to store results: if a result matters, the handler writes it to a real collection. Not sub-second: the unit is "roughly on the minute", like Action Scheduler.
 
 ## Status
 
-Planned.
+Implemented in the payload-ecosystem monorepo as `packages/plugin-action-scheduler` (0.1.0, unreleased). Payload `^3.88`; the 3.x-only recovery code stands down on Payload 4. Design reference: the technical specification in `notes/plugin-action-scheduler-spec.md`.
+
+## Where to go next
+
+- [Installation](/docs/plugins/payload-action-scheduler/installation) — install, declare, register, run.
+- [Defining actions](/docs/plugins/payload-action-scheduler/defining-actions) — the handler contract and every definition option.
+- [Scheduling](/docs/plugins/payload-action-scheduler/scheduling) — the API, uniqueness, recurring series, the Action Scheduler mapping.
+- [Admin](/docs/plugins/payload-action-scheduler/admin) — the Scheduled Actions view.
+- [Runners](/docs/plugins/payload-action-scheduler/runners) — what executes actions, the maintenance tick, exactly-once.
+- [TypeScript](/docs/plugins/payload-action-scheduler/typescript) — what `generate:types` produces.
+- [Configuration](/docs/plugins/payload-action-scheduler/configuration) — every option and endpoint.
+- [Recipes](/docs/plugins/payload-action-scheduler/recipes) — reminders, webhooks with backoff, nightly jobs, Payload Emails, testing.

@@ -1,0 +1,118 @@
+---
+title: Installation
+description: Install the plugin, create a deploy hook on Vercel, configure one target, boot, and verify the whole loop before you ship it.
+---
+
+## Install
+
+```bash
+pnpm add @payload-solutions/plugin-vercel
+```
+
+Payload 3.88+, `@payloadcms/ui`, `@payloadcms/next`, React 19 and `react-dom` are peer dependencies you already have in a Payload project. The plugin has no runtime dependencies of its own.
+
+## Create a deploy hook on Vercel
+
+In the Vercel project of your **frontend** (not the Payload project, unless they are the same), open **Settings → Git → Deploy Hooks**. Name the hook after the target — `payload-production` — pick the branch, and copy the URL. It looks like:
+
+```
+https://api.vercel.com/v1/integrations/deploy/prj_98g22o5YUFVHlKOzj9vKPTyN2SDG/tKybBxqhQs
+```
+
+<Callout type="warn">
+A deploy hook URL is a credential: anyone who has it can deploy your site. Keep it in the environment, never in the config file or the database. The plugin never sends it to the browser.
+</Callout>
+
+The project must be connected to Git; hooks are not offered otherwise, and `github.enabled = false` in `vercel.json` disables them. Hobby and Pro projects may have 5 hooks, Enterprise 10.
+
+## Configure a target
+
+```bash title=".env"
+VERCEL_DEPLOY_HOOK_PRODUCTION=https://api.vercel.com/v1/integrations/deploy/prj_xxx/yyy
+# Optional: status, history, cancel, rollback
+VERCEL_TOKEN=…
+# Optional: needed when the token belongs to a team
+VERCEL_TEAM_ID=team_…
+```
+
+```ts title="payload.config.ts"
+import { vercelPlugin } from '@payload-solutions/plugin-vercel'
+
+export default buildConfig({
+  plugins: [
+    vercelPlugin({
+      targets: [
+        { slug: 'production', label: 'Website', hook: process.env.VERCEL_DEPLOY_HOOK_PRODUCTION, url: 'https://example.com' },
+      ],
+      token: process.env.VERCEL_TOKEN,
+      teamId: process.env.VERCEL_TEAM_ID,
+      collections: { pages: true, posts: true },
+      globals: { header: true },
+    }),
+  ],
+})
+```
+
+`collections` and `globals` are the content that reaches the site. A collection with drafts counts publishes and unpublishes; one without drafts counts every save; deletes always count. The Vercel project id is parsed from the hook URL, so nothing else is needed for status later.
+
+## Regenerate what Payload derives from the config
+
+```bash
+pnpm payload generate:importmap
+pnpm payload generate:types
+```
+
+The plugin adds three collections (`vercel-deployments`, `vercel-changes`, `vercel-targets`), a scheduled task (`vercel:tick`) and admin components. The dev server regenerates the import map on its own; in CI run both commands.
+
+## First boot
+
+On start the plugin creates one state row per target and logs two things worth reading:
+
+- `Target "staging" has no deploy hook URL; it will show as not configured.` — the env var for that target is unset. The admin shows the target greyed; nothing is triggered for it. This is the intended state on a developer machine.
+- `No Vercel token configured: deployments are triggered but their status cannot be read.` — zero-token mode, see below.
+
+Open the admin. The header shows a pill per target and a **Deploy** button. Publish a page: the pill counts it and starts a one-minute countdown; the page's edit view shows *Not deployed yet*. Open **Deployments** in the nav to see the pending list and, after the deploy, the history.
+
+<Callout>
+With a database that Payload pushes schema to in development, the new collections appear at once. On a migration-based setup, create a migration after adding the plugin: `pnpm payload migrate:create`.
+</Callout>
+
+## Verify before you ship
+
+1. **The hook works.** Press **Deploy**. Within a few seconds the Vercel dashboard shows a deployment marked as created by the deploy hook. Without a token the row in Payload stays *Triggered*.
+2. **The token works.** With `VERCEL_TOKEN` set, the same row moves to *Queued*, *Building* and *Ready* (or *Failed* with Vercel's error). If the widget says *Vercel token rejected*, the token is invalid or belongs to a team and `VERCEL_TEAM_ID` is missing.
+3. **Automatic deploys fire.** Publish something and keep the admin open: the countdown reaches zero and a row with cause *Automatic* appears. Close the tab right after publishing instead: the beacon fires the pending target at once.
+4. **Nobody is left waiting.** If the site is edited from scripts or by API clients with no admin open, add a runner: the `vercel:tick` task under `jobs.autoRun` or a cron (see [Automatic deploys](/docs/plugins/vercel-integration/auto-deploy)). The Deployments view shows the last tick and its source.
+5. **Webhook (optional, Pro/Enterprise).** Create an account webhook for the deployment events pointing at `/api/vercel/webhook`, set `VERCEL_WEBHOOK_SECRET`, and watch a deployment move without the poll.
+
+## Without a token
+
+Everything above except step 2 works with only the hook URL: deployments are triggered, changes are counted and folded into the history. Rows stay *Triggered* and become *Unknown* after 15 minutes; Cancel and Roll back are hidden; failed builds cannot put their changes back into pending because the plugin never learns about them. Add `VERCEL_TOKEN` when you want the widget to follow builds.
+
+## Multiple targets
+
+```ts
+targets: [
+  { slug: 'production', label: 'Website', hook: process.env.VERCEL_DEPLOY_HOOK_PRODUCTION, url: 'https://example.com' },
+  { slug: 'staging', label: 'Staging', hook: process.env.VERCEL_DEPLOY_HOOK_STAGING },
+  { slug: 'docs', label: 'Docs site', hook: process.env.VERCEL_DEPLOY_HOOK_DOCS },
+],
+collections: {
+  pages: true,                                   // every target
+  posts: { targets: ['production', 'staging'] }, // not the docs site
+  'doc-pages': { targets: ['docs'] },
+},
+```
+
+Each target has its own window, pending list, history and hourly counter. The header shows one pill per target (a menu beyond two); the Deploy drawer asks which one.
+
+## Where things live afterwards
+
+| What | Where |
+| --- | --- |
+| History | collection `vercel-deployments` (visible, read-only, group *Vercel*) and the Deployments view |
+| Pending changes | collection `vercel-changes` (hidden; `GET /api/vercel/changes`) |
+| Per-target state (window, pause, counters) | collection `vercel-targets` (hidden) |
+| Endpoints | `/api/vercel/status`, `/deploy`, `/changes`, `/history`, `/document`, `/flush`, `/tick`, `/pause`, `/cancel`, `/rollback`, `/rollback-candidates`, `/webhook` |
+| Scheduled task | `vercel:tick` on queue `vercel` |
+| Local API | `payload.vercel` |

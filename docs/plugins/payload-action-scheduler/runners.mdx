@@ -1,0 +1,24 @@
+---
+title: Runners
+description: What executes the actions, and what the maintenance tick does.
+---
+
+The plugin runs nothing by itself. Each due action is a Payload job (`scheduler:run`, input `{ actionId }`) on the action's queue, so whatever runs Payload jobs runs actions:
+
+| Setup | How |
+| --- | --- |
+| Long-lived server | `jobs.autoRun: [{ cron: '* * * * *', queue: 'default' }]` |
+| Vercel / serverless | A cron calling `GET /api/payload-jobs/run?allQueues=true` with your cron secret |
+| Separate worker | `payload jobs:run --all-queues --handle-schedules` on a schedule |
+| [Payload Clock](/docs/payload-clock) | The hosted clock calls the same endpoint with retries and alerts |
+| Admin | **Run queue** → `POST /api/scheduled-actions/scheduler/run-queue` |
+
+## The tick
+
+`scheduler:tick` is a task with Payload's own `schedule` (every minute by default). Each tick records a heartbeat (runner health in the admin), promotes actions that came within the dispatch horizon (15 minutes), recovers attempts whose runner died (`lost`, then retried), re-dispatches orphans, deletes transport jobs stuck in `processing` on Payload 3.x, and purges finished rows past retention once an hour.
+
+Because the tick uses `schedule`, Payload turns on job stats, which adds one small global and a `meta` column on `payload-jobs`. Set `tick: false` to avoid that: every action is then dispatched at schedule time, health is unknown, and sweeping runs inside `runQueue()`.
+
+## Exactly once
+
+Claims and outcomes are compare-and-set statements: raw conditional `UPDATE … RETURNING` on Postgres and SQLite, `findOneAndUpdate` on MongoDB. Two runners picking up the same job invoke the handler once. Another adapter can provide `payload.db.casUpdate(args)`; without it the plugin falls back to read-then-write and warns at start-up to run a single runner.
