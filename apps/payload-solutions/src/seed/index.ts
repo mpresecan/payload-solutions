@@ -72,10 +72,10 @@ export async function seed(payload: Payload) {
         name: 'Vercel Integration',
         slug: 'vercel-integration',
         packageName: '@payload-solutions/plugin-vercel',
-        summary: 'Trigger Vercel deploy hooks from the admin and see deployment status.',
+        summary: 'Deploy to Vercel from the admin or after content changes, and follow every build.',
         description:
-          'A Deploy button and status view in the Payload admin, wired to Vercel build hooks, so content editors can publish static sites without touching Vercel.',
-        status: 'planned',
+          'Trigger Vercel deploy hooks from the Payload admin or automatically after content changes, see what is waiting to go live, follow every build, cancel and roll back — without giving editors a Vercel login.',
+        status: 'available',
         docsPath: '/docs/plugins/vercel-integration',
       },
       {
@@ -84,8 +84,8 @@ export async function seed(payload: Payload) {
         packageName: '@payload-solutions/plugin-action-scheduler',
         summary: 'A WooCommerce-style action scheduler on top of Payload job queues.',
         description:
-          'Schedule one-off and recurring actions with arguments, groups and claims; inspect pending, running and failed actions in the admin, retry or cancel them.',
-        status: 'planned',
+          'Named, typed actions scheduled at runtime with arguments — once, as soon as possible, on an interval or on a cron — executed by the Payload job queue, recorded in a ledger and operated from an admin view: retry, cancel, run now.',
+        status: 'available',
         docsPath: '/docs/plugins/payload-action-scheduler',
       },
       {
@@ -107,10 +107,10 @@ export async function seed(payload: Payload) {
       { title: 'Payload Stack 0.1', description: 'Better Auth, organizations, Stripe, shadcn dashboard, CLI.', stage: 'shipped', quarter: 'Q3 2026' },
       { title: 'Payload Consent plugin 0.1', description: 'Consent banner, script gating, cookie table and consent records managed in the Payload admin.', stage: 'shipped', quarter: 'Q3 2026' },
       { title: 'Payload Emails plugin 0.1', description: 'Code-defined transactional emails with admin-editable copy, React Email templates, preview and test sends.', stage: 'shipped', quarter: 'Q3 2026' },
+      { title: 'Vercel Integration plugin 0.1', description: 'Deploys from the admin or after content changes, build status, cancel and rollback.', stage: 'shipped', quarter: 'Q3 2026' },
+      { title: 'Payload Action Scheduler plugin 0.1', description: 'Scheduled and recurring actions on top of job queues, with an admin view.', stage: 'shipped', quarter: 'Q3 2026' },
       { title: 'Payload Stack documentation', description: 'Guides for configuration, authentication, organizations, billing, deployment.', stage: 'in-progress', quarter: 'Q3 2026' },
       { title: 'Payload Clock beta', description: 'Hosted scheduler for serverless Payload job queues, with the companion plugin.', stage: 'planned', quarter: 'Q4 2026' },
-      { title: 'Payload Action Scheduler plugin', description: 'Scheduled and recurring actions on top of job queues.', stage: 'planned', quarter: 'Q1 2027' },
-      { title: 'Vercel Integration plugin', description: 'Deploy hooks and deployment status in the admin.', stage: 'planned', quarter: 'Q1 2027' },
       { title: 'Payload Stack on Payload 4', description: 'Move the boilerplate to Payload 4 once payload-auth supports it.', stage: 'exploring' },
     ].entries()) {
       await payload.create({ collection: 'roadmap-items', data: { ...data, order } as never, overrideAccess: true })

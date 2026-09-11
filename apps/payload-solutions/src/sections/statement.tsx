@@ -31,6 +31,12 @@ const PACKAGES: PublishedPackage[] = [
   { scope: '@payload-solutions/', name: 'plugin-consent', path: 'packages/plugin-consent' },
   { scope: '@payload-solutions/', name: 'consent-core', path: 'packages/consent-core' },
   { scope: '@payload-solutions/', name: 'consent-react', path: 'packages/consent-react' },
+  { scope: '@payload-solutions/', name: 'plugin-vercel', path: 'packages/plugin-vercel' },
+  {
+    scope: '@payload-solutions/',
+    name: 'plugin-action-scheduler',
+    path: 'packages/plugin-action-scheduler',
+  },
 ]
 
 export function Statement() {

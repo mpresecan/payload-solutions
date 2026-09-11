@@ -14,6 +14,7 @@ const SOURCE_PATHS: Record<string, string> = {
   '/docs/plugins/payload-consent': 'packages/plugin-consent',
   '/docs/plugins/payload-emails': 'packages/plugin-emails',
   '/docs/plugins/payload-action-scheduler': 'packages/plugin-action-scheduler',
+  '/docs/plugins/vercel-integration': 'packages/plugin-vercel',
 }
 
 export interface DocsSource {
