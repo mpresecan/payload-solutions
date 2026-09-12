@@ -104,7 +104,7 @@ export async function seed(payload: Payload) {
   const roadmap = await payload.count({ collection: 'roadmap-items', overrideAccess: true })
   if (roadmap.totalDocs === 0) {
     for (const [order, data] of [
-      { title: 'Payload Stack 0.1', description: 'Better Auth, organizations, Stripe, shadcn dashboard, CLI.', stage: 'shipped', quarter: 'Q3 2026' },
+      { title: 'Payload Stack 0.4', description: 'Better Auth, organizations, Stripe, shadcn dashboard, CLI.', stage: 'shipped', quarter: 'Q3 2026' },
       { title: 'Payload Consent plugin 0.1', description: 'Consent banner, script gating, cookie table and consent records managed in the Payload admin.', stage: 'shipped', quarter: 'Q3 2026' },
       { title: 'Payload Emails plugin 0.1', description: 'Code-defined transactional emails with admin-editable copy, React Email templates, preview and test sends.', stage: 'shipped', quarter: 'Q3 2026' },
       { title: 'Vercel Integration plugin 0.1', description: 'Deploys from the admin or after content changes, build status, cancel and rollback.', stage: 'shipped', quarter: 'Q3 2026' },
