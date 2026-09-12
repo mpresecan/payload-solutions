@@ -12,8 +12,8 @@ import type { RoadmapItem } from '@/payload-types'
  * only gets worse with every release — shipped is the one column that grows forever.
  *
  * So the section is two halves of the lattice. The left is what is done, drawn as a log: one
- * hairline row per release, newest first, title and quarter, no description, capped so ten
- * releases from now it is still a column and not a wall. The right is the part a visitor actually came for —
+ * hairline row per release, title and quarter, no description, capped so ten releases from
+ * now it is still a column and not a wall. The right is the part a visitor actually came for —
  * what is being built, what is next, what is being considered — with the descriptions on it.
  * Stages with nothing in them are simply absent; an empty column labelled "Nothing here yet"
  * was never worth the space.
@@ -49,11 +49,11 @@ function Quarter({ value }: { value?: string | null }) {
 }
 
 export function Roadmap({ items }: { items: RoadmapItem[] }) {
-  // `order` runs oldest release first — that is how the admin lists them and how the seed
-  // writes them. A log reads the other way round, and the cap has to keep the newest releases
-  // rather than the first ones ever shipped, so the reverse happens before the slice.
-  const shipped = items.filter((item) => item.stage === 'shipped').reverse()
-  const listed = shipped.slice(0, SHIPPED_VISIBLE)
+  // The log runs in the collection's own order — oldest release first, the way the admin
+  // lists them. The cap takes from the end, so what falls off is the early history rather
+  // than the releases somebody actually came to see.
+  const shipped = items.filter((item) => item.stage === 'shipped')
+  const listed = shipped.slice(Math.max(0, shipped.length - SHIPPED_VISIBLE))
   const earlier = shipped.length - listed.length
 
   const forward = FORWARD_STAGES.map((stage) => ({
