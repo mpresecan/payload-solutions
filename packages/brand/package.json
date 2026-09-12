@@ -17,6 +17,7 @@
     "./tailwind.css": "./css/tailwind.css",
     "./assets/*": "./assets/*",
     "./iso-stack": "./src/iso-stack.tsx",
+    "./clock-dial": "./src/clock-dial.tsx",
     "./liquid-mark": "./src/liquid-mark.tsx",
     "./parallax": "./src/parallax.tsx",
     "./ambient-backdrop": "./src/ambient-backdrop.tsx",

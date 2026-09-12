@@ -1,6 +1,8 @@
 import { ArrowUpRight } from '@phosphor-icons/react/dist/ssr'
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 import { accentForSlug } from '@payload-solutions/brand'
+import { ClockDial } from '@payload-solutions/brand/clock-dial'
 import { SectionHead } from '@payload-solutions/brand/lattice'
 import { screens, type ScreenName } from '@payload-solutions/brand/screens'
 import { ThemedImage } from '@payload-solutions/brand/themed-image'
@@ -10,9 +12,22 @@ import { Reveal } from '@/components/reveal'
 import { StatusChip } from '@/components/status-chip'
 import type { Product } from '@/payload-types'
 
-/** Products that exist get a real screenshot; planned ones stay text until they ship. */
+/**
+ * Products that exist get a real screenshot of themselves. Payload Clock has no UI to
+ * screenshot yet, and a mocked-up one would be a lie, so it shows its own signature diagram —
+ * the same dial that carries payloadclock.com's hero — in the same bleeding frame.
+ */
 const SCREEN_BY_SLUG: Partial<Record<string, ScreenName>> = {
   'payload-stack': 'dashboard',
+}
+
+const DIAGRAM_BY_SLUG: Partial<Record<string, ReactNode>> = {
+  'payload-clock': (
+    // Sized and offset so the dial fills the frame and is cropped top and bottom, the way the
+    // Stack screenshot is cropped right and bottom: an instrument seen close up, not a logo
+    // floating in a box. The hub lands near the centre at every cell width.
+    <ClockDial className="absolute -top-[22%] left-[-6%] w-[22rem] max-w-none sm:w-[25rem]" />
+  ),
 }
 
 /**
@@ -41,6 +56,7 @@ export function Products({ products }: { products: Product[] }) {
         <div className="list-grid mt-16 grid-cols-1 md:grid-cols-2">
           {products.map((product, i) => {
             const screen = SCREEN_BY_SLUG[product.slug]
+            const diagram = DIAGRAM_BY_SLUG[product.slug]
             return (
               <Reveal
                 key={product.id}
@@ -89,13 +105,17 @@ export function Products({ products }: { products: Product[] }) {
                 </div>
                 {/* The screenshot bleeds into the cell's own padding, so it runs to the grid
                     line rather than floating inside a margin. */}
-                {screen ? (
+                {screen || diagram ? (
                   <div className="relative -mb-8 -mr-6 mt-10 h-56 overflow-hidden border-l border-t border-border bg-surface lg:-mb-9 lg:-mr-8">
-                    <ThemedImage
-                      {...screens[screen]}
-                      sizes="(min-width: 1024px) 640px, 90vw"
-                      className="absolute left-[6%] top-[6%] w-[120%] max-w-none"
-                    />
+                    {screen ? (
+                      <ThemedImage
+                        {...screens[screen]}
+                        sizes="(min-width: 1024px) 640px, 90vw"
+                        className="absolute left-[6%] top-[6%] w-[120%] max-w-none"
+                      />
+                    ) : (
+                      diagram
+                    )}
                   </div>
                 ) : null}
               </Reveal>

@@ -87,79 +87,12 @@
 /* ==========================================================================================
    Payload Clock only. Everything above this line is shared, verbatim, with payloadstack.com.
 
-   The four effects below are the ones carried over from the old payloadclock.com — the
+   The effects below are the ones carried over from the old payloadclock.com — the
    MagicUI startup template's beams, particle field, border beam and text shimmer. The motion
    is kept because it is what made that page feel alive; the presentation is rebuilt, because
    MagicUI's rounded cards, drop shadows and multi-colour gradients are the opposite of the
    premium-black system. One accent, hairlines, transform and opacity only.
    ========================================================================================== */
-
-/* ---- the dial ------------------------------------------------------------------------- */
-
-/* The whole diagram runs off one 60-second cycle, so `transform-box` has to be explicit:
-   the transform origins are written in viewBox units, not in each element's own bounding box. */
-.clock-dial__hand,
-.clock-dial__pulse,
-.clock-dial [style*='rotate'] {
-  transform-box: view-box;
-}
-
-.clock-dial__hand {
-  animation: clock-sweep 60s linear infinite;
-}
-
-@keyframes clock-sweep {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Out from the hub to the rim in 1.3s — 2.167% of the 60s cycle — then parked, invisible,
-   until its turn comes round again. */
-.clock-dial__pulse {
-  opacity: 0;
-  animation: clock-pulse 60s linear infinite;
-}
-
-@keyframes clock-pulse {
-  0% {
-    transform: translateY(-12px);
-    opacity: 0;
-  }
-  0.25% {
-    opacity: 1;
-  }
-  2.167% {
-    transform: translateY(-190px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(-190px);
-    opacity: 0;
-  }
-}
-
-/* The node lights as the pulse lands, then cools over two and a half seconds. Its delay is
-   the spoke's delay plus the travel time, so 0% here is the moment of arrival. */
-.clock-dial__node {
-  animation: clock-blip 60s linear infinite;
-}
-
-@keyframes clock-blip {
-  0%,
-  100% {
-    stroke: var(--border-strong);
-    fill: var(--bg);
-  }
-  0.5% {
-    stroke: var(--accent);
-    fill: var(--accent-soft);
-  }
-  4.5% {
-    stroke: var(--border-strong);
-    fill: var(--bg);
-  }
-}
 
 /* ---- the beams, redrawn --------------------------------------------------------------- */
 
@@ -235,12 +168,7 @@
 /* The badge above the headline. Colour is painted through the text rather than behind it, so
    the label stays a label and never becomes a chip. */
 .text-shimmer {
-  background: linear-gradient(
-    110deg,
-    var(--fg-muted) 42%,
-    var(--accent) 50%,
-    var(--fg-muted) 58%
-  );
+  background: linear-gradient(110deg, var(--fg-muted) 42%, var(--accent) 50%, var(--fg-muted) 58%);
   background-size: 260% 100%;
   background-clip: text;
   -webkit-background-clip: text;
@@ -258,13 +186,10 @@
 
 /*
   One rule retires every animation on this page. What is left is not a broken picture: the
-  dial keeps its hand at twelve, the nodes keep their hairline, the beams become plain lines
+  beams become plain lines
   and the badge takes a flat colour. That is the test each effect above was built to pass.
 */
 @media (prefers-reduced-motion: reduce) {
-  .clock-dial__hand,
-  .clock-dial__pulse,
-  .clock-dial__node,
   .beam-flow,
   .border-beam::after,
   .text-shimmer {

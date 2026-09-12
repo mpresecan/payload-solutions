@@ -1,7 +1,7 @@
 import { PAYLOAD_URL, SOLUTIONS_URL, brands } from '@payload-solutions/brand'
 import { ActionRow, IndependenceNote, ProseLink } from '@payload-solutions/brand/lattice'
+import { ClockDial } from '@payload-solutions/brand/clock-dial'
 import { Parallax } from '@payload-solutions/brand/parallax'
-import { ClockDial } from '@/components/clock-dial'
 import { ShimmerNote } from '@/components/text-shimmer'
 
 const brand = brands.clock
