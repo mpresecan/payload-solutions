@@ -103,19 +103,24 @@ export function Products({ products }: { products: Product[] }) {
                     </Link>
                   ) : null}
                 </div>
-                {/* The screenshot bleeds into the cell's own padding, so it runs to the grid
-                    line rather than floating inside a margin. */}
+                {/* The visual bleeds into the cell's own padding, so it runs to the grid line
+                    rather than floating inside a margin — and `mt-auto` pins it to the bottom
+                    of the cell, so the two products' frames line up even though one cell has
+                    more copy than the other. The padding is the minimum gap when there is no
+                    slack to absorb; it sits on the wrapper so it cannot grow the frame. */}
                 {screen || diagram ? (
-                  <div className="relative -mb-8 -mr-6 mt-10 h-56 overflow-hidden border-l border-t border-border bg-surface lg:-mb-9 lg:-mr-8">
-                    {screen ? (
-                      <ThemedImage
-                        {...screens[screen]}
-                        sizes="(min-width: 1024px) 640px, 90vw"
-                        className="absolute left-[6%] top-[6%] w-[120%] max-w-none"
-                      />
-                    ) : (
-                      diagram
-                    )}
+                  <div className="-mb-8 -mr-6 mt-auto pt-10 lg:-mb-9 lg:-mr-8">
+                    <div className="relative h-56 overflow-hidden border-l border-t border-border bg-surface">
+                      {screen ? (
+                        <ThemedImage
+                          {...screens[screen]}
+                          sizes="(min-width: 1024px) 640px, 90vw"
+                          className="absolute left-[6%] top-[6%] w-[120%] max-w-none"
+                        />
+                      ) : (
+                        diagram
+                      )}
+                    </div>
                   </div>
                 ) : null}
               </Reveal>
