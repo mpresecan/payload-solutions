@@ -116,6 +116,9 @@ describe('--defaults', () => {
       storage: 'none',
       emails: true,
       consent: true,
+      scheduler: true,
+      // The recommendation, and the only runner that needs no host-specific setup.
+      runner: 'clock',
       packageManager: 'pnpm',
       install: true,
       git: true,
@@ -235,9 +238,11 @@ describe('prompts', () => {
       'Media storage': 'vercel-blob',
       'Transactional emails': true,
       'Cookie consent and legal pages': true,
+      'Scheduled and recurring actions': true,
+      'What runs the queue': 'clock',
     }
     const options = await run(baseFlags())
-    expect(promptsShown).toEqual(['Project name', 'Database', 'Connection string', 'Sign-in methods', 'Organizations (teams)', 'Billing', 'Media storage', 'Transactional emails', 'Cookie consent and legal pages'])
+    expect(promptsShown).toEqual(['Project name', 'Database', 'Connection string', 'Sign-in methods', 'Organizations (teams)', 'Billing', 'Media storage', 'Transactional emails', 'Cookie consent and legal pages', 'Scheduled and recurring actions', 'What runs the queue'])
     expect(options).toMatchObject({
       name: 'Prompted App',
       slug: 'prompted-app',
@@ -252,9 +257,9 @@ describe('prompts', () => {
   })
 
   it('skips the prompts whose flags were given', async () => {
-    answers = { 'Sign-in methods': ['passkey'], 'Media storage': 'none', 'Transactional emails': true, 'Cookie consent and legal pages': true }
+    answers = { 'Sign-in methods': ['passkey'], 'Media storage': 'none', 'Transactional emails': true, 'Cookie consent and legal pages': true, 'Scheduled and recurring actions': true, 'What runs the queue': 'clock' }
     const options = await run(baseFlags({ db: 'postgres', connectionString: 'postgres://x', organizations: false, billing: 'user' }), 'flagged')
-    expect(promptsShown).toEqual(['Sign-in methods', 'Media storage', 'Transactional emails', 'Cookie consent and legal pages'])
+    expect(promptsShown).toEqual(['Sign-in methods', 'Media storage', 'Transactional emails', 'Cookie consent and legal pages', 'Scheduled and recurring actions', 'What runs the queue'])
     expect(options.authMethods).toEqual(['passkey'])
     expect(options.billing).toBe('user')
   })
@@ -270,6 +275,8 @@ describe('prompts', () => {
       'Media storage': 'none',
       'Transactional emails': true,
       'Cookie consent and legal pages': true,
+      'Scheduled and recurring actions': true,
+      'What runs the queue': 'clock',
     }
     const options = await run(baseFlags())
     expect(options.authMethods).toEqual(['email-password'])
@@ -278,7 +285,7 @@ describe('prompts', () => {
   })
 
   it('takes --emails / --no-emails without asking', async () => {
-    answers = { 'Sign-in methods': ['passkey'], 'Media storage': 'none', 'Cookie consent and legal pages': true }
+    answers = { 'Sign-in methods': ['passkey'], 'Media storage': 'none', 'Cookie consent and legal pages': true, 'Scheduled and recurring actions': true, 'What runs the queue': 'clock' }
     const flags = { db: 'postgres', connectionString: 'postgres://x', organizations: false, billing: 'user' }
     const on = await run(baseFlags({ ...flags, emails: true }), 'with-emails')
     expect(on.emails).toBe(true)
@@ -289,7 +296,7 @@ describe('prompts', () => {
   })
 
   it('takes --consent / --no-consent without asking', async () => {
-    answers = { 'Sign-in methods': ['passkey'], 'Media storage': 'none', 'Transactional emails': true }
+    answers = { 'Sign-in methods': ['passkey'], 'Media storage': 'none', 'Transactional emails': true, 'Scheduled and recurring actions': true, 'What runs the queue': 'clock' }
     const flags = { db: 'postgres', connectionString: 'postgres://x', organizations: false, billing: 'user' }
     const on = await run(baseFlags({ ...flags, consent: true }), 'with-consent')
     expect(on.consent).toBe(true)
@@ -311,6 +318,8 @@ describe('prompts', () => {
       'Media storage': 'none',
       'Transactional emails': true,
       'Cookie consent and legal pages': true,
+      'Scheduled and recurring actions': true,
+      'What runs the queue': 'clock',
     }
     await run(baseFlags())
     const billingPrompt = (prompts.select as unknown as { mock: { calls: Array<[{ message: string; options: Array<{ value: string }> }]> } }).mock.calls.find(
@@ -323,5 +332,59 @@ describe('prompts', () => {
     const prompts = (await import('@clack/prompts')) as unknown as { __CANCEL: symbol }
     answers = { 'Project name': prompts.__CANCEL }
     await expectBail(baseFlags(), /Cancelled/)
+  })
+})
+
+describe('the scheduler step', () => {
+  const flags = { db: 'postgres' as const, connectionString: 'postgres://x', organizations: false, billing: 'user' }
+  const answered = () => ({
+    'Sign-in methods': ['passkey'],
+    'Media storage': 'none',
+    'Transactional emails': true,
+    'Cookie consent and legal pages': true,
+  })
+
+  it('takes --scheduler / --no-scheduler without asking', async () => {
+    answers = { ...answered(), 'What runs the queue': 'clock' }
+    const on = await run(baseFlags({ ...flags, scheduler: true }), 'with-scheduler')
+    expect(on.scheduler).toBe(true)
+    expect(promptsShown).not.toContain('Scheduled and recurring actions')
+
+    answers = answered()
+    const off = await run(baseFlags({ ...flags, scheduler: false }), 'without-scheduler')
+    expect(off.scheduler).toBe(false)
+    expect(promptsShown).not.toContain('Scheduled and recurring actions')
+  })
+
+  it('does not ask what runs the queue when there is no queue', async () => {
+    answers = answered()
+    const options = await run(baseFlags({ ...flags, scheduler: false }), 'no-runner-question')
+    expect(promptsShown).not.toContain('What runs the queue')
+    expect(options.runner).toBe('later')
+  })
+
+  it('offers Payload Clock first, and every alternative after it', async () => {
+    const prompts = await import('@clack/prompts')
+    answers = { ...answered(), 'Scheduled and recurring actions': true, 'What runs the queue': 'clock' }
+    await run(baseFlags({ ...flags }), 'runner-options')
+    const prompt = (
+      prompts.select as unknown as {
+        mock: { calls: Array<[{ message: string; initialValue: string; options: Array<{ hint?: string; value: string }> }]> }
+      }
+    ).mock.calls.find(([opts]) => opts.message === 'What runs the queue')
+    expect(prompt?.[0].options.map((o) => o.value)).toEqual(['clock', 'vercel', 'server', 'later'])
+    expect(prompt?.[0].initialValue).toBe('clock')
+    // The hint has to say what each one costs the reader; an unlabelled list is not a choice.
+    for (const option of prompt?.[0].options ?? []) expect(option.hint).toBeTruthy()
+  })
+
+  it('takes --runner, and refuses one that cannot run anything', async () => {
+    answers = answered()
+    const options = await run(baseFlags({ ...flags, scheduler: true, runner: 'vercel' }), 'runner-flag')
+    expect(options.runner).toBe('vercel')
+    expect(promptsShown).not.toContain('What runs the queue')
+
+    await expectBail(baseFlags({ ...flags, scheduler: true, runner: 'cronjob' }), /Unknown value "cronjob" for --runner/, 'bad-runner')
+    await expectBail(baseFlags({ ...flags, scheduler: false, runner: 'clock' }), /--runner needs --scheduler/, 'runner-without-scheduler')
   })
 })

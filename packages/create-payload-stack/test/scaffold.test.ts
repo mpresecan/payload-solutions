@@ -227,6 +227,116 @@ describe('scaffolded project', () => {
     })
   })
 
+  describe('scheduled actions', () => {
+    /** Files that use the seam. They are the template's own, whichever answer was given. */
+    const CALL_SITES = ['src/lib/auth/options.ts']
+
+    it('--scheduler moves the plugin branch into src/scheduler and keeps the call sites', () => {
+      const { dir } = scaffold('with-scheduler', ['-d', 'sqlite', '--scheduler', '-y'])
+
+      for (const file of ['src/scheduler/plugin.ts', 'src/scheduler/jobs.ts', 'src/scheduler/hooks.ts', 'src/scheduler/actions/index.ts', 'src/scheduler/actions/billing.ts', 'src/scheduler/actions/maintenance.ts', 'src/scheduler/actions/emails.ts', 'tests/unit/scheduler.spec.ts']) {
+        expect(existsSync(path.join(dir, file)), file).toBe(true)
+      }
+      expect(existsSync(path.join(dir, 'variants'))).toBe(false)
+
+      const plugin = readFileSync(path.join(dir, 'src/scheduler/plugin.ts'), 'utf8')
+      expect(plugin).toContain("import { actionScheduler } from '@payload-solutions/plugin-action-scheduler'")
+      // The ledger holds customer data in `args`; nothing about it is readable by a signed-in user.
+      expect(plugin).toContain('read: adminOnly')
+
+      // The seam is a module, so payload.config.ts reads the same either way.
+      const payloadConfig = readFileSync(path.join(dir, 'src/payload.config.ts'), 'utf8')
+      expect(payloadConfig).toContain('plugins.push(...schedulerPlugins)')
+      expect(payloadConfig).toContain('jobs: schedulerJobs,')
+
+      const pkg = JSON.parse(readFileSync(path.join(dir, 'package.json'), 'utf8')) as {
+        dependencies: Record<string, string>
+        devDependencies: Record<string, string>
+      }
+      expect(pkg.dependencies['@payload-solutions/plugin-action-scheduler']).toBeDefined()
+      expect(pkg.devDependencies['@payload-solutions/plugin-action-scheduler']).toBeUndefined()
+      for (const version of Object.values({ ...pkg.dependencies, ...pkg.devDependencies })) {
+        expect(version.startsWith('workspace:')).toBe(false)
+      }
+
+      for (const file of CALL_SITES) {
+        expect(readFileSync(path.join(dir, file), 'utf8'), file).toBe(readFileSync(path.join(templateDir, file), 'utf8'))
+      }
+    })
+
+    it('--no-scheduler keeps the empty seam and never mentions the plugin', () => {
+      const { dir } = scaffold('without-scheduler', ['-d', 'sqlite', '--no-scheduler', '-y'])
+
+      for (const file of ['src/scheduler/plugin.ts', 'src/scheduler/jobs.ts', 'src/scheduler/hooks.ts']) {
+        expect(readFileSync(path.join(dir, file), 'utf8'), file).toBe(readFileSync(path.join(templateDir, 'src/scheduler', path.basename(file)), 'utf8'))
+      }
+      for (const file of ['src/scheduler/actions', 'tests/unit/scheduler.spec.ts', 'vercel.json', 'variants']) {
+        expect(existsSync(path.join(dir, file)), file).toBe(false)
+      }
+
+      const pkg = JSON.parse(readFileSync(path.join(dir, 'package.json'), 'utf8')) as {
+        dependencies: Record<string, string>
+        devDependencies: Record<string, string>
+      }
+      expect(pkg.dependencies['@payload-solutions/plugin-action-scheduler']).toBeUndefined()
+      expect(pkg.devDependencies['@payload-solutions/plugin-action-scheduler']).toBeUndefined()
+
+      // Nothing runs a queue that does not exist, and no secret is written for it.
+      const env = readFileSync(path.join(dir, '.env'), 'utf8')
+      expect(env).not.toMatch(/^CRON_SECRET=/m)
+      expect(env).not.toMatch(/^RUN_JOBS_IN_PROCESS=/m)
+
+      for (const file of CALL_SITES) {
+        expect(readFileSync(path.join(dir, file), 'utf8'), file).toBe(readFileSync(path.join(templateDir, file), 'utf8'))
+      }
+    })
+
+    it('recommends Payload Clock, and lists the alternatives with it', () => {
+      const { dir, output } = scaffold('runner-clock', ['-d', 'sqlite', '--runner', 'clock', '-y'])
+      expect(output).toContain('Scheduled Actions')
+      expect(output).toContain('payloadclock.com')
+      // Picking one does not hide the others: the runner is the part most likely to change.
+      expect(output).toContain('vercel.json')
+      expect(output).toContain('RUN_JOBS_IN_PROCESS')
+      // A hosted clock calls the endpoint, so it needs the secret — and nothing local to run.
+      expect(readFileSync(path.join(dir, '.env'), 'utf8')).toMatch(/^CRON_SECRET=[A-Za-z0-9_-]{40,}$/m)
+      expect(existsSync(path.join(dir, 'vercel.json'))).toBe(false)
+    })
+
+    it('writes vercel.json only for the Vercel runner', () => {
+      const { dir, output } = scaffold('runner-vercel', ['-d', 'sqlite', '--runner', 'vercel', '-y'])
+      const vercel = JSON.parse(readFileSync(path.join(dir, 'vercel.json'), 'utf8')) as {
+        crons: Array<{ path: string; schedule: string }>
+      }
+      expect(vercel.crons[0]!.path).toContain('/api/payload-jobs/run')
+      expect(readFileSync(path.join(dir, '.env'), 'utf8')).toMatch(/^CRON_SECRET=/m)
+      // Hobby runs a cron once a day, which is a poor clock: the note has to say so.
+      expect(output).toContain('Hobby')
+    })
+
+    it('turns the in-process runner on for a long-lived server, and only there', () => {
+      const server = scaffold('runner-server', ['-d', 'sqlite', '--runner', 'server', '-y'])
+      expect(readFileSync(path.join(server.dir, '.env'), 'utf8')).toMatch(/^RUN_JOBS_IN_PROCESS=true$/m)
+      expect(existsSync(path.join(server.dir, 'vercel.json'))).toBe(false)
+      expect(server.output).toContain('Never set it on Vercel')
+
+      const clock = scaffold('runner-not-server', ['-d', 'sqlite', '--runner', 'clock', '-y'])
+      expect(readFileSync(path.join(clock.dir, '.env'), 'utf8')).not.toMatch(/^RUN_JOBS_IN_PROCESS=/m)
+    })
+
+    it('leaves the queue unrun, without a secret, when the decision is deferred', () => {
+      const { dir, output } = scaffold('runner-later', ['-d', 'sqlite', '--runner', 'later', '-y'])
+      const env = readFileSync(path.join(dir, '.env'), 'utf8')
+      expect(env).not.toMatch(/^CRON_SECRET=/m)
+      expect(env).not.toMatch(/^RUN_JOBS_IN_PROCESS=/m)
+      expect(existsSync(path.join(dir, 'vercel.json'))).toBe(false)
+      // The admin's Run queue button is the fallback, and the note has to point at it.
+      expect(output).toContain('Run queue')
+      // The scheduler itself is still there: only the runner was deferred.
+      expect(existsSync(path.join(dir, 'src/scheduler/actions/index.ts'))).toBe(true)
+    })
+  })
+
   it.each(DB_KEYS)('with the %s database', (dbKey) => {
     const db = DB_CHOICES[dbKey]
     const { dir } = scaffold(`db-${dbKey}`, ['-d', dbKey, '-y'])

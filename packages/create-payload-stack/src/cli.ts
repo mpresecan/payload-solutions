@@ -15,6 +15,7 @@ import {
   type ProjectOptions,
   type SocialProvider,
 } from './options'
+import { RUNNER_CHOICES, RUNNER_KEYS, type RunnerKey } from './scheduler'
 import { STORAGE_ADAPTER_KEYS, STORAGE_CHOICES, STORAGE_KEYS, type StorageKey } from './storage'
 import { copyLocalTemplate, downloadTemplate } from './template'
 import { detectPackageManager, installCommand, isDirectoryEmpty, runCommand, slugify } from './utils'
@@ -193,6 +194,44 @@ export async function run(flags: CliFlags, positionalName?: string) {
           }),
         ))
 
+  // 10. Scheduled and recurring actions
+  const scheduler =
+    flags.scheduler ??
+    (flags.defaults
+      ? true
+      : guard(
+          await p.confirm({
+            message: 'Scheduled and recurring actions',
+            initialValue: true,
+            active: 'Trial reminders, dunning, sweeps, and a ledger in the admin (Payload Action Scheduler)',
+            inactive: 'No scheduler',
+          }),
+        ))
+
+  // 11. What runs the queue. Only asked when there is a queue to run: the scheduler turns a due
+  // action into a Payload job, and something outside Payload still has to say "run them now".
+  const runnerFlag = flags.runner as RunnerKey | undefined
+  if (runnerFlag && !RUNNER_KEYS.includes(runnerFlag)) {
+    bail(`Unknown value "${flags.runner}" for --runner. Allowed: ${RUNNER_KEYS.join(', ')}`)
+  }
+  if (runnerFlag && !scheduler) bail('--runner needs --scheduler. Nothing runs a queue that does not exist.')
+  const runner: RunnerKey = !scheduler
+    ? 'later'
+    : (runnerFlag ??
+      (flags.defaults
+        ? 'clock'
+        : guard(
+            await p.select<RunnerKey>({
+              message: 'What runs the queue',
+              initialValue: 'clock',
+              options: RUNNER_KEYS.map((key) => ({
+                value: key,
+                label: RUNNER_CHOICES[key].label,
+                hint: RUNNER_CHOICES[key].hint,
+              })),
+            }),
+          )))
+
   const packageManager = flags.packageManager ?? (await detectPackageManager())
 
   const options: ProjectOptions = {
@@ -208,6 +247,8 @@ export async function run(flags: CliFlags, positionalName?: string) {
     storage,
     emails,
     consent,
+    scheduler,
+    runner,
     packageManager,
     install: flags.install,
     git: flags.git,
@@ -274,6 +315,9 @@ export async function run(flags: CliFlags, positionalName?: string) {
           '# the seeded legal pages are templates, not policy: the homepage shows the six steps in development',
           `# ${CONSENT_DOCS}`,
         ]
+      : []),
+    ...(scheduler
+      ? ['# scheduled actions are under System -> Scheduled Actions in the admin', ...RUNNER_CHOICES[runner].next()]
       : []),
   ]
   p.note(steps.join('\n'), 'Done. Next steps:')

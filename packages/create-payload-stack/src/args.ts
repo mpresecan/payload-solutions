@@ -3,6 +3,7 @@ import pc from 'picocolors'
 
 import { DB_KEYS } from './databases'
 import type { CliFlags, PackageManager } from './options'
+import { RUNNER_KEYS } from './scheduler'
 import { STORAGE_KEYS } from './storage'
 
 /** The --help text. Every flag `parse` accepts is documented here (tests/args.test.ts checks). */
@@ -28,6 +29,9 @@ export function helpText(version: string): string {
         --no-emails               Keep emails as React Email components in code
         --consent                 Cookie banner and audited legal pages (Payload Consent)
         --no-consent              Plain legal pages, no banner
+        --scheduler               Scheduled and recurring actions (Payload Action Scheduler)
+        --no-scheduler            No scheduler
+        --runner <kind>           ${RUNNER_KEYS.join(' | ')} (what runs the queue; default: clock)
         --use-pnpm | --use-npm | --use-yarn | --use-bun
         --no-install              Skip dependency installation
         --no-git                  Skip git init
@@ -69,6 +73,8 @@ export function parse(argv: string[]): { flags: CliFlags; positional?: string } 
       storage: { type: 'string' },
       emails: { type: 'boolean' },
       consent: { type: 'boolean' },
+      scheduler: { type: 'boolean' },
+      runner: { type: 'string' },
       'use-pnpm': { type: 'boolean' },
       'use-npm': { type: 'boolean' },
       'use-yarn': { type: 'boolean' },
@@ -106,6 +112,8 @@ export function parse(argv: string[]): { flags: CliFlags; positional?: string } 
       storage: values.storage,
       emails: values.emails,
       consent: values.consent,
+      scheduler: values.scheduler,
+      runner: values.runner,
       packageManager,
       install: values.install ?? true,
       git: values.git ?? true,

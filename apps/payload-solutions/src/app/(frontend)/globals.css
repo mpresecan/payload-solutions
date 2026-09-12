@@ -90,8 +90,24 @@ figure[data-rehype-pretty-code-figure] pre {
   font-family: var(--font-mono);
   font-size: 0.8125rem;
   line-height: 1.6;
+  tab-size: 2;
   overflow-x: auto;
   white-space: pre;
+}
+
+/* Same four token roles as payloadstack.com and payloadclock.com, so a snippet reads the same
+   on all three sites. Entities of ours are coloured inline with their own accent instead. */
+.code-block .tok-k {
+  color: var(--accent);
+}
+.code-block .tok-s {
+  color: var(--fg);
+}
+.code-block .tok-c {
+  color: var(--fg-subtle);
+}
+.code-block .tok-p {
+  color: var(--fg-muted);
 }
 
 /* Button hover: label lifts, inverted panel slides in. transform/opacity only. */

@@ -1,4 +1,4 @@
-import type { Payload } from 'payload'
+import type { CollectionSlug, Payload } from 'payload'
 
 /**
  * Compare-and-set updates.
@@ -210,11 +210,15 @@ async function casFallback(payload: Payload, args: CasArgs): Promise<boolean> {
     await payload.db.updateGlobal({ slug: args.target.global, data: { ...doc, ...data } })
     return true
   }
-  const doc = (await payload.db.findOne({ collection: args.target.collection, where: { id: { equals: args.target.id } } })) as null | Record<string, unknown>
+  // A no-op in this package (`CollectionSlug` is `string` without generated types, which is why
+  // eslint calls it unnecessary) and load-bearing in a typed host. Do not remove it.
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  const target = args.target.collection as CollectionSlug
+  const doc = (await payload.db.findOne({ collection: target, where: { id: { equals: args.target.id } } })) as null | Record<string, unknown>
   if (!doc || !args.where.every((c) => matches(doc, c))) {
     return false
   }
-  await payload.db.updateOne({ id: args.target.id, collection: args.target.collection, data, returning: false })
+  await payload.db.updateOne({ id: args.target.id, collection: target, data, returning: false })
   return true
 }
 

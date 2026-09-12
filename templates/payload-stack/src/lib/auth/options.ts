@@ -28,6 +28,7 @@ import {
 } from '@/emails/hooks'
 import { env } from '@/lib/env'
 import { toStripePlans } from '@/lib/stack'
+import { withStripeEvents, withTrialCallbacks } from '@/scheduler/hooks'
 import stack from '@/stack.config'
 
 async function payloadClient() {
@@ -129,17 +130,22 @@ function plugins(): BetterAuthPlugin[] {
     const webhookSecret = env.STRIPE_WEBHOOK_SECRET
     if (secretKey && webhookSecret) {
       const stripeClient = new Stripe(secretKey)
-      // Trial reminders hang off each plan's freeTrial block; both are empty without the emails plugin.
+      // Trial notices hang off each plan's freeTrial block. Both wrappers are pass-throughs
+      // without their plugin: emails adds the messages, the scheduler moves the reminder earlier
+      // and books it in advance. See src/emails/hooks.ts and src/scheduler/hooks.ts.
       const plans = toStripePlans(stack).map((plan) =>
-        plan.freeTrial ? { ...plan, freeTrial: { ...plan.freeTrial, ...trialEmailCallbacks } } : plan,
+        plan.freeTrial
+          ? { ...plan, freeTrial: { ...plan.freeTrial, ...withTrialCallbacks(trialEmailCallbacks) } }
+          : plan,
       )
       list.push(
         stripe({
           stripeClient,
           stripeWebhookSecret: webhookSecret,
           createCustomerOnSignUp: stack.billing.attachedTo === 'user',
-          // Receipts and failed-payment notices, straight off the webhook.
-          ...stripeEmailEvents,
+          // Receipts and failed-payment notices, straight off the webhook. The scheduler wrapper
+          // chains its own handler after the email one, so both see every event.
+          ...withStripeEvents(stripeEmailEvents),
           subscription: {
             enabled: true,
             plans,

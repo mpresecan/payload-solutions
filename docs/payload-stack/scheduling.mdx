@@ -1,0 +1,145 @@
+---
+title: Scheduled actions
+description: Trial reminders, dunning, sweeps and anything else that has to happen later — with a ledger you can read.
+---
+
+Some of what a SaaS owes its customers cannot be done in the request that causes it. A trial reminder belongs three days before the trial ends, not when it ends. A failed payment deserves a second look next week, not a second email now. Invitations expire, sessions pile up, and something has to notice.
+
+One question at scaffold time decides whether this project has somewhere to put that work.
+
+```bash
+npx create-payload-stack@latest ridgeline --scheduler      # a ledger, a catalogue and an admin screen
+npx create-payload-stack@latest ridgeline --no-scheduler   # nothing scheduled; write your own later
+```
+
+Both answers use the same call sites. `src/scheduler` exports the same names either way, so `payload.config.ts` and `src/lib/auth/options.ts` are identical in both projects — without the plugin the plugin array is empty, the jobs config is undefined, and the two Better Auth wrappers return what they are given.
+
+## With `--scheduler`
+
+The [Payload Action Scheduler](/docs/plugins/payload-action-scheduler) is registered and the project gets:
+
+| | Where |
+| --- | --- |
+| The ledger and its log | `scheduled-actions`, `scheduled-action-logs` |
+| The admin screen | **System → Scheduled Actions**: run now, reschedule, retry, cancel, and the log for every attempt |
+| What can be scheduled | `src/scheduler/actions` |
+| When it is scheduled | `src/scheduler/hooks.ts` |
+| What runs it | `src/scheduler/jobs.ts` — see [Runners](#runners) |
+
+An action is a promise about *when*, so its arguments hold identifiers and nothing else. Who the account owner is, what the plan is called, whether the invoice was paid in the meantime — all of that is resolved when the action runs, not when it was booked eleven days earlier.
+
+### The catalogue
+
+Six actions, filtered by the features in `stack.config.ts` exactly as the rest of the template is. An action that could never fire is not registered, so the admin lists what this product has rather than what the boilerplate shipped with.
+
+| Action | When it fires | Needs |
+| --- | --- | --- |
+| `billing.trial-reminder` | Three days before a free trial becomes a paid subscription | billing + `--emails` |
+| `billing.payment-reminder` | Three days after a declined payment, then once more | billing + `--emails` |
+| `organizations.expire-invitations` | Hourly: marks pending invitations past their deadline as expired | organizations |
+| `maintenance.prune-auth-records` | Nightly at 03:15 UTC: deletes expired sessions and spent verification tokens | — |
+| `accounts.purge-unverified` | Nothing: registered but unscheduled (see below) | — |
+| `emails.send` | Whenever you schedule it | `--emails` |
+
+The messages need the [Payload Emails](/docs/payload-stack/emails) plugin, because that is where the copy and the recipients live. `src/scheduler/actions/billing.ts` knows nothing about plans, owners or Stripe invoices: it calls `sendTrialReminder` and `sendPaymentReminder` in `src/emails/hooks.ts`, which are no-ops in a project without the catalogue. Scaffold with `--scheduler --no-emails` and the sweeps still run; the notices are simply not registered.
+
+### The trial reminder moves the notice earlier
+
+Better Auth reports that a trial *has ended*, which is the one day a reminder is no use. With the scheduler, `onTrialStart` books the reminder for three days before the end, and the day-of `onTrialEnd` send is dropped rather than left to send the same message twice. `onTrialExpired` — nothing was charged, paid features are off — still fires from the event, where it belongs.
+
+Change the lead time in `src/scheduler/actions/billing.ts`:
+
+```ts
+export const TRIAL_REMINDER_DAYS = 3
+```
+
+### Dunning is a ladder, not an email
+
+A declined payment books `billing.payment-reminder` for three days later, grouped by invoice. Three things can happen:
+
+- The payment arrives — Stripe's own retry, or someone updates their card. The `invoice.paid` webhook cancels the whole group.
+- The app was down when the payment arrived, so no webhook cancelled anything. The action asks Stripe before sending, and skips with a note if the invoice is settled.
+- It is still unpaid. The reminder goes out and books the next one, up to `DUNNING_MAX_NOTICES`.
+
+### The purge that ships unarmed
+
+`accounts.purge-unverified` deletes user records, so no recurring series arms it and it never retries. It skips administrators whatever their age, and takes the cut-off as an argument. Run it from **Scheduled Actions → Create**, or give it a series in `src/scheduler/actions/index.ts` once you have decided your own policy:
+
+```ts
+export const recurring = [
+  { key: 'prune-auth-records', hook: 'maintenance.prune-auth-records', cron: '15 3 * * *' },
+  { key: 'purge-unverified', hook: 'accounts.purge-unverified', cron: '40 3 * * *', args: { olderThanDays: 30 } },
+]
+```
+
+Series are reconciled on every boot: change a cron and the next start moves the pending occurrence, remove a key and its series is dropped.
+
+### Scheduling your own
+
+```ts
+// Once, at a time
+await payload.scheduler.schedule('reports.monthly', { organization: org.id }, { scheduleAt: firstOfNextMonth })
+
+// Any email in the catalogue, later — visible and cancelable, unlike a bare queued send
+await payload.scheduler.schedule(
+  'emails.send',
+  { slug: 'welcome', to: user.email, input: { user: user.id } },
+  { scheduleAt: '2026-10-01T09:00:00Z' },
+)
+
+// Recurring, and called off by name
+await payload.scheduler.recurring('digest.weekly', { organization: org.id }, { every: '7d', group: `org:${org.id}` })
+await payload.scheduler.cancelAll('digest.weekly', { group: `org:${org.id}` })
+```
+
+New actions go in `src/scheduler/actions` and into the `actions` array. A slug is a promise: rows already in the ledger refer to it, so renaming one leaves them with nowhere to run. Arguments are typed from the generated `Config['scheduledActions']` after `pnpm generate:types` — see the plugin's [TypeScript](/docs/plugins/payload-action-scheduler/typescript) page.
+
+## Runners
+
+The scheduler decides when an action is due and turns it into a Payload job. Something outside Payload still has to say "run the queue now", and on a serverless host nothing does — no code runs between requests. That is the second question the CLI asks, `--runner`:
+
+| `--runner` | What it writes | Good for |
+| --- | --- | --- |
+| `clock` | `CRON_SECRET` in `.env` | **Recommended.** [Payload Clock](https://payloadclock.com) — free, retries a failed call, alerts you when your queue stops answering, and works the same on Vercel, Netlify, Cloudflare and a VM. Nothing to deploy. |
+| `vercel` | `vercel.json` with a `crons` entry, and `CRON_SECRET` | Vercel Pro. Hobby runs a cron once a day, which is a coarse clock for a scheduler. |
+| `server` | `RUN_JOBS_IN_PROCESS=true` | Docker, Fly, Railway, a VM — anything long-lived. |
+| `later` | Nothing | Development, and deciding when you deploy. |
+
+Whichever you pick, all of them are one call:
+
+```bash
+curl -fsS -H "Authorization: Bearer $CRON_SECRET" \
+  "$NEXT_PUBLIC_APP_URL/api/payload-jobs/run?allQueues=true"
+```
+
+One call runs both the due actions and the scheduler's maintenance tick, so once a minute is the cadence this is designed around. At one call a day, an action scheduled for 09:00 runs at the next call instead.
+
+Switching runner later is a variable, not a rewrite: set `CRON_SECRET` and point a clock at that URL, or set `RUN_JOBS_IN_PROCESS=true` on a long-lived server. **Scheduled Actions → Run queue** in the admin always works, and stays useful for "run it now, I am watching".
+
+### Who may run the queue
+
+Payload lets any signed-in user run jobs. A clock is not a user, and a customer is not a scheduler, so `src/scheduler/jobs.ts` narrows it: the `CRON_SECRET` bearer token gets in, administrators get in, nobody else does. With no `CRON_SECRET` set the endpoint is admin-only — which is why a fresh project runs the queue from the admin button.
+
+Vercel sends `CRON_SECRET` as the bearer token by itself, so add it to the Vercel project as well as `.env`.
+
+### Exactly once
+
+Claims are compare-and-set statements — conditional `UPDATE … RETURNING` on Postgres and SQLite, `findOneAndUpdate` on MongoDB — so two runners picking up the same job invoke the handler once. On any other adapter the plugin warns at start-up and you should run a single runner. See the plugin's [Runners](/docs/plugins/payload-action-scheduler/runners) page.
+
+## Retention
+
+Finished rows are history, not state. A week of successes and cancellations, a quarter of failures, so "why did this customer never get the reminder?" is answerable long after the fact. Change it in `src/scheduler/plugin.ts`:
+
+```ts
+retention: { canceled: '7d', complete: '7d', failed: '90d' }
+```
+
+## Changing your mind later
+
+Both directions are a small edit, because the seam is a module:
+
+```bash
+pnpm add @payload-solutions/plugin-action-scheduler
+```
+
+Then rewrite the three files in `src/scheduler` (see the plugin's [installation guide](/docs/plugins/payload-action-scheduler/installation)), add a catalogue in `src/scheduler/actions`, and run `pnpm generate:types` and `pnpm generate:importmap`. Going the other way, empty `schedulerPlugins`, set `schedulerJobs` back to `undefined`, and make the two wrappers return their argument; the ledger stays in the database until you drop the collections.

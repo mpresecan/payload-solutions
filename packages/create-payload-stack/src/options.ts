@@ -1,4 +1,5 @@
 import type { DbKey } from './databases'
+import type { RunnerKey } from './scheduler'
 import type { StorageKey } from './storage'
 
 export const AUTH_METHODS = ['email-password', 'magic-link', 'passkey'] as const
@@ -28,6 +29,10 @@ export interface ProjectOptions {
   emails: boolean
   /** Cookie banner, consent records and audited legal pages with the Payload Consent plugin. */
   consent: boolean
+  /** Scheduled and recurring actions with the Payload Action Scheduler plugin. */
+  scheduler: boolean
+  /** What runs the job queue. Only meaningful with `scheduler`. */
+  runner: RunnerKey
   packageManager: PackageManager
   install: boolean
   git: boolean
@@ -45,6 +50,8 @@ export interface CliFlags {
   storage?: string
   emails?: boolean
   consent?: boolean
+  scheduler?: boolean
+  runner?: string
   packageManager?: PackageManager
   install: boolean
   git: boolean

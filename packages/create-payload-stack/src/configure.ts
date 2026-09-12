@@ -5,6 +5,7 @@ import { applyConsentChoice, swapConsentPackages } from './consent'
 import { DB_CHOICES, type DbChoice } from './databases'
 import { addEmailsPlugin, applyEmailsChoice, swapEmailsPackages } from './emails'
 import type { ProjectOptions } from './options'
+import { applySchedulerChoice, renderVercelJson, RUNNER_CHOICES, swapSchedulerPackages } from './scheduler'
 import { LOCAL_STORAGE_CONFIG, STORAGE_CHOICES, STORAGE_PACKAGES, type StorageChoice, type StorageKey } from './storage'
 import { generateSecret } from './utils'
 import { removeVariants } from './variants'
@@ -16,8 +17,9 @@ import { removeVariants } from './variants'
  *   3. media storage adapter written into payload.config.ts and package.json (or left on local disk)
  *   4. transactional emails wired to the Payload Emails plugin, or left as React Email components
  *   5. consent and legal pages wired to the Payload Consent plugin, or left as a plain collection
- *   6. .env generated from .env.example
- *   7. package.json renamed
+ *   6. scheduled actions wired to the Payload Action Scheduler, and a runner for the job queue
+ *   7. .env generated from .env.example
+ *   8. package.json renamed
  * Every function is pure over file contents so it can be unit-tested without a filesystem.
  */
 
@@ -235,12 +237,23 @@ export function renameProject(packageJson: Record<string, unknown>, slug: string
   return next
 }
 
-export function renderEnv(example: string, o: { connectionString: string; appUrl?: string }) {
+/**
+ * .env from .env.example. Every key listed here is written with a real value, and a commented
+ * example line (`# CRON_SECRET=`) is uncommented in the process — which is how the scheduler's two
+ * variables are set only for the projects that have a scheduler.
+ */
+export function renderEnv(
+  example: string,
+  o: { connectionString: string; appUrl?: string; cronSecret?: boolean; inProcessRunner?: boolean },
+) {
   const values: Record<string, string> = {
     DATABASE_URL: o.connectionString,
     PAYLOAD_SECRET: generateSecret(24),
     BETTER_AUTH_SECRET: generateSecret(32),
     NEXT_PUBLIC_APP_URL: o.appUrl ?? 'http://localhost:3000',
+    // A clock needs a secret to get past jobs.access.run; without one that endpoint is admin-only.
+    ...(o.cronSecret ? { CRON_SECRET: generateSecret(32) } : {}),
+    ...(o.inProcessRunner ? { RUN_JOBS_IN_PROCESS: 'true' } : {}),
   }
   const lines = example.split('\n').map((line) => {
     const m = /^#?\s?([A-Z0-9_]+)=(.*)$/.exec(line)
@@ -275,18 +288,36 @@ export async function configureProject(o: ProjectOptions) {
 
   await applyEmailsChoice(o.directory, o.emails)
   await applyConsentChoice(o.directory, o.consent)
+  await applySchedulerChoice(o.directory, o.scheduler)
   await removeVariants(o.directory)
 
+  // Vercel is the one runner that needs a file in the project; the rest are a variable or a
+  // service. Written only when it was asked for, so no other host inherits a stray cron.
+  if (o.scheduler && o.runner === 'vercel') {
+    await write('vercel.json', renderVercelJson())
+  }
+
   const pkg = JSON.parse(await read('package.json')) as Record<string, unknown>
-  const configured = swapConsentPackages(
-    swapEmailsPackages(swapStoragePackage(swapDatabasePackage(pkg, db), storage), o.emails),
-    o.consent,
+  const configured = swapSchedulerPackages(
+    swapConsentPackages(
+      swapEmailsPackages(swapStoragePackage(swapDatabasePackage(pkg, db), storage), o.emails),
+      o.consent,
+    ),
+    o.scheduler,
   )
   await write(
     'package.json',
     JSON.stringify(renameProject(stripWorkspaceDependencies(configured), o.slug), null, 2) + '\n',
   )
 
+  const runner = RUNNER_CHOICES[o.runner]
   const example = await read('.env.example')
-  await write('.env', renderEnv(example, { connectionString: o.connectionString }))
+  await write(
+    '.env',
+    renderEnv(example, {
+      connectionString: o.connectionString,
+      cronSecret: o.scheduler && runner.cronSecret,
+      inProcessRunner: o.scheduler && runner.inProcess,
+    }),
+  )
 }

@@ -23,7 +23,8 @@ This project was scaffolded with `npx create-payload-stack`. It is a SaaS on Pay
 - `src/lib/tenancy.ts`: `tenantScope()` / `tenantData()` for tenant-scoped queries and writes from server code. `src/lib/ids.ts`: Better Auth ids are strings, Payload ids may be numbers; normalize with `toPayloadId`.
 - `src/lib/paths.ts`: every route. Better Auth UI base paths are set here too (`/admin` belongs to Payload).
 - `src/components/ui/*`: shadcn/ui (radix-nova). `src/components/auth/*`: Better Auth UI components installed from its shadcn registry; treat as vendored.
-- `src/emails/*`: transactional email. Rendered with React Email, sent through Payload's email adapter (Resend in production).
+- `src/emails/*`: transactional email. Rendered with React Email, sent through Payload's email adapter (Resend in production). `src/emails/hooks.ts` is a seam too: `emailsEnabled`, `notify`, `sendTrialReminder` and `sendPaymentReminder` exist in both branches, and are how anything else asks for a message without knowing whether the catalogue is there.
+- `src/scheduler/`: the seam for scheduled and recurring actions. Both branches export the same names (`schedulerPlugins`, `schedulerJobs`, `withStripeEvents`, `withTrialCallbacks`), so `payload.config.ts` and `src/lib/auth/options.ts` never change with the answer. The two wrappers compose over the email bundles rather than sitting beside them, because both plugins want `stripe({ onEvent })`. `src/scheduler/actions/*` is the catalogue, gated on `stack.features.*` and on `emailsEnabled`; `src/scheduler/jobs.ts` is the runner and the cron-secret gate on `/api/payload-jobs/run`.
 - `src/collections/Projects.ts`: example tenant-scoped collection. Copy its pattern for real collections.
 
 ## Conventions

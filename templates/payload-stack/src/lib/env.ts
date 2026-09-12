@@ -53,6 +53,14 @@ const schema = z.object({
   SENTRY_PROJECT: optionalString,
   SENTRY_AUTH_TOKEN: optionalString,
 
+  // Scheduled actions. CRON_SECRET is the shared secret an external clock sends to run the job
+  // queue (`Authorization: Bearer <secret>` on /api/payload-jobs/run); without it that endpoint
+  // stays open only to signed-in admins. RUN_JOBS_IN_PROCESS=true runs the queue inside this
+  // process instead, on a long-lived server only — never on Vercel or another serverless host,
+  // where nothing runs between requests.
+  CRON_SECRET: optionalString,
+  RUN_JOBS_IN_PROCESS: optionalString,
+
   // Media storage. Only the adapter wired into payload.config.ts reads its variables; without them
   // uploads stay on local disk (./media).
   BLOB_READ_WRITE_TOKEN: optionalString,
@@ -113,3 +121,11 @@ export const sentryReady = Boolean(env.SENTRY_DSN)
 
 /** Source map upload and the build-time wrapper need the project coordinates as well as the DSN. */
 export const sentryBuildReady = Boolean(env.SENTRY_ORG && env.SENTRY_PROJECT && env.SENTRY_AUTH_TOKEN)
+
+/**
+ * Run the job queue inside this process. Opt-in, because it is wrong on every serverless host:
+ * there each request is its own short-lived process, so an in-process cron either never fires or
+ * fires in a lambda that is about to be frozen. Point an external clock at
+ * /api/payload-jobs/run there instead (see src/scheduler/jobs.ts).
+ */
+export const runJobsInProcess = env.RUN_JOBS_IN_PROCESS === 'true' || env.RUN_JOBS_IN_PROCESS === '1'

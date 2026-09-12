@@ -9,6 +9,14 @@ description: Install the plugin, declare an action, register it, and run the que
 pnpm add @payload-solutions/plugin-action-scheduler
 ```
 
+Starting a new project? [Payload Stack](/docs/payload-stack) scaffolds all of this — the plugin, a catalogue of actions gated on the product's features, and a run endpoint locked to a cron secret — as one optional step:
+
+```bash
+npx create-payload-stack@latest ridgeline --scheduler
+```
+
+See [Scheduled actions](/docs/payload-stack/scheduling) for what it writes.
+
 Payload 3.88+, `@payloadcms/ui`, React 19 and `react-dom` are peer dependencies you already have. `croner` — the cron engine Payload itself uses — ships with the plugin.
 
 ## Declare an action

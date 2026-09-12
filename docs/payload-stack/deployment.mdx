@@ -19,6 +19,8 @@ From `.env.example`:
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PRICE_*` | for billing | See [Billing](/docs/payload-stack/billing) |
 | `<PROVIDER>_CLIENT_ID`, `<PROVIDER>_CLIENT_SECRET` | per social provider | |
 | `BLOB_READ_WRITE_TOKEN`, `S3_*`, `R2_*`, `AZURE_STORAGE_*`, `GCS_*`, `UPLOADTHING_TOKEN` | for the storage adapter you chose | Without them uploads stay on local disk. See [Media storage](/docs/payload-stack/storage) |
+| `CRON_SECRET` | for scheduled actions | Lets a clock run the job queue; without it that endpoint is admin-only. See [Scheduled actions](/docs/payload-stack/scheduling#runners) |
+| `RUN_JOBS_IN_PROCESS` | long-lived hosts only | `true` runs the queue in this process. Never on serverless. |
 
 `src/lib/env.ts` validates them at boot and fails with the missing name.
 
@@ -35,9 +37,11 @@ pnpm db:migrate && pnpm build
 
 Import the repository, set the variables above, use a managed PostgreSQL (Vercel Postgres, Neon, Supabase) and set the build command to `pnpm db:migrate && pnpm build`. Vercel's filesystem is ephemeral, so configure a [storage adapter](/docs/payload-stack/storage) (Vercel Blob is the shortest path) or uploads vanish on the next deploy. Add the Stripe webhook endpoint after the first deploy.
 
+Nothing runs between requests on Vercel, so a project with [scheduled actions](/docs/payload-stack/scheduling) needs a clock: [Payload Clock](https://payloadclock.com) is free and runs every minute on any plan, and a `vercel.json` cron is the alternative (once a day on Hobby). Either way `CRON_SECRET` has to be set in the Vercel project as well as locally.
+
 ## Docker
 
-The included `Dockerfile` builds a standalone Next.js image. Provide the environment variables at runtime and run migrations before starting the container.
+The included `Dockerfile` builds a standalone Next.js image. Provide the environment variables at runtime and run migrations before starting the container. This is the one place `RUN_JOBS_IN_PROCESS=true` belongs, if the project has scheduled actions — on one instance.
 
 ## Checklist before launch
 
@@ -47,3 +51,4 @@ The included `Dockerfile` builds a standalone Next.js image. Provide the environ
 - Stripe webhook endpoint created for production and the portal enabled.
 - `NEXT_PUBLIC_APP_URL` is the final domain (passkeys are bound to it).
 - Uploads go to a storage adapter, not local disk, unless the host has a persistent volume.
+- Something runs the job queue, if the project has scheduled actions — the admin's **Run queue** button proves the endpoint works; a clock proves it keeps working.

@@ -7,11 +7,13 @@ The plugin runs nothing by itself. Each due action is a Payload job (`scheduler:
 
 | Setup | How |
 | --- | --- |
+| [Payload Clock](https://payloadclock.com) — recommended | A free hosted clock calling `GET /api/payload-jobs/run?allQueues=true` with your cron secret, with retries, run history and alerts when your queue stops answering. Nothing to deploy, and the same on every host. |
 | Long-lived server | `jobs.autoRun: [{ cron: '* * * * *', queue: 'default' }]` |
-| Vercel / serverless | A cron calling `GET /api/payload-jobs/run?allQueues=true` with your cron secret |
+| Vercel / serverless | A cron calling the same endpoint with your cron secret. Note that Vercel Hobby runs a cron once a day. |
 | Separate worker | `payload jobs:run --all-queues --handle-schedules` on a schedule |
-| [Payload Clock](/docs/payload-clock) | The hosted clock calls the same endpoint with retries and alerts |
 | Admin | **Run queue** → `POST /api/scheduled-actions/scheduler/run-queue` |
+
+One call does both jobs: it queues anything whose schedule has come round (the maintenance tick) and then runs the due jobs. Once a minute is the cadence the plugin is designed around — at one call a day, an action scheduled for 09:00 runs at the next call instead.
 
 ## The tick
 

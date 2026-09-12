@@ -1,4 +1,4 @@
-import type { Payload, TaskConfig } from 'payload'
+import type { CollectionSlug, Field, Payload, TaskConfig } from 'payload'
 
 import type { Engine } from '../engine/execute.js'
 import type { Store } from '../engine/store.js'
@@ -26,7 +26,8 @@ export function createMaintenance(
 
   /** Payload 4 leases transport jobs itself; on 3.x the plugin has to unstick them. */
   function jobsHaveLeases(): boolean {
-    const fields = payload.collections['payload-jobs']?.config.fields ?? []
+    // 'payload-jobs' is absent from a host's CollectionSlug union until its config has tasks.
+    const fields: Field[] = payload.collections['payload-jobs' as CollectionSlug]?.config.fields ?? []
     return fields.some((f) => 'name' in f && f.name === 'processingUntil')
   }
 

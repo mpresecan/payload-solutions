@@ -1,6 +1,6 @@
 {
   "name": "payload-stack",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Payload Stack: a SaaS boilerplate on Payload CMS, Next.js, Better Auth, organizations, Stripe and shadcn/ui.",
   "license": "MIT",
   "type": "module",
@@ -74,6 +74,7 @@
   },
   "devDependencies": {
     "@payload-solutions/consent-react": "workspace:*",
+    "@payload-solutions/plugin-action-scheduler": "workspace:*",
     "@payload-solutions/plugin-consent": "workspace:*",
     "@payload-solutions/plugin-emails": "workspace:*",
     "@playwright/test": "1.58.2",

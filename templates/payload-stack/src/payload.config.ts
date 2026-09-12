@@ -24,6 +24,8 @@ import { seedLegal } from '@/consent/seed'
 import { ADMIN_ROLES, ROLES, betterAuthOptions } from '@/lib/auth/options'
 import { silenceKnownPayloadAuthWarnings } from '@/lib/auth/payload-auth-workarounds'
 import { env, sentryReady } from '@/lib/env'
+import { schedulerJobs } from '@/scheduler/jobs'
+import { schedulerPlugins } from '@/scheduler/plugin'
 import stack from '@/stack.config'
 import { TENANT_SCOPED_COLLECTIONS, withTenantCleanup } from '@/tenancy/cleanup'
 import { withMembershipSync } from '@/tenancy/sync-memberships'
@@ -158,7 +160,11 @@ if (sentryReady) {
 // with `create-payload-stack --consent` to fill it in (src/consent/plugin.ts).
 plugins.push(...consentPlugins)
 
-// 6. Media storage (the CLI writes your choice here; keep the markers so it can be swapped again).
+// 6. Scheduled and recurring actions. Empty without the Payload Action Scheduler plugin; scaffold
+// with `create-payload-stack --scheduler` to fill it in (src/scheduler/plugin.ts).
+plugins.push(...schedulerPlugins)
+
+// 7. Media storage (the CLI writes your choice here; keep the markers so it can be swapped again).
 // storage-adapter-config-start
 // Local disk (./media): fine for development, lost on redeploy on Vercel and other ephemeral hosts.
 // Move uploads to Vercel Blob, S3, R2, Azure, GCS or Uploadthing: https://payload.solutions/docs/payload-stack/storage
@@ -201,6 +207,9 @@ export default buildConfig({
         defaultFromName: env.EMAIL_FROM_NAME ?? stack.name,
       })
     : undefined,
+  // Who runs the job queue, and who may ask it to. Undefined without the Action Scheduler:
+  // see src/scheduler/jobs.ts.
+  jobs: schedulerJobs,
   sharp,
   plugins,
   onInit: async (payload) => {

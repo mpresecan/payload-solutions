@@ -2,7 +2,7 @@
   "name": "payload-ecosystem",
   "version": "0.0.0",
   "private": true,
-  "description": "Payload Solutions monorepo: Payload Stack (SaaS boilerplate), create-payload-stack CLI, plugins, and the payload.solutions and payloadstack.com websites.",
+  "description": "Payload Solutions monorepo: Payload Stack (SaaS boilerplate), create-payload-stack CLI, plugins, and the payload.solutions, payloadstack.com and payloadclock.com websites.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -19,6 +19,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev --concurrency 12",
     "dev:stack-web": "pnpm --filter @payload-solutions/stack-web dev",
+    "dev:clock-web": "pnpm --filter @payload-solutions/clock-web dev",
     "dev:solutions": "pnpm --filter @payload-solutions/web dev",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",

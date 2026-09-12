@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import { helpText, parse } from '../src/args'
 import { DB_KEYS } from '../src/databases'
+import { RUNNER_KEYS } from '../src/scheduler'
 import { STORAGE_KEYS } from '../src/storage'
 
 describe('parse', () => {
@@ -21,6 +22,8 @@ describe('parse', () => {
         storage: undefined,
         emails: undefined,
         consent: undefined,
+        scheduler: undefined,
+        runner: undefined,
         packageManager: undefined,
         install: true,
         git: true,
@@ -52,6 +55,7 @@ describe('parse', () => {
       '--social', 'github',
       '--billing', 'user',
       '--storage', 's3',
+      '--runner', 'vercel',
       '--branch', 'v1.0.0',
       '--local-template', '../templates/payload-stack',
     ])
@@ -62,6 +66,7 @@ describe('parse', () => {
       social: 'github',
       billing: 'user',
       storage: 's3',
+      runner: 'vercel',
       branch: 'v1.0.0',
       localTemplate: '../templates/payload-stack',
     })
@@ -77,6 +82,8 @@ describe('parse', () => {
     expect(parse(['--no-emails']).flags.emails).toBe(false)
     expect(parse(['--consent']).flags.consent).toBe(true)
     expect(parse(['--no-consent']).flags.consent).toBe(false)
+    expect(parse(['--scheduler']).flags.scheduler).toBe(true)
+    expect(parse(['--no-scheduler']).flags.scheduler).toBe(false)
     expect(parse(['--defaults']).flags.defaults).toBe(true)
     expect(parse(['-y']).flags.defaults).toBe(true)
     expect(parse(['--dry-run']).flags.dryRun).toBe(true)
@@ -125,6 +132,9 @@ describe('helpText', () => {
       '--no-emails',
       '--consent',
       '--no-consent',
+      '--scheduler',
+      '--no-scheduler',
+      '--runner',
       '--use-pnpm',
       '--use-npm',
       '--use-yarn',
@@ -145,6 +155,7 @@ describe('helpText', () => {
   it('lists the real database and storage choices', () => {
     expect(help).toContain(DB_KEYS.join(' | '))
     expect(help).toContain(STORAGE_KEYS.join(' | '))
+    expect(help).toContain(RUNNER_KEYS.join(' | '))
     expect(help).toContain('organization | user | none')
     expect(help).toContain('email-password, magic-link, passkey')
   })

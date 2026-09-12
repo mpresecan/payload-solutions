@@ -45,6 +45,31 @@ async function send(slug: string, input: Record<string, unknown>, options: { pay
   }
 }
 
+/**
+ * Whether the catalogue exists. `src/scheduler/actions` reads this to decide which actions are
+ * worth registering; with the plugin installed, every definition in `src/emails/definitions` can
+ * be sent, so all of them are.
+ */
+export const emailsEnabled = true
+
+/**
+ * Sends one message from the catalogue by slug. Unlike the bundles below — which swallow failures
+ * so an email can never break the operation that triggered it — this one throws, because its
+ * callers are scheduled actions: a failure there is meant to be recorded, retried and visible in
+ * the Scheduled Actions ledger.
+ */
+export async function notify(
+  payload: Payload,
+  slug: string,
+  input: Record<string, unknown>,
+  options: { to?: string } = {},
+): Promise<void> {
+  await payload.emails.send(slug as never, {
+    input: input as never,
+    ...(options.to ? { to: options.to } : {}),
+  })
+}
+
 // ---------------------------------------------------------------------------------------------
 // Account
 // ---------------------------------------------------------------------------------------------
@@ -205,10 +230,13 @@ function planDetails(planId: string) {
  * Who gets a billing notice. With `billing.attachedTo: 'user'` the reference is the user; with
  * `'organization'` it is the organization, and the message goes to its owners.
  */
-async function billingContact(referenceId?: string): Promise<null | { email: string; name: string }> {
+async function billingContact(
+  referenceId?: string,
+  given?: Payload,
+): Promise<null | { email: string; name: string }> {
   if (!referenceId) return null
   try {
-    const payload = await client()
+    const payload = given ?? (await client())
     const id = toPayloadId(payload, referenceId)
     if (stack.billing.provider !== 'stripe' || stack.billing.attachedTo === 'user') {
       const user = (await payload.findByID({ id, collection: 'users', depth: 0, overrideAccess: true })) as unknown as OrgUser
@@ -291,6 +319,66 @@ export const trialEmailCallbacks = {
   onTrialExpired: async (subscription: SubscriptionRow) => {
     await billingEmail('trial-expired', subscription)
   },
+}
+
+/**
+ * The two billing notices a scheduled action sends rather than a webhook: the trial reminder that
+ * has to go out days before the trial ends, and the follow-up on a payment that is still failing.
+ * The scheduler decides *when*; who receives them and what they say stays here, which is why
+ * `src/scheduler/actions/billing.ts` knows nothing about plans, owners or Stripe invoices.
+ *
+ * Both take the Payload instance from the action handler and throw on failure, so a bad address or
+ * a missing owner is recorded against the action and retried instead of disappearing into a log.
+ */
+export async function sendTrialReminder(
+  payload: Payload,
+  subscription: { plan: string; referenceId?: string; trialEnd?: Date | null | string },
+): Promise<void> {
+  const contact = await billingContact(subscription.referenceId, payload)
+  if (!contact) {
+    throw new Error(`No billing contact for reference "${subscription.referenceId ?? ''}"`)
+  }
+  const plan = planDetails(subscription.plan)
+  await notify(
+    payload,
+    'trial-ending',
+    {
+      accountName: contact.name,
+      email: contact.email,
+      interval: plan.interval,
+      planName: plan.name,
+      price: plan.price,
+      trialEndsAt: iso(subscription.trialEnd),
+    },
+    { to: contact.email },
+  )
+}
+
+export async function sendPaymentReminder(
+  payload: Payload,
+  invoice: {
+    accountName?: string
+    amount: string
+    email: string
+    invoiceUrl?: string
+    nextAttemptAt?: string
+    planName: string
+  },
+): Promise<void> {
+  await notify(
+    payload,
+    'payment-failed',
+    {
+      accountName: invoice.accountName ?? invoice.email,
+      amount: invoice.amount,
+      attemptedAt: new Date().toISOString(),
+      email: invoice.email,
+      invoiceUrl: invoice.invoiceUrl,
+      nextAttemptAt: invoice.nextAttemptAt,
+      planName: invoice.planName,
+    },
+    { to: invoice.email },
+  )
 }
 
 /**

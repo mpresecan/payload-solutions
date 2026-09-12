@@ -1,4 +1,4 @@
-import type { Payload, PayloadRequest } from 'payload'
+import type { CollectionSlug, Payload, PayloadRequest } from 'payload'
 
 import type { LogEvent, LogLevel, SanitizedActionSchedulerOptions, ScheduledAction } from '../types.js'
 
@@ -8,10 +8,24 @@ export type LogLine = { attempt?: number; durationMs?: number; event: LogEvent; 
 
 export type Store = ReturnType<typeof createStore>
 
+/**
+ * Collection slugs are configuration: a plain string in this package, and a union of the host's
+ * own collections once its `payload-types.ts` exists. Every `db` call therefore needs them
+ * widened, or the plugin does not compile inside a typed project.
+ *
+ * The assertion is a no-op here — `CollectionSlug` is `string` without generated types, which is
+ * why eslint calls it unnecessary — and load-bearing in a host. Do not remove it.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+const slug = (value: string): CollectionSlug => value as CollectionSlug
+
+/** Payload's job collection. Not in a host's `CollectionSlug` union until its config has tasks. */
+const JOBS = slug('payload-jobs')
+
 /** Raw data access for the engine: no hooks, no access control, no versions. */
 export function createStore(payload: Payload, options: SanitizedActionSchedulerOptions) {
-  const collection = options.collectionSlug
-  const logsSlug = options.logsSlug
+  const collection = slug(options.collectionSlug)
+  const logsSlug = options.logsSlug === null ? null : slug(options.logsSlug)
 
   const parseId = (id: number | string): number | string => {
     if (typeof id === 'number') {
@@ -48,7 +62,7 @@ export function createStore(payload: Payload, options: SanitizedActionSchedulerO
     const id = parseId(actionId)
     for (const line of lines) {
       await payload.db.create({
-        collection: options.logs.slug,
+        collection: slug(options.logs.slug),
         data: {
           action: id,
           attempt: line.attempt ?? null,
@@ -69,12 +83,12 @@ export function createStore(payload: Payload, options: SanitizedActionSchedulerO
       return
     }
     const keep = options.logs.perAction
-    const { totalDocs } = await payload.db.count({ collection: options.logs.slug, req, where: { action: { equals: actionId } } })
+    const { totalDocs } = await payload.db.count({ collection: slug(options.logs.slug), req, where: { action: { equals: actionId } } })
     if (totalDocs <= keep) {
       return
     }
     const stale = await payload.db.find({
-      collection: options.logs.slug,
+      collection: slug(options.logs.slug),
       limit: totalDocs - keep,
       pagination: false,
       req,
@@ -84,7 +98,7 @@ export function createStore(payload: Payload, options: SanitizedActionSchedulerO
     })
     const ids = stale.docs.map((d) => (d as { id: number | string }).id)
     if (ids.length) {
-      await payload.db.deleteMany({ collection: options.logs.slug, req, where: { id: { in: ids } } })
+      await payload.db.deleteMany({ collection: slug(options.logs.slug), req, where: { id: { in: ids } } })
     }
   }
 
@@ -93,7 +107,7 @@ export function createStore(payload: Payload, options: SanitizedActionSchedulerO
       return null
     }
     const id = payload.db.defaultIDType === 'number' && /^\d+$/.test(jobId) ? Number(jobId) : jobId
-    const doc = await payload.db.findOne({ collection: 'payload-jobs', where: { id: { equals: id } } })
+    const doc = await payload.db.findOne({ collection: JOBS, where: { id: { equals: id } } })
     return (doc as null | { hasError?: boolean; id: number | string; processing?: boolean }) ?? null
   }
 
@@ -103,7 +117,7 @@ export function createStore(payload: Payload, options: SanitizedActionSchedulerO
     }
     const id = payload.db.defaultIDType === 'number' && /^\d+$/.test(jobId) ? Number(jobId) : jobId
     try {
-      await payload.db.deleteOne({ collection: 'payload-jobs', where: { id: { equals: id } } })
+      await payload.db.deleteOne({ collection: JOBS, where: { id: { equals: id } } })
     } catch (error) {
       payload.logger.warn({ err: error, jobId }, '[action-scheduler] could not delete transport job')
     }

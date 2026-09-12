@@ -1,6 +1,6 @@
 {
   "name": "@payload-solutions/plugin-action-scheduler",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "WooCommerce Action Scheduler for Payload CMS: typed, scheduled and recurring actions with retries, a bounded ledger and a first-class admin view, executed by the Payload job queue.",
   "license": "MIT",
   "type": "module",
