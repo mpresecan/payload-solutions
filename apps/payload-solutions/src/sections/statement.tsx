@@ -27,7 +27,12 @@ export function Statement() {
           </p>
 
           <div className="mt-10 border-t border-border">
-            <ActionRow href={GITHUB_REPO_URL} meta="mpresecan/payload-solutions">
+            {/* The path is chrome: on a phone the row is one column wide and there is only
+                room for the label, so it steps out rather than squeezing it. */}
+            <ActionRow
+              href={GITHUB_REPO_URL}
+              meta={<span className="hidden sm:inline">mpresecan/payload-solutions</span>}
+            >
               Read the source on GitHub
             </ActionRow>
           </div>

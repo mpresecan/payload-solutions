@@ -357,8 +357,17 @@
   transition: transform var(--slide-speed) 0.15s var(--ease-out);
 }
 
+/*
+  Secondary text. It shrinks and truncates before the label does: with `flex: none` a long
+  meta held its full width on a phone and crushed the label into one word per line. A meta
+  that cannot survive a phone at all belongs behind a breakpoint at the call site.
+*/
 .slide-btn__meta {
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--fg-subtle);
   font-size: 0.875rem;
   font-weight: 400;
