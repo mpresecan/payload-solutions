@@ -1,6 +1,7 @@
 'use client'
 
 import { CheckCircle } from '@phosphor-icons/react'
+import posthog from 'posthog-js'
 import { useActionState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -14,7 +15,23 @@ const TOPICS = [
 ]
 
 export function ContactForm() {
-  const [state, action, pending] = useActionState<ContactState, FormData>(submitContact, { ok: false })
+  const submit = async (previousState: ContactState, formData: FormData) => {
+    const nextState = await submitContact(previousState, formData)
+    const topic = formData.get('topic')
+
+    if (
+      nextState.ok &&
+      typeof topic === 'string' &&
+      TOPICS.some(({ value }) => value === topic) &&
+      process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+      process.env.NEXT_PUBLIC_POSTHOG_HOST
+    ) {
+      posthog.capture('contact_form_submitted', { topic })
+    }
+
+    return nextState
+  }
+  const [state, action, pending] = useActionState<ContactState, FormData>(submit, { ok: false })
 
   if (state.ok) {
     return (

@@ -1,7 +1,9 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
 import { Check, Copy } from '@phosphor-icons/react'
+import posthog from 'posthog-js'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
 import { cn } from '@/lib/cn'
 
 interface CopyCommandProps {
@@ -43,6 +45,9 @@ export function CopyCommand({ command, className, size = 'md' }: CopyCommandProp
       }
       setFailed(false)
       setCopied(true)
+      if (process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST) {
+        posthog.capture('command_copied')
+      }
     } catch {
       setFailed(true)
       setCopied(false)

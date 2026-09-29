@@ -71,7 +71,7 @@ importers:
         version: 9.39.5(jiti@2.7.0)
       eslint-config-next:
         specifier: 16.3.3
-        version: 16.3.3(@typescript-eslint/parser@8.69.0(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3))(eslint-plugin-import-x@4.6.1(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
+        version: 16.3.3(eslint-plugin-import-x@4.6.1(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
@@ -84,6 +84,12 @@ importers:
       '@payload-solutions/brand':
         specifier: workspace:*
         version: link:../../packages/brand
+      '@payload-solutions/consent-react':
+        specifier: ^0.1.0
+        version: 0.1.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      '@payload-solutions/plugin-consent':
+        specifier: ^0.1.0
+        version: 0.1.0(@payloadcms/richtext-lexical@3.88.0(@faceless-ui/modal@3.0.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@faceless-ui/scroll-info@2.0.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@payloadcms/next@3.88.0(@types/react@19.2.18)(graphql@16.14.2)(monaco-editor@0.56.0)(next@16.3.3(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(@types/node@24.13.3)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(sass@1.77.4))(payload@3.88.0(graphql@16.14.2)(typescript@5.9.3))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(typescript@5.9.3))(@types/react@19.2.18)(monaco-editor@0.56.0)(next@16.3.3(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(@types/node@24.13.3)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(sass@1.77.4))(payload@3.88.0(graphql@16.14.2)(typescript@5.9.3))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(typescript@5.9.3)(yjs@13.6.32))(payload@3.88.0(graphql@16.14.2)(typescript@5.9.3))(react@19.2.6)
       '@payloadcms/db-postgres':
         specifier: 3.88.0
         version: 3.88.0(@libsql/client@0.14.0)(@opentelemetry/api@1.9.1)(kysely@0.29.5)(payload@3.88.0(graphql@16.14.2)(typescript@5.9.3))
@@ -168,7 +174,7 @@ importers:
         version: 9.39.5(jiti@2.7.0)
       eslint-config-next:
         specifier: 16.3.3
-        version: 16.3.3(eslint-plugin-import-x@4.6.1(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
+        version: 16.3.3(@typescript-eslint/parser@8.69.0(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3))(eslint-plugin-import-x@4.6.1(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
@@ -3091,6 +3097,26 @@ packages:
     resolution: {integrity: sha512-Z3llHH0jfJP4mlWq3DT7bK6qV+/vYe0+xzCgfc67+Tc/U3eYndujl880bexeGdGNPh87JeYznpZAOJ44N7QVVQ==}
     cpu: [x64]
     os: [win32]
+
+  '@payload-solutions/consent-core@0.1.0':
+    resolution: {integrity: sha512-OzngKoLPr7ZRcCnL8xPXf8/3y7dmPGWkEoeJy8qeO64SwZttSVf9gt/Vs668iPwGRkm+jYISXuPvuJzbM2lPFQ==}
+    engines: {node: '>=20.9.0'}
+
+  '@payload-solutions/consent-react@0.1.0':
+    resolution: {integrity: sha512-rB3kHK4N9HLblMhqDF9IlBiXYrB1jfGgfLwe8mA96ZjGNMnLAR6yuqeNCDyCyCKHmnIcaPxhI88nfFvP9Qo9iw==}
+    engines: {node: '>=20.9.0'}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+
+  '@payload-solutions/plugin-consent@0.1.0':
+    resolution: {integrity: sha512-H4QiJdUE4jKlsGb7SwKDHSdrAB5QI+LRoMintQNjqRRBiyDqwJ18zYMsYEiirwR7Ca3aEh4ESLv2vR4IKxiCLw==}
+    engines: {node: ^18.20.2 || >=20.9.0, pnpm: ^9 || ^10 || ^11}
+    hasBin: true
+    peerDependencies:
+      '@payloadcms/richtext-lexical': '>=3.79.0 <4'
+      payload: '>=3.79.0 <4'
+      react: ^18.0.0 || ^19.0.0
 
   '@payloadcms/db-postgres@3.88.0':
     resolution: {integrity: sha512-uP2b3yH8MulguWSH7j8vJaFX3ols4fVKPtsvZ49XQvDsafBAAUZjc1aCldo1ozoVfhC46tx4pv0ovtHQc8zdcA==}
@@ -12448,6 +12474,22 @@ snapshots:
 
   '@oxc-resolver/binding-win32-x64-msvc@1.12.0':
     optional: true
+
+  '@payload-solutions/consent-core@0.1.0': {}
+
+  '@payload-solutions/consent-react@0.1.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
+    dependencies:
+      '@payload-solutions/consent-core': 0.1.0
+      react: 19.2.6
+      react-dom: 19.2.6(react@19.2.6)
+
+  '@payload-solutions/plugin-consent@0.1.0(@payloadcms/richtext-lexical@3.88.0(@faceless-ui/modal@3.0.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@faceless-ui/scroll-info@2.0.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@payloadcms/next@3.88.0(@types/react@19.2.18)(graphql@16.14.2)(monaco-editor@0.56.0)(next@16.3.3(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(@types/node@24.13.3)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(sass@1.77.4))(payload@3.88.0(graphql@16.14.2)(typescript@5.9.3))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(typescript@5.9.3))(@types/react@19.2.18)(monaco-editor@0.56.0)(next@16.3.3(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(@types/node@24.13.3)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(sass@1.77.4))(payload@3.88.0(graphql@16.14.2)(typescript@5.9.3))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(typescript@5.9.3)(yjs@13.6.32))(payload@3.88.0(graphql@16.14.2)(typescript@5.9.3))(react@19.2.6)':
+    dependencies:
+      '@payload-solutions/consent-core': 0.1.0
+      '@payloadcms/richtext-lexical': 3.88.0(@faceless-ui/modal@3.0.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@faceless-ui/scroll-info@2.0.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@payloadcms/next@3.88.0(@types/react@19.2.18)(graphql@16.14.2)(monaco-editor@0.56.0)(next@16.3.3(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(@types/node@24.13.3)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(sass@1.77.4))(payload@3.88.0(graphql@16.14.2)(typescript@5.9.3))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(typescript@5.9.3))(@types/react@19.2.18)(monaco-editor@0.56.0)(next@16.3.3(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(@types/node@24.13.3)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(sass@1.77.4))(payload@3.88.0(graphql@16.14.2)(typescript@5.9.3))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(typescript@5.9.3)(yjs@13.6.32)
+      payload: 3.88.0(graphql@16.14.2)(typescript@5.9.3)
+      react: 19.2.6
+      zod: 3.25.76
 
   '@payloadcms/db-postgres@3.88.0(@libsql/client@0.14.0)(@opentelemetry/api@1.9.1)(kysely@0.29.5)(payload@3.88.0(graphql@16.14.2)(typescript@5.7.3))':
     dependencies:
