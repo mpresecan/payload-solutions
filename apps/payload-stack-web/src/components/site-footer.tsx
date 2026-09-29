@@ -6,6 +6,7 @@ import {
 } from '@payload-solutions/brand'
 import { FooterWordmark } from '@payload-solutions/brand/footer-wordmark'
 import { GridColumns } from '@payload-solutions/brand/grid-columns'
+import { ManageConsentButton } from '@payload-solutions/consent-react'
 
 import { ThemeToggle } from '@/components/theme-toggle'
 
@@ -64,6 +65,12 @@ const COLUMNS: Array<{ title: string; links: FooterLink[]; theme?: boolean }> = 
   },
 ]
 
+const LEGAL_LINKS: FooterLink[] = [
+  { label: 'Privacy', href: '/legal/privacy' },
+  { label: 'Cookies', href: '/legal/cookies' },
+  { label: 'Terms', href: '/legal/terms' },
+]
+
 export function SiteFooter() {
   return (
     <footer className="relative isolate hairline-t pt-20 lg:pt-32">
@@ -111,7 +118,23 @@ export function SiteFooter() {
           <p className="lg:col-span-2 lg:pr-8">
             {PAYLOAD_TRADEMARK_ATTRIBUTION} {INDEPENDENCE_NOTICE}
           </p>
-          <p className="lg:col-start-4">
+          {/* The cookie settings control is always here because withdrawing consent has to be as
+              easy as giving it. */}
+          <ul className="flex flex-wrap gap-x-4 gap-y-1 lg:pr-8">
+            {LEGAL_LINKS.map((l) => (
+              <li key={l.href}>
+                <a href={l.href} className="transition-colors hover:text-fg">
+                  {l.label}
+                </a>
+              </li>
+            ))}
+            <li>
+              <ManageConsentButton className="cursor-pointer transition-colors hover:text-fg">
+                Cookie settings
+              </ManageConsentButton>
+            </li>
+          </ul>
+          <p>
             MIT licensed. Copyright {new Date().getFullYear()} Payload Solutions.
           </p>
         </div>

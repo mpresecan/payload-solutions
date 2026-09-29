@@ -11,5 +11,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.7,
     },
+    ...['privacy', 'cookies', 'terms'].map((slug) => ({
+      url: `${brands.stack.url}/legal/${slug}`,
+      lastModified,
+      changeFrequency: 'yearly' as const,
+      priority: 0.2,
+    })),
   ]
 }

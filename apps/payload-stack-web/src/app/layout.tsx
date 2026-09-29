@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { brands } from '@payload-solutions/brand'
+import { ConsentRoot } from '@/components/consent/consent-root'
 import './globals.css'
 
 const brand = brands.stack
@@ -68,7 +69,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="min-h-dvh bg-bg text-fg antialiased">{children}</body>
+      <body className="min-h-dvh bg-bg text-fg antialiased">
+        <ConsentRoot>{children}</ConsentRoot>
+      </body>
     </html>
   )
 }

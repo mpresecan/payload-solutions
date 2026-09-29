@@ -152,10 +152,15 @@ export function FooterWordmark({
   const maskId = `fw-mask-${uid}`
   const glowId = `fw-glow-${uid}`
   const sheenId = `fw-sheen-${uid}`
+  const facetMaskId = `fw-facet-mask-${uid}`
+  const facetGlowId = `fw-facet-glow-${uid}`
+  const facetSheenId = `fw-facet-sheen-${uid}`
+  const facetColor = MARK_FACET_COLORS[brand]
 
   const svgRef = useRef<SVGSVGElement | null>(null)
   const textRef = useRef<SVGTextElement | null>(null)
   const glowRef = useRef<SVGCircleElement | null>(null)
+  const facetGlowRef = useRef<SVGCircleElement | null>(null)
   const frameRef = useRef<number | null>(null)
 
   const reduced = useReducedMotionSafe()
@@ -163,6 +168,7 @@ export function FooterWordmark({
   const [lit, setLit] = useState(false)
 
   const mark = markGeometry(crop)
+  const markTransform = `translate(${mark.tx.toFixed(2)} ${mark.ty.toFixed(2)}) scale(${mark.scale.toFixed(4)})`
   const TEXT_X = mark.width + GAP
   const W = TEXT_X + textW
 
@@ -207,8 +213,12 @@ export function FooterWordmark({
         const rect = svg.getBoundingClientRect()
         if (!rect.width) return
         const unitsPerPx = svg.viewBox.baseVal.width / rect.width
-        glow.setAttribute('cx', String((clientX - rect.left) * unitsPerPx))
-        glow.setAttribute('cy', String((clientY - rect.top) * unitsPerPx))
+        const cx = String((clientX - rect.left) * unitsPerPx)
+        const cy = String((clientY - rect.top) * unitsPerPx)
+        glow.setAttribute('cx', cx)
+        glow.setAttribute('cy', cy)
+        facetGlowRef.current?.setAttribute('cx', cx)
+        facetGlowRef.current?.setAttribute('cy', cy)
       })
     },
     [reduced],
@@ -249,9 +259,7 @@ export function FooterWordmark({
               <mask id={maskId}>
                 <rect width={W} height={H} fill="#000" />
                 <g fill="#fff">
-                  <g
-                    transform={`translate(${mark.tx.toFixed(2)} ${mark.ty.toFixed(2)}) scale(${mark.scale.toFixed(4)})`}
-                  >
+                  <g transform={markTransform}>
                     <path d="M10.5 3.49976L0.713097 8.15257V20.4896L8.2737 25.1999V12.8629L18 7.99976L10.5 3.49976Z" />
                   </g>
                   {kicker ? (
@@ -280,6 +288,27 @@ export function FooterWordmark({
                   </text>
                 </g>
               </mask>
+
+              {/* The facet gets a mask of its own so it can be lit in the brand colour — the same
+                  material as the rest of the lockup, carrying the hue the favicon carries. */}
+              <mask id={facetMaskId}>
+                <rect width={W} height={H} fill="#000" />
+                <path
+                  d="M11 23.5V15L18 19.5L11 23.5Z"
+                  transform={markTransform}
+                  fill="#fff"
+                />
+              </mask>
+              <radialGradient id={facetGlowId}>
+                <stop offset="0%" stopColor={facetColor} stopOpacity="0.9" />
+                <stop offset="32%" stopColor={facetColor} stopOpacity="0.45" />
+                <stop offset="66%" stopColor={facetColor} stopOpacity="0.12" />
+                <stop offset="100%" stopColor={facetColor} stopOpacity="0" />
+              </radialGradient>
+              <linearGradient id={facetSheenId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={facetColor} stopOpacity="0.34" />
+                <stop offset="100%" stopColor={facetColor} stopOpacity="0.14" />
+              </linearGradient>
 
               {/* The light itself. Soft enough that no blur filter is needed. */}
               <radialGradient id={glowId}>
@@ -317,13 +346,22 @@ export function FooterWordmark({
               </g>
             </g>
 
-            {/* The facet is not part of the void: it is painted solid in the brand colour, the
-                same way the favicon carries it, so the lockup shows its brand at rest. */}
-            <path
-              d="M11 23.5V15L18 19.5L11 23.5Z"
-              transform={`translate(${mark.tx.toFixed(2)} ${mark.ty.toFixed(2)}) scale(${mark.scale.toFixed(4)})`}
-              fill={MARK_FACET_COLORS[brand]}
-            />
+            {/* The facet: same void-and-light treatment, but the light is the brand colour and
+                its resting sheen runs a little stronger, so the hue reads without a pointer. */}
+            <g mask={`url(#${facetMaskId})`}>
+              <rect width={W} height={H} fill={`url(#${facetSheenId})`} />
+              <circle
+                ref={facetGlowRef}
+                r={W * 0.36}
+                cx={W * 0.5}
+                cy={H * 0.3}
+                fill={`url(#${facetGlowId})`}
+                style={{
+                  opacity: lit ? 1 : 0,
+                  transition: 'opacity 700ms var(--ease-out, cubic-bezier(0.165,0.84,0.44,1))',
+                }}
+              />
+            </g>
           </svg>
         </div>
       </div>

@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@payload-solutions/brand": "workspace:*",
+    "@payload-solutions/consent-react": "^0.1.0",
     "@phosphor-icons/react": "^2.1.10",
     "geist": "^1.7.2",
     "motion": "^13.2.0",
