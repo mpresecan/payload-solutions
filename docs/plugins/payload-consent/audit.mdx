@@ -11,6 +11,125 @@ Legal pages rot quietly. Someone adds Sentry on a Tuesday, and the privacy polic
 This is not legal advice and it does not tell you whether your business is lawful. It tells you where your documents and your configuration disagree, and where a disclosure the law lists is missing from the text.
 </Callout>
 
+## Run your first audit
+
+You do not operate the audit tools yourself. You ask the AI coding agent you already use to run the audit; it calls the tools, asks you for the facts only you know, and writes what it finds into the admin. This section is the whole path, start to finish. The sections after it are reference.
+
+**Before you start**
+
+- The plugin is installed and the site has booted once, so the legal pages are seeded ([Installation](/docs/plugins/payload-consent/installation)).
+- The project's database is running. The audit reads your pages and settings from it, drafts included.
+- An agent that supports MCP servers: Claude Code, Cursor, Codex, Gemini CLI or similar.
+- About half an hour, and someone who can answer questions about the business: which legal entity runs the site, and how long you keep each kind of data.
+
+### 1. Connect your agent
+
+From the directory that holds your `payload.config.ts`:
+
+```bash
+npx payload-consent init
+```
+
+Then **restart your agent**, started from that same directory. Agents load MCP servers when they start, so a session that was already open will not see the new one. In Claude Code, `/mcp` should now list `payload-consent` as connected.
+
+<Callout>
+**In a monorepo**, `init` writes `.mcp.json` next to the app, and an agent opened at the repository root will not find it. Either start the agent inside the app's directory, or add the server to the root `.mcp.json` yourself, pointing at the app:
+
+```json title=".mcp.json"
+{
+  "mcpServers": {
+    "payload-consent": {
+      "command": "pnpm",
+      "args": ["--dir", "apps/web", "exec", "payload-consent", "mcp"]
+    }
+  }
+}
+```
+</Callout>
+
+### 2. See where you stand
+
+This step is optional, and needs no agent:
+
+```bash
+npx payload-consent scan
+```
+
+Each line is a finding: `✗` is a blocker, `!` a warning, `·` a notice. A freshly seeded project typically shows a dozen or more blockers. That is expected: most of them are questions nobody has answered yet and processors nobody has checked yet, and the next steps clear them.
+
+### 3. Ask for the audit
+
+In your agent, say:
+
+> Run the Payload Consent legal audit. Start with the compliance profile and ask me the questions one at a time.
+
+The agent follows the procedure in the skill `init` installed:
+
+| Step | What happens | What you do |
+| --- | --- | --- |
+| Scan | Runs the deterministic checks and treats them as settled | Nothing |
+| Compliance profile | Asks the legal facts it is not allowed to guess, one at a time, each with the reason the law needs it | Answer |
+| Data map | Works out what your app stores and which vendors it reaches, from your schema and dependencies | Confirm or correct when it finds a mismatch |
+| Read the pages | Checks each legal page against the requirements for its kind, quoting the passage for every point | Nothing |
+| Report | Saves the findings in the admin under **Privacy → Legal audits** | Read them |
+| Drafts | Only if you ask: writes proposed changes to files for you to review | Ask, then review |
+
+### 4. Answer the profile questions
+
+This is the part that needs you. Every answer ends up in a published legal document, so the agent asks rather than guesses, and the drafting tool refuses to write a document that depends on a question nobody has answered.
+
+Having these to hand makes it quick:
+
+| Question | A good answer |
+| --- | --- |
+| Legal name and registered address of the entity responsible for the data | "Acme d.o.o., Ilica 1, 10000 Zagreb, Croatia", the company, not the product name |
+| Privacy contact email, and where people send requests to see or delete their data | An inbox someone reads; often the same address for both |
+| Country of establishment | An ISO code such as `HR`, `DE`, `IE` |
+| Data Protection Officer | Their name and email, or "no" |
+| Businesses, consumers, or both | Decides whether a DPA and sub-processor list apply to you |
+| Controller or processor, for your customers' data | Controller if you decide what happens to the data; processor if you only handle it for clients |
+| Legal basis for each purpose | Per purpose: consent, contract, legal obligation or legitimate interests. For legitimate interests, say what the interest is |
+| How long you keep each kind of data | A period or the rule that decides it, per kind: "enquiries: 2 years after last contact" |
+| Supervisory authority | Usually the data protection authority of your country |
+| Automated decisions or profiling | Usually "none"; product analytics does not count |
+| Governing law of the terms | "Croatian law, courts of Zagreb" |
+
+Answer in your own words; the agent records what you said, with your name and the time. "I don't know" is a valid answer. The agent tells you which document it blocks and moves on. Everything is saved under **Privacy → Consent settings → Compliance profile**, where you can correct it later, and `npx payload-consent profile` lists anything still open.
+
+The agent also compares your answers with the code. If you say the contact form relies on consent and the form has no consent checkbox, it tells you, and you decide which one changes.
+
+### 5. Read the report
+
+Open **Privacy → Legal audits** in the admin. Each finding says whether it was *checked* (proved by code) or *inferred* (judged by the agent from the text, with the quote it is based on). For each one, either fix it, or mark it accepted with a reason. Accepted findings stay accepted on later runs.
+
+### 6. Fix the pages
+
+Ask for drafts when you are ready:
+
+> Draft the fixes for the privacy policy.
+
+Nothing is published. Drafts go to `.consent/proposals/` as files, and the agent shows you the changes. When you agree:
+
+```bash
+npx payload-consent apply --dry-run       # check them and show the diff
+npx payload-consent apply --allow-drafts  # save them as draft versions of the pages
+```
+
+Then review each draft under **Privacy → Legal pages** and publish it yourself. Changing the effective date of the privacy or cookie policy asks every visitor for consent again, so only change it for a real change in substance.
+
+### 7. Clear what only you can
+
+Two kinds of finding need a person, not an agent:
+
+- **Processors.** Under **Privacy → Processors**, open each row, check the entity, country and transfer mechanism against the contract you actually signed, and tick **Verified**.
+- **The "review before publishing" notice.** The seeded pages start with it. Remove it from each page once someone has reviewed that page.
+
+Run `npx payload-consent scan` again. When it reports no blockers, you are done until something changes. Run it again after adding a tracker or a vendor, or add it to CI (see [Continuous integration](#continuous-integration)).
+
+### Without an agent
+
+Everything except the reading of prose works by hand. Run `npx payload-consent scan`, fill in **Consent settings → Compliance profile** in the admin, verify the processors, and edit the pages under **Legal pages**. What you lose is the check that the text of each page actually says what the law requires, which is the one part only a reader can do.
+
 ## The one distinction that matters
 
 Every finding is either **checked by code** or **judged by a model**, and the report says which.
@@ -23,7 +142,7 @@ Keeping the two apart is what makes the report worth reading. It is also why the
 
 ## Install
 
-The CLI ships with the plugin. From your project root:
+The CLI ships with the plugin. From your project root (then restart your agent, see [Connect your agent](#1-connect-your-agent)):
 
 ```bash
 npx payload-consent init
