@@ -1,46 +1,69 @@
-**To:** info@payloadcms.com
-**Subject:** Trademark permission request: Payload Solutions, Payload Stack, Payload Clock
+**To:** legal@figma.com
+**Subject:** Trademark permission request: use of "Payload" in Payload Clock, Payload Stack and Payload Solutions
 
-Hello Payload team,
+Dear Figma Legal team,
 
-I am Michael Presecan, founder of Fortbit d.o.o., a software studio registered in Croatia and based in Poland. We build client SaaS products on Payload and are releasing a set of open-source tools for the Payload community under the MIT license, developed in one monorepo: https://github.com/mpresecan/payload-solutions
+[Name], a member of the Payload team, advised me to contact you about permission to use the Payload trademarks. I am Michael Presecan, founder of Fortbit d.o.o., a software company registered in Croatia and operating from Poland.
 
-Your brand guidelines ask for prior written permission before Payload marks are used in the name of a product, service or domain, or in a commercial project. I am writing to request that permission for the following, early and before we promote any of it widely.
+We are committed to supporting the Payload community and to promoting Payload as a platform. Our tools for the community are open source and free to use, our documentation points developers to Payload's official resources, and our aim is to bring more developers and businesses to Payload by making it easier to build and run SaaS products on it.
 
-**Names and domains**
+Payload's brand guidelines (payloadcms.com/brand) require prior written permission before the Payload Marks are used in the name of a product, service or domain, or in a commercial project. I am requesting that permission for the uses below. I am writing early, before any of them is promoted widely.
 
-- Payload Solutions, payload.solutions: the umbrella site, product documentation, and our studio's contact point for teams who want a SaaS built on Payload.
-- Payload Stack, payloadstack.com: an open-source SaaS boilerplate for Payload (Better Auth, organizations bridged into the multi-tenant plugin, Stripe billing, shadcn dashboard), scaffolded with `npx create-payload-stack`.
-- Payload Clock, payloadclock.com: a free hosted service that triggers Payload job queues on serverless deployments, with a companion plugin.
+**1. Names and domains**
 
-**npm packages** (scope `@payload-solutions/*`, all MIT)
+| Name | Domain | Use |
+| --- | --- | --- |
+| Payload Clock | payloadclock.com | Free hosted service that triggers Payload job queues on serverless deployments |
+| Payload Stack | payloadstack.com | Open-source (MIT) SaaS starter kit built on Payload, installed with `npx create-payload-stack` |
+| Payload Solutions | payload.solutions | Umbrella site with documentation for our open-source tools, and the contact point for our development services on Payload |
 
-- plugin-emails (Payload Emails): edit transactional email copy from the admin panel
-- plugin-action-scheduler (Payload Action Scheduler): a scheduling layer over Payload jobs
-- plugin-consent, consent-core, consent-react (Payload Consent): cookie consent for Payload sites
-- plugin-vercel (Vercel Integration): deploy hooks from the admin panel
-- create-payload-stack: the unscoped scaffolding CLI
+**2. Software packages**
 
-**Commercial use, disclosed up front**
+Published on npm under the MIT licence, source at https://github.com/mpresecan/payload-solutions:
 
-The open-source packages and Payload Clock are free. Two things are commercial: payload.solutions advertises our paid development services on Payload, and we are considering "Payload Stack Pro", a paid licence that would unlock ready-made vertical templates for Payload Stack. We will not launch Payload Stack Pro, or charge for Payload Clock, without your written permission for that use.
+- `create-payload-stack` (command-line installer for Payload Stack)
+- `@payload-solutions/plugin-emails` (Payload Emails)
+- `@payload-solutions/plugin-action-scheduler` (Payload Action Scheduler)
+- `@payload-solutions/plugin-consent`, `consent-core`, `consent-react` (Payload Consent)
+- `@payload-solutions/plugin-vercel` (Vercel Integration)
 
-**Mark**
+**3. Commercial use**
 
-Our logo is our own mark in an isometric style. We do not use or modify the Payload logo. I have attached the mark and the three wordmarks so you can judge whether it is too close.
+The software packages and Payload Clock are free of charge. Two uses are commercial:
 
-**What we already do**
+- We are considering a paid licence, "Payload Stack Pro", that would unlock additional templates for Payload Stack.
+- payload.solutions advertises Fortbit's paid development services for products built on Payload.
 
-- Every site and README carries your attribution statement ("Payload, the Payload design, and related marks, designs, and logos are trademarks or registered trademarks of Payload CMS, Inc. in the U.S. and other countries.") and states that Payload Solutions is an independent project, not affiliated with, sponsored by or endorsed by Payload CMS, Inc.
-- The Payload name is never shown more prominently than our own product names.
-- The sites link to payloadcms.com and your documentation throughout.
+We will not launch Payload Stack Pro, or charge for Payload Clock, without your written permission for that specific use.
 
-If any name or domain is a problem, we will rename it (for example "Stack for Payload"). I am happy to share a preview of the sites or join a call.
+**4. Logo**
 
-Thank you for Payload, and for considering this.
+Our mark is closely based on Payload's previous logo. Since Payload has moved to a new logo, we would like to ask whether we may use this earlier design as the mark for our three products.
+
+To set it apart from Payload's own branding:
+
+- The smaller lower shape of the mark is always shown in colour, in each product's own accent colour, never in the plain monochrome of the original.
+- It is paired with our own wordmarks ("Payload Clock", "Payload Stack", "Payload Solutions"), not with the Payload name alone.
+- We do not use Payload's current logo in any form.
+
+The attached image shows the mark and the three wordmarks. If you would rather we did not use the earlier design, please say so and we will promptly replace it with a mark of our own.
+
+**5. Safeguards already in place**
+
+- Every site and README carries the attribution statement required by the brand guidelines: "Payload, the Payload design, and related marks, designs, and logos are trademarks or registered trademarks of Payload CMS, Inc. in the U.S. and other countries."
+- Every site and README states that Payload Solutions is an independent project, not affiliated with, sponsored by or endorsed by Payload CMS, Inc. or Figma, Inc.
+- "Payload" is never displayed more prominently than our own product names.
+- The sites link to payloadcms.com and the official Payload documentation.
+
+If you decline any of these uses, or would grant them only on conditions, please tell me which ones and what you require. We will rename any product or domain you object to, for example to "Stack for Payload", and can share a preview of the sites beforehand.
+
+Thank you for considering this request.
+
+Kind regards,
 
 Michael Presecan
-Fortbit d.o.o.
+Founder, Fortbit d.o.o.
+[company address]
 [phone] · https://payload.solutions
 
 ---

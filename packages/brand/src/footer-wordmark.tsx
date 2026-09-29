@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useId, useRef, useState, type PointerEvent } from 'react'
-import { brands, type BrandId } from './brands'
+import { MARK_FACET_COLORS, brands, type BrandId } from './brands'
 import { useReducedMotionSafe } from './reduced-motion'
 
 /* -------------------------------------------------------------------------------------------------
@@ -253,7 +253,6 @@ export function FooterWordmark({
                     transform={`translate(${mark.tx.toFixed(2)} ${mark.ty.toFixed(2)}) scale(${mark.scale.toFixed(4)})`}
                   >
                     <path d="M10.5 3.49976L0.713097 8.15257V20.4896L8.2737 25.1999V12.8629L18 7.99976L10.5 3.49976Z" />
-                    <path d="M11 23.5V15L18 19.5L11 23.5Z" />
                   </g>
                   {kicker ? (
                     <text
@@ -317,6 +316,14 @@ export function FooterWordmark({
                 />
               </g>
             </g>
+
+            {/* The facet is not part of the void: it is painted solid in the brand colour, the
+                same way the favicon carries it, so the lockup shows its brand at rest. */}
+            <path
+              d="M11 23.5V15L18 19.5L11 23.5Z"
+              transform={`translate(${mark.tx.toFixed(2)} ${mark.ty.toFixed(2)}) scale(${mark.scale.toFixed(4)})`}
+              fill={MARK_FACET_COLORS[brand]}
+            />
           </svg>
         </div>
       </div>

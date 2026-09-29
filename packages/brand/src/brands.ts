@@ -74,6 +74,21 @@ export const brands: Record<BrandId, Brand> = {
 }
 
 /**
+ * The colour of the mark's small facet (the lower-right triangle) for each brand — the same
+ * values each app's icon.svg favicon uses, so the logo on the page matches the tab. The body of
+ * the mark stays `currentColor`; only the facet carries the brand.
+ *
+ * These are the favicon's contrast-stepped values, not the raw `--accent` tokens: Stack's
+ * platinum #b4cee7 and Clock's brass #f0b84d merge into the near-white body at small sizes,
+ * so both are cut a step deeper. Keep in step with each app's icon.svg.
+ */
+export const MARK_FACET_COLORS: Record<BrandId, string> = {
+  solutions: '#5B9DFF',
+  stack: '#6C8AA6',
+  clock: '#C98A12',
+}
+
+/**
  * Required by Payload CMS, Inc. trademark guidelines (payloadcms.com/brand) for any use of the
  * Payload marks. Render this in every footer, verbatim.
  */
