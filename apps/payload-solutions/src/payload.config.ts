@@ -67,15 +67,32 @@ export default buildConfig({
 			payload.logger.error({ err }, "Seeding skipped");
 		}
 	},
-	plugins: [consentPlugin({
-    seed: {
-      company: {
-        name: "Payload Solutions",
-        legalName: "Fortbit d.o.o.",
-        address: "Gradiščak 31A, 40313, Gradiščak, Croatia",
-        email: "hello@payload.solutions",
-        url: "https://fortbit.hr",
-      }
-    }
-  })],
+	plugins: [
+		// Payload Consent: banner config, cookie categories, trackers, consent records and the
+		// legal pages, all under Privacy in the admin. The seed runs once, into empty collections
+		// only, so it never overwrites an editor's changes.
+		consentPlugin({
+			seed: {
+				company: {
+					name: "Payload Solutions",
+					legalName: "Fortbit d.o.o.",
+					address: "Gradiščak 31A, 40313, Gradiščak, Croatia",
+					email: "hello@payload.solutions",
+					url: "https://fortbit.hr",
+					jurisdictions: ["EEA"],
+					governingLaw: "Croatia",
+				},
+				// PostHog is initialised in instrumentation-client.ts, so it is an `sdk` tracker:
+				// declared here for the banner and the cookie policy, gated in code by PostHogConsent.
+				trackers: [
+					{
+						key: "posthog-eu",
+						vars: { projectKey: process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN ?? "" },
+					},
+				],
+				// Created unverified: confirm each entity and DPA under Privacy → Processors.
+				processors: ["vercel", "resend", "posthog-eu"],
+			},
+		}),
+	],
 });

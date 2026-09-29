@@ -51,3 +51,6 @@ node_modules/
 
 # fumadocs-mdx generated
 /.source
+
+# payload-consent drafts awaiting review
+.consent/proposals/

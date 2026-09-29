@@ -236,6 +236,8 @@ export interface ContactSubmission {
   topic: 'saas' | 'stack' | 'plugin' | 'other';
   message: string;
   budget?: string | null;
+  consentedAt?: string | null;
+  consentPolicyVersion?: string | null;
   status?: ('new' | 'replied' | 'closed') | null;
   updatedAt: string;
   createdAt: string;
@@ -884,6 +886,8 @@ export interface ContactSubmissionsSelect<T extends boolean = true> {
   topic?: T;
   message?: T;
   budget?: T;
+  consentedAt?: T;
+  consentPolicyVersion?: T;
   status?: T;
   updatedAt?: T;
   createdAt?: T;

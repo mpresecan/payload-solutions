@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "payload-consent": {
+      "command": "npx",
+      "args": [
+        "payload-consent",
+        "mcp"
+      ]
+    }
+  }
+}

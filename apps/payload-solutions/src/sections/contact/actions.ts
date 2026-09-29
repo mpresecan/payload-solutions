@@ -1,5 +1,6 @@
 'use server'
 
+import { getConsentConfig } from '@payload-solutions/plugin-consent/server'
 import { z } from 'zod'
 
 import { getPayloadClient } from '@/lib/payload'
@@ -11,6 +12,7 @@ const schema = z.object({
   topic: z.enum(['saas', 'stack', 'plugin', 'other']),
   message: z.string().trim().min(20, 'A few sentences help us reply well').max(4000),
   budget: z.string().trim().max(80).optional(),
+  privacy: z.literal('on', { message: 'Please agree so we can reply to you' }),
   // honeypot: real people leave it empty
   website: z.string().max(0).optional(),
 })
@@ -31,9 +33,15 @@ export async function submitContact(_prev: ContactState, formData: FormData): Pr
     return { ok: false, error: issue?.message ?? 'Check the form', field: String(issue?.path[0] ?? '') }
   }
 
-  const { website: _honeypot, ...data } = parsed.data
+  const { website: _honeypot, privacy: _privacy, ...data } = parsed.data
   const payload = await getPayloadClient()
-  await payload.create({ collection: 'contact-submissions', data, overrideAccess: true })
+  // Consent is the legal basis for keeping the enquiry, so store the proof with it (Art. 7(1)).
+  const { versions } = await getConsentConfig(payload)
+  await payload.create({
+    collection: 'contact-submissions',
+    data: { ...data, consentedAt: new Date().toISOString(), consentPolicyVersion: versions.documentsVersion },
+    overrideAccess: true,
+  })
 
   const notify = process.env.CONTACT_NOTIFY_EMAIL
   if (notify && process.env.RESEND_API_KEY) {

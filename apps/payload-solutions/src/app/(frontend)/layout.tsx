@@ -4,6 +4,7 @@ import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import type { ReactNode } from 'react'
 import { brands } from '@payload-solutions/brand'
+import { ConsentRoot } from '@/components/consent/consent-root'
 import './globals.css'
 
 const brand = brands.solutions
@@ -52,7 +53,7 @@ export default function FrontendLayout({ children }: { children: ReactNode }) {
           }}
           search={{ options: { api: '/api/search' } }}
         >
-          {children}
+          <ConsentRoot>{children}</ConsentRoot>
         </RootProvider>
       </body>
     </html>

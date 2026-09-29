@@ -82,8 +82,32 @@ export function ContactForm() {
           {state.error}
         </p>
       ) : null}
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-xs text-fg-subtle">Stored in our Payload admin. Never shared.</p>
+      <div className="grid gap-2">
+        <label htmlFor="privacy" className="flex items-start gap-3 text-sm text-fg-muted">
+          <input
+            id="privacy"
+            name="privacy"
+            type="checkbox"
+            required
+            aria-describedby={state.field === 'privacy' ? 'privacy-error' : undefined}
+            className="mt-0.5 size-4 shrink-0 accent-accent"
+          />
+          <span>
+            I agree that Fortbit d.o.o. stores my message and contact details to reply to me, as described
+            in the{' '}
+            <a href="/legal/privacy" target="_blank" rel="noopener" className="text-fg underline underline-offset-4">
+              privacy policy
+            </a>
+            . I can withdraw this at any time by writing to privacy@payload.solutions.
+          </span>
+        </label>
+        {state.field === 'privacy' ? (
+          <p id="privacy-error" role="alert" className="text-xs text-danger">
+            {state.error}
+          </p>
+        ) : null}
+      </div>
+      <div className="flex items-center justify-end gap-4">
         <Button type="submit" disabled={pending} size="lg">
           {pending ? 'Sending' : 'Start a project'}
         </Button>

@@ -122,6 +122,18 @@ export const ContactSubmissions: CollectionConfig = {
     { name: 'message', type: 'textarea', required: true },
     { name: 'budget', type: 'text' },
     {
+      // Proof of consent (GDPR Art. 7(1)): when the sender ticked the privacy checkbox, and
+      // which version of the privacy policy it pointed to.
+      name: 'consentedAt',
+      type: 'date',
+      admin: { position: 'sidebar', readOnly: true, date: { pickerAppearance: 'dayAndTime' } },
+    },
+    {
+      name: 'consentPolicyVersion',
+      type: 'text',
+      admin: { position: 'sidebar', readOnly: true },
+    },
+    {
       name: 'status',
       type: 'select',
       defaultValue: 'new',

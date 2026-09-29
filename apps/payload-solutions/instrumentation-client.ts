@@ -14,10 +14,18 @@ if (!projectToken || !apiHost) {
     )
   }
 } else {
+  // Nothing is captured or stored until the visitor grants the analytics category; the
+  // opt-in itself is driven by PostHogConsent (src/components/consent/posthog-consent.tsx).
   posthog.init(projectToken, {
     api_host: apiHost,
     defaults: '2026-01-30',
     capture_exceptions: true,
     debug: process.env.NODE_ENV === 'development',
+    opt_out_capturing_by_default: true,
+    persistence: 'memory',
+    loaded: (ph) => {
+      // A visitor who agreed on an earlier visit: restore normal persistence straight away.
+      if (ph.has_opted_in_capturing()) ph.set_config({ persistence: 'localStorage+cookie' })
+    },
   })
 }
