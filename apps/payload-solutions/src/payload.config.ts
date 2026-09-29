@@ -73,7 +73,8 @@ export default buildConfig({
         name: "Payload Solutions",
         legalName: "Fortbit d.o.o.",
         address: "Gradiščak 31A, 40313, Gradiščak, Croatia",
-        
+        email: "hello@payload.solutions",
+        url: "https://fortbit.hr",
       }
     }
   })],

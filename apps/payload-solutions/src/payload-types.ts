@@ -73,7 +73,14 @@ export interface Config {
     'contact-submissions': ContactSubmission;
     media: Media;
     users: User;
+    'consent-categories': ConsentCategory;
+    'consent-trackers': ConsentTracker;
+    'consent-records': ConsentRecord;
+    'legal-pages': LegalPage;
+    'consent-processors': ConsentProcessor;
+    'consent-audits': ConsentAudit;
     'payload-kv': PayloadKv;
+    'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -86,7 +93,14 @@ export interface Config {
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'consent-categories': ConsentCategoriesSelect<false> | ConsentCategoriesSelect<true>;
+    'consent-trackers': ConsentTrackersSelect<false> | ConsentTrackersSelect<true>;
+    'consent-records': ConsentRecordsSelect<false> | ConsentRecordsSelect<true>;
+    'legal-pages': LegalPagesSelect<false> | LegalPagesSelect<true>;
+    'consent-processors': ConsentProcessorsSelect<false> | ConsentProcessorsSelect<true>;
+    'consent-audits': ConsentAuditsSelect<false> | ConsentAuditsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
+    'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -95,15 +109,25 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'consent-settings': ConsentSetting;
+  };
+  globalsSelect: {
+    'consent-settings': ConsentSettingsSelect<false> | ConsentSettingsSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
   };
   user: User;
   jobs: {
-    tasks: unknown;
+    tasks: {
+      consentPurgeRecords: TaskConsentPurgeRecords;
+      inline: {
+        input: unknown;
+        output: unknown;
+      };
+    };
     workflows: unknown;
   };
 }
@@ -262,6 +286,334 @@ export interface User {
   collection: 'users';
 }
 /**
+ * The choices visitors see in the banner. Every tracker belongs to exactly one category.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-categories".
+ */
+export interface ConsentCategory {
+  id: number;
+  /**
+   * Stable id used in the cookie and in code, e.g. analytics.
+   */
+  key: string;
+  order?: number | null;
+  label: string;
+  description: string;
+  /**
+   * Always on; cannot be refused. Typically only "necessary".
+   */
+  required?: boolean | null;
+  /**
+   * Under opt-out law, a Global Privacy Control signal switches this category off.
+   */
+  respectGPC?: boolean | null;
+  /**
+   * Granted by default for opt-out jurisdictions.
+   */
+  defaultInOptOut?: boolean | null;
+  /**
+   * Google Consent Mode v2 signals granted when this category is granted.
+   */
+  consentModeSignals?:
+    | (
+        | 'analytics_storage'
+        | 'ad_storage'
+        | 'ad_user_data'
+        | 'ad_personalization'
+        | 'functionality_storage'
+        | 'personalization_storage'
+        | 'security_storage'
+      )[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Every third-party script, pixel, embed or cookie the site uses. Drives the banner, the script gating and the cookie table in your cookie policy.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-trackers".
+ */
+export interface ConsentTracker {
+  id: number;
+  name: string;
+  vendor?: string | null;
+  category: number | ConsentCategory;
+  kind: 'script' | 'pixel' | 'iframe' | 'sdk' | 'cookie-only';
+  /**
+   * Shown in the preferences dialog and the cookie policy.
+   */
+  purpose?: string | null;
+  vendorPrivacyUrl?: string | null;
+  /**
+   * Disclosure rows for the cookie table.
+   */
+  cookies?:
+    | {
+        name: string;
+        domain?: string | null;
+        storage?: ('cookie' | 'localStorage' | 'sessionStorage' | 'indexedDB') | null;
+        durationText?: string | null;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * How the plugin loads this tracker once its category is granted.
+   */
+  loader?: {
+    /**
+     * Script URL. Leave empty when using inline code.
+     */
+    src?: string | null;
+    /**
+     * Inline snippet. Executes on your site: admin write access is the trust boundary.
+     */
+    inlineCode?: string | null;
+    strategy?: ('afterDecision' | 'lazy') | null;
+    /**
+     * Google tags only: load immediately and let Consent Mode gate the data instead of withholding the script.
+     */
+    consentModeManaged?: boolean | null;
+    /**
+     * Extra script attributes as a JSON object, e.g. {"data-domain":"example.com"}.
+     */
+    attributes?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  enabled?: boolean | null;
+  environments?: ('development' | 'production')[] | null;
+  presetKey?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Immutable proof of each consent decision. Created only through the consent endpoint; purged after the retention period.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-records".
+ */
+export interface ConsentRecord {
+  id: number;
+  consentId: string;
+  user?: (number | null) | User;
+  decisions:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  grantedCategories?: string[] | null;
+  source: 'banner' | 'preferences' | 'api' | 'gpc' | 'withdraw' | 'implicit';
+  country?: string | null;
+  model?: ('opt-in' | 'opt-out' | 'notice' | 'none') | null;
+  locale?: string | null;
+  versions?: {
+    policyVersion?: string | null;
+    categoriesVersion?: string | null;
+    trackersVersion?: string | null;
+    documentsVersion?: string | null;
+  };
+  userAgentFamily?: string | null;
+  expiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Privacy policy, terms, cookie policy. Publishing a privacy or cookie policy with a new effective date can re-prompt visitors (see Consent settings). Not legal advice: have these reviewed for your jurisdiction.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "legal-pages".
+ */
+export interface LegalPage {
+  id: number;
+  title: string;
+  /**
+   * URL segment, e.g. privacy
+   */
+  slug: string;
+  kind: 'privacy' | 'terms' | 'cookies' | 'subprocessors' | 'dpa' | 'other';
+  effectiveDate: string;
+  showInFooter?: boolean | null;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Everyone who receives personal data on our behalf. Feeds the recipients and transfers tables in the privacy policy, the public sub-processor list and the DPA annex. Confirm each row against the contract you actually signed — vendors contract through regional entities and the right one depends on you.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-processors".
+ */
+export interface ConsentProcessor {
+  id: number;
+  name: string;
+  /**
+   * Contracting entity, e.g. Google Ireland Limited.
+   */
+  legalName?: string | null;
+  role: 'processor' | 'sub-processor' | 'independent-controller' | 'joint-controller';
+  /**
+   * Where processing happens. ISO code (US, DE) or a region (EEA).
+   */
+  country: string;
+  /**
+   * What they do for us, in a sentence a visitor can follow. This is the text a regulator reads.
+   */
+  purpose: string;
+  /**
+   * Categories of personal data they receive. Needed for the DPA annex.
+   */
+  dataCategories: (
+    'account' | 'contact' | 'billing' | 'content' | 'usage' | 'technical' | 'support' | 'marketing' | 'special'
+  )[];
+  transfer: {
+    mechanism: 'none' | 'adequacy' | 'dpf' | 'scc' | 'bcr' | 'derogation';
+    /**
+     * What you fall back on if the adequacy decision is struck down.
+     */
+    fallback?: ('scc' | 'bcr') | null;
+    /**
+     * Additional safeguards, e.g. encryption at rest, EU-only region.
+     */
+    notes?: string | null;
+  };
+  privacyUrl?: string | null;
+  dpaUrl?: string | null;
+  /**
+   * Their own sub-processor list.
+   */
+  subprocessorsUrl?: string | null;
+  /**
+   * Show on the public sub-processor page and in the DPA annex.
+   */
+  subprocessor?: boolean | null;
+  /**
+   * Show in the recipients and transfers tables.
+   */
+  showInPrivacyPolicy?: boolean | null;
+  /**
+   * Someone has checked this row against the signed contract.
+   */
+  verified?: boolean | null;
+  /**
+   * Removed rows stay on record and appear in the change log.
+   */
+  status: 'active' | 'removed';
+  /**
+   * Announced from this date.
+   */
+  addedAt?: string | null;
+  removedAt?: string | null;
+  /**
+   * The browser-side script this vendor is behind, if any.
+   */
+  tracker?: (number | null) | ConsentTracker;
+  presetKey?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Runs of `payload-consent scan` and the agent review that follows it. Findings can be accepted with a reason, which carries forward to later runs.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-audits".
+ */
+export interface ConsentAudit {
+  id: number;
+  /**
+   * e.g. "scan 2026-09-07"
+   */
+  label: string;
+  runAt: string;
+  /**
+   * Which agent produced the review, when one did.
+   */
+  agent?: string | null;
+  /**
+   * Model the agent was running.
+   */
+  model?: string | null;
+  toolVersion?: string | null;
+  blockers?: number | null;
+  warnings?: number | null;
+  notices?: number | null;
+  accepted?: number | null;
+  /**
+   * Accepting a finding requires a reason. That record is the audit trail: it says who decided this was acceptable, and why.
+   */
+  findings?:
+    | {
+        findingId: string;
+        code: string;
+        severity: 'blocker' | 'warn' | 'info';
+        /**
+         * A model-judged finding always quotes the text it is about.
+         */
+        source: 'deterministic' | 'inferred';
+        locale?: string | null;
+        confidence?: number | null;
+        title: string;
+        detail?: string | null;
+        /**
+         * The text the finding is about.
+         */
+        quote?: string | null;
+        evidence?: string | null;
+        fix?: string | null;
+        page?: (number | null) | LegalPage;
+        status: 'open' | 'accepted' | 'fixed';
+        decidedAt?: string | null;
+        decidedBy?: (number | null) | User;
+        /**
+         * Required to accept. This is the record of why the risk was taken.
+         */
+        reason?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * What the run looked at: locales, pages, detected vendors, data map.
+   */
+  scope?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -277,6 +629,98 @@ export interface PayloadKv {
     | number
     | boolean
     | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs".
+ */
+export interface PayloadJob {
+  id: number;
+  /**
+   * Input data provided to the job
+   */
+  input?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  taskStatus?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  completedAt?: string | null;
+  totalTried?: number | null;
+  /**
+   * If hasError is true this job will not be retried
+   */
+  hasError?: boolean | null;
+  /**
+   * If hasError is true, this is the error that caused it
+   */
+  error?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Task execution log
+   */
+  log?:
+    | {
+        executedAt: string;
+        completedAt: string;
+        taskSlug: 'inline' | 'consentPurgeRecords';
+        taskID: string;
+        input?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        output?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        state: 'failed' | 'succeeded';
+        error?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  taskSlug?: ('inline' | 'consentPurgeRecords') | null;
+  queue?: string | null;
+  waitUntil?: string | null;
+  processing?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -308,6 +752,30 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'consent-categories';
+        value: number | ConsentCategory;
+      } | null)
+    | ({
+        relationTo: 'consent-trackers';
+        value: number | ConsentTracker;
+      } | null)
+    | ({
+        relationTo: 'consent-records';
+        value: number | ConsentRecord;
+      } | null)
+    | ({
+        relationTo: 'legal-pages';
+        value: number | LegalPage;
+      } | null)
+    | ({
+        relationTo: 'consent-processors';
+        value: number | ConsentProcessor;
+      } | null)
+    | ({
+        relationTo: 'consent-audits';
+        value: number | ConsentAudit;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -463,11 +931,206 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-categories_select".
+ */
+export interface ConsentCategoriesSelect<T extends boolean = true> {
+  key?: T;
+  order?: T;
+  label?: T;
+  description?: T;
+  required?: T;
+  respectGPC?: T;
+  defaultInOptOut?: T;
+  consentModeSignals?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-trackers_select".
+ */
+export interface ConsentTrackersSelect<T extends boolean = true> {
+  name?: T;
+  vendor?: T;
+  category?: T;
+  kind?: T;
+  purpose?: T;
+  vendorPrivacyUrl?: T;
+  cookies?:
+    | T
+    | {
+        name?: T;
+        domain?: T;
+        storage?: T;
+        durationText?: T;
+        description?: T;
+        id?: T;
+      };
+  loader?:
+    | T
+    | {
+        src?: T;
+        inlineCode?: T;
+        strategy?: T;
+        consentModeManaged?: T;
+        attributes?: T;
+      };
+  enabled?: T;
+  environments?: T;
+  presetKey?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-records_select".
+ */
+export interface ConsentRecordsSelect<T extends boolean = true> {
+  consentId?: T;
+  user?: T;
+  decisions?: T;
+  grantedCategories?: T;
+  source?: T;
+  country?: T;
+  model?: T;
+  locale?: T;
+  versions?:
+    | T
+    | {
+        policyVersion?: T;
+        categoriesVersion?: T;
+        trackersVersion?: T;
+        documentsVersion?: T;
+      };
+  userAgentFamily?: T;
+  expiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "legal-pages_select".
+ */
+export interface LegalPagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  kind?: T;
+  effectiveDate?: T;
+  showInFooter?: T;
+  content?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-processors_select".
+ */
+export interface ConsentProcessorsSelect<T extends boolean = true> {
+  name?: T;
+  legalName?: T;
+  role?: T;
+  country?: T;
+  purpose?: T;
+  dataCategories?: T;
+  transfer?:
+    | T
+    | {
+        mechanism?: T;
+        fallback?: T;
+        notes?: T;
+      };
+  privacyUrl?: T;
+  dpaUrl?: T;
+  subprocessorsUrl?: T;
+  subprocessor?: T;
+  showInPrivacyPolicy?: T;
+  verified?: T;
+  status?: T;
+  addedAt?: T;
+  removedAt?: T;
+  tracker?: T;
+  presetKey?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-audits_select".
+ */
+export interface ConsentAuditsSelect<T extends boolean = true> {
+  label?: T;
+  runAt?: T;
+  agent?: T;
+  model?: T;
+  toolVersion?: T;
+  blockers?: T;
+  warnings?: T;
+  notices?: T;
+  accepted?: T;
+  findings?:
+    | T
+    | {
+        findingId?: T;
+        code?: T;
+        severity?: T;
+        source?: T;
+        locale?: T;
+        confidence?: T;
+        title?: T;
+        detail?: T;
+        quote?: T;
+        evidence?: T;
+        fix?: T;
+        page?: T;
+        status?: T;
+        decidedAt?: T;
+        decidedBy?: T;
+        reason?: T;
+        id?: T;
+      };
+  scope?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
   key?: T;
   data?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs_select".
+ */
+export interface PayloadJobsSelect<T extends boolean = true> {
+  input?: T;
+  taskStatus?: T;
+  completedAt?: T;
+  totalTried?: T;
+  hasError?: T;
+  error?: T;
+  log?:
+    | T
+    | {
+        executedAt?: T;
+        completedAt?: T;
+        taskSlug?: T;
+        taskID?: T;
+        input?: T;
+        output?: T;
+        state?: T;
+        error?: T;
+        id?: T;
+      };
+  taskSlug?: T;
+  queue?: T;
+  waitUntil?: T;
+  processing?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -502,6 +1165,348 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * Banner behaviour, jurisdictions and recording. Cookie categories and the scripts they gate are managed in their own collections.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-settings".
+ */
+export interface ConsentSetting {
+  id: number;
+  /**
+   * Master switch. When off, no banner is shown and only required categories load.
+   */
+  enabled?: boolean | null;
+  reconsentOn?: ('documents' | 'categories' | 'trackers')[] | null;
+  /**
+   * CNIL recommends 6; most EU regulators accept up to 12–13.
+   */
+  expiresAfterMonths?: number | null;
+  recording?: {
+    mode?: ('none' | 'anonymous' | 'linked') | null;
+    /**
+     * Records older than this are purged by the consent-purge-records job.
+     */
+    retentionMonths?: number | null;
+  };
+  jurisdiction?: {
+    resolution?: ('header' | 'manual' | 'none') | null;
+    /**
+     * ISO 3166-1 alpha-2, e.g. DE, or EEA.
+     */
+    fixed?: string | null;
+    fallback?: ('opt-in' | 'opt-out' | 'notice' | 'none') | null;
+    /**
+     * Region → model. Regions: country code (DE), EEA, or US-CA style state. Built-in defaults: EEA/GB/CH/BR/CA opt-in, US opt-out.
+     */
+    overrides?:
+      | {
+          region: string;
+          model: 'opt-in' | 'opt-out' | 'notice' | 'none';
+          id?: string | null;
+        }[]
+      | null;
+  };
+  banner?: {
+    title?: string | null;
+    description?: string | null;
+    position?: ('bottom' | 'bottom-left' | 'bottom-right' | 'center') | null;
+    /**
+     * Keep on. Under opt-in law, refusing must be as easy as accepting (EDPB Guidelines 05/2020); the banner enforces this for opt-in visitors regardless.
+     */
+    showRejectAll?: boolean | null;
+    labels?: {
+      acceptAll?: string | null;
+      rejectAll?: string | null;
+      customize?: string | null;
+      save?: string | null;
+      close?: string | null;
+      manage?: string | null;
+      requiredBadge?: string | null;
+      reloadNotice?: string | null;
+    };
+    privacyPage?: (number | null) | LegalPage;
+    cookiePage?: (number | null) | LegalPage;
+  };
+  consentMode?: {
+    enabled?: ('auto' | 'on' | 'off') | null;
+    adsDataRedaction?: boolean | null;
+    urlPassthrough?: boolean | null;
+    waitForUpdateMs?: number | null;
+  };
+  /**
+   * Settings for the public sub-processor list. Changing your sub-processors is a notice obligation to your own customers, not a consent event — it never re-prompts visitors.
+   */
+  processors?: {
+    /**
+     * How long before a new sub-processor starts. 30 is the market norm.
+     */
+    noticeDays?: number | null;
+    /**
+     * Where customers object to a new sub-processor.
+     */
+    noticeEmail?: string | null;
+    /**
+     * Where customers subscribe to changes, if you offer that.
+     */
+    subscribeUrl?: string | null;
+    subprocessorsVersion?: string | null;
+    changedAt?: string | null;
+  };
+  /**
+   * Facts about your organisation that the legal documents depend on. `payload-consent` will not draft a document that relies on an answer nobody has given — it asks instead.
+   */
+  compliance?: {
+    /**
+     * The entity that decides how personal data is used. Art. 13(1)(a).
+     */
+    legalName?: string | null;
+    /**
+     * The name customers know you by, if different.
+     */
+    tradingName?: string | null;
+    /**
+     * Registered postal address. An email address alone does not satisfy Art. 13(1)(a).
+     */
+    address?: string | null;
+    /**
+     * Published privacy contact.
+     */
+    contactEmail?: string | null;
+    dsrEmail?: string | null;
+    websiteUrl?: string | null;
+    /**
+     * ISO code. Decides your lead authority.
+     */
+    establishmentCountry?: string | null;
+    /**
+     * Where a complaint would go. Art. 13(2)(d).
+     */
+    supervisoryAuthority?: string | null;
+    /**
+     * Governing law of the terms.
+     */
+    governingLaw?: string | null;
+    /**
+     * If one is appointed, the contact details are mandatory. Art. 13(1)(b).
+     */
+    dpo?: {
+      required?: ('yes' | 'no' | 'unknown') | null;
+      name?: string | null;
+      email?: string | null;
+    };
+    /**
+     * Decides whether a DPA and sub-processor notices apply to you.
+     */
+    audience?: ('b2b' | 'b2c' | 'both') | null;
+    /**
+     * For your customers’ data.
+     */
+    role?: ('controller' | 'processor' | 'both') | null;
+    /**
+     * Art. 13(2)(f), Art. 22.
+     */
+    automatedDecisions?: ('none' | 'profiling' | 'adm') | null;
+    offersToEEA?: boolean | null;
+    offersToUK?: boolean | null;
+    /**
+     * US states whose privacy laws you are in scope for, e.g. CA, CO, VA.
+     */
+    usStates?: string | null;
+    /**
+     * One per purpose. Art. 13(1)(c). Where legitimate interests are relied on, say what the interest is.
+     */
+    legalBases?:
+      | {
+          purpose?: string | null;
+          basis?:
+            | ('consent' | 'contract' | 'legal-obligation' | 'vital-interests' | 'public-task' | 'legitimate-interests')
+            | null;
+          /**
+           * The interest relied on, where relevant.
+           */
+          notes?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * A period, or the criteria that decide it. Art. 13(2)(a). "As long as necessary" alone does not qualify.
+     */
+    retention?:
+      | {
+          purpose?: string | null;
+          period?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Answers given in the terminal, with who said it and when. The agent reads these instead of asking again.
+     */
+    answers?:
+      | {
+          key: string;
+          answeredAt?: string | null;
+          answeredByUser?: (number | null) | User;
+          question?: string | null;
+          answer: string;
+          /**
+           * Free-text attribution when the answer did not come from a logged-in user.
+           */
+          answeredBy?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Last time any answer was recorded.
+     */
+    confirmedAt?: string | null;
+  };
+  /**
+   * Maintained automatically. A change here re-prompts visitors according to "Ask again when these change".
+   */
+  versions?: {
+    policyVersion?: string | null;
+    categoriesVersion?: string | null;
+    trackersVersion?: string | null;
+    documentsVersion?: string | null;
+    bumpedAt?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-settings_select".
+ */
+export interface ConsentSettingsSelect<T extends boolean = true> {
+  enabled?: T;
+  reconsentOn?: T;
+  expiresAfterMonths?: T;
+  recording?:
+    | T
+    | {
+        mode?: T;
+        retentionMonths?: T;
+      };
+  jurisdiction?:
+    | T
+    | {
+        resolution?: T;
+        fixed?: T;
+        fallback?: T;
+        overrides?:
+          | T
+          | {
+              region?: T;
+              model?: T;
+              id?: T;
+            };
+      };
+  banner?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        position?: T;
+        showRejectAll?: T;
+        labels?:
+          | T
+          | {
+              acceptAll?: T;
+              rejectAll?: T;
+              customize?: T;
+              save?: T;
+              close?: T;
+              manage?: T;
+              requiredBadge?: T;
+              reloadNotice?: T;
+            };
+        privacyPage?: T;
+        cookiePage?: T;
+      };
+  consentMode?:
+    | T
+    | {
+        enabled?: T;
+        adsDataRedaction?: T;
+        urlPassthrough?: T;
+        waitForUpdateMs?: T;
+      };
+  processors?:
+    | T
+    | {
+        noticeDays?: T;
+        noticeEmail?: T;
+        subscribeUrl?: T;
+        subprocessorsVersion?: T;
+        changedAt?: T;
+      };
+  compliance?:
+    | T
+    | {
+        legalName?: T;
+        tradingName?: T;
+        address?: T;
+        contactEmail?: T;
+        dsrEmail?: T;
+        websiteUrl?: T;
+        establishmentCountry?: T;
+        supervisoryAuthority?: T;
+        governingLaw?: T;
+        dpo?:
+          | T
+          | {
+              required?: T;
+              name?: T;
+              email?: T;
+            };
+        audience?: T;
+        role?: T;
+        automatedDecisions?: T;
+        offersToEEA?: T;
+        offersToUK?: T;
+        usStates?: T;
+        legalBases?:
+          | T
+          | {
+              purpose?: T;
+              basis?: T;
+              notes?: T;
+              id?: T;
+            };
+        retention?:
+          | T
+          | {
+              purpose?: T;
+              period?: T;
+              id?: T;
+            };
+        answers?:
+          | T
+          | {
+              key?: T;
+              answeredAt?: T;
+              answeredByUser?: T;
+              question?: T;
+              answer?: T;
+              answeredBy?: T;
+              id?: T;
+            };
+        confirmedAt?: T;
+      };
+  versions?:
+    | T
+    | {
+        policyVersion?: T;
+        categoriesVersion?: T;
+        trackersVersion?: T;
+        documentsVersion?: T;
+        bumpedAt?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "collections_widget".
  */
@@ -510,6 +1515,52 @@ export interface CollectionsWidget {
     [k: string]: unknown;
   };
   width: 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskConsentPurgeRecords".
+ */
+export interface TaskConsentPurgeRecords {
+  input?: unknown;
+  output: {
+    deleted?: number | null;
+    cutoff?: string | null;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ConsentCookieTableBlock".
+ */
+export interface ConsentCookieTableBlock {
+  groupBy?: ('category' | 'vendor') | null;
+  showDurations?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'cookieTable';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ConsentProcessorTableBlock".
+ */
+export interface ConsentProcessorTableBlock {
+  mode: 'recipients' | 'transfers' | 'subprocessors' | 'annex' | 'changes';
+  /**
+   * Show whether each recipient is a processor or an independent controller.
+   */
+  showRole?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'processorTable';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ConsentPolicyVersionBlock".
+ */
+export interface ConsentPolicyVersionBlock {
+  prefix?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'policyVersion';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
