@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Check, Copy } from '@phosphor-icons/react'
 import { NPX_COMMAND } from '@payload-solutions/brand'
 import { SlideFaces } from '@payload-solutions/brand/lattice'
+import posthog from 'posthog-js'
 import { cn } from '@/lib/cn'
 
 interface CopyCommandProps {
@@ -54,16 +55,19 @@ export function CopyCommand({ className, variant = 'box', size = 'md' }: CopyCom
       }
       setFailed(false)
       setCopied(true)
+      posthog.capture('scaffold_command_copied', { display_variant: variant })
+      posthog.logger.info('scaffold command copied', { display_variant: variant })
     } catch {
       setFailed(true)
       setCopied(false)
+      posthog.logger.warn('scaffold command copy failed', { display_variant: variant })
     }
     if (timer.current) clearTimeout(timer.current)
     timer.current = setTimeout(() => {
       setCopied(false)
       setFailed(false)
     }, 1800)
-  }, [])
+  }, [variant])
 
   const label = copied ? 'Command copied to clipboard' : `Copy ${NPX_COMMAND} to clipboard`
 
