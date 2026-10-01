@@ -1,0 +1,17 @@
+{
+  "title": "Resend Broadcasts",
+  "description": "Alpha · Newsletters sent as Resend broadcasts",
+  "root": true,
+  "pages": [
+    "index",
+    "installation",
+    "sources",
+    "lists",
+    "campaigns",
+    "templates",
+    "webhooks",
+    "api",
+    "configuration",
+    "recipes"
+  ]
+}

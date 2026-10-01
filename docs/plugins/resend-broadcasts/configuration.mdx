@@ -1,0 +1,79 @@
+---
+title: Configuration
+description: Every option of resendBroadcastsPlugin(), with its default.
+---
+
+```ts
+resendBroadcastsPlugin({
+  sources: [/* … */], // required
+  from: 'Acme <news@acme.com>',
+})
+```
+
+## Options
+
+| Option | Default | What it does |
+| --- | --- | --- |
+| `sources` | — | the subscriber collections; see below. At least one |
+| `apiKey` | `process.env.RESEND_API_KEY` | a full-access Resend API key |
+| `webhookSecret` | `process.env.RESEND_WEBHOOK_SECRET` | the signing secret of the unsubscribe webhook |
+| `from` | — | `"Name <address>"` used when neither the campaign nor Newsletter Settings sets one. Must be on a verified domain |
+| `replyTo` | — | reply-to used when neither the campaign nor Newsletter Settings sets one |
+| `templates` | `{ default: DefaultTemplate }` | React Email templates by name; `default` is used unless a campaign picks another |
+| `variables` | — | extra values the same for every subscriber, as an object or `({ payload }) => object`. Usable in the subject too |
+| `editor` | the plugin's email editor | a Lexical editor for the campaign body and the footer |
+| `media.collection` | — | an upload collection; adds the **Image** block to the body and footer editors |
+| `media.baseUrl` | the server URL | public origin that relative (or server-URL) upload URLs are put on |
+| `media.allowPrivateUrls` | `false` | allow `localhost` and private-network image URLs in broadcasts — for development only |
+| `access.manage` | any logged-in user | who can read and edit lists, campaigns and settings, preview and test |
+| `access.send` | `access.manage` | who can send, schedule, cancel and resync |
+| `adminGroup` | `'Newsletter'` | the admin nav group |
+| `slugs` | `newsletter-lists`, `newsletter-campaigns`, `newsletter-sync-runs`, `newsletter-settings` | rename the plugin's collections and global |
+| `syncMode` | `'await'` | `'background'` syncs after the response instead of inside the save |
+| `deleteContacts` | `true` | delete a Resend contact when the last document with its address is deleted |
+| `resend.requestsPerSecond` | `2` | throttle for every Resend call this process makes; `0` disables it |
+| `resend.baseUrl` | Resend's API | another API host — a mock in development and tests |
+| `resend.client` | — | bring your own `ResendClient` (from `createResendClient`) |
+| `disabled` | `false` | keep the collections and fields, so the schema is stable, but make no call to Resend: no sync hooks, no endpoints |
+
+## Sources
+
+| Option | Default | What it does |
+| --- | --- | --- |
+| `collection` | — | the collection slug |
+| `fields.email` | `'email'` | path of the email field |
+| `fields.name` | `'name'` | path of a full-name field, split on the first space. Not used when `firstName` or `lastName` is mapped |
+| `fields.firstName`, `fields.lastName` | — | paths of separate name fields |
+| `fields.subscribed` | `'subscribed'` | path of the opt-in checkbox |
+| `addFields` | `true` | add email, name and subscribed when the collection lacks them (top-level paths only; never email on an auth collection) |
+| `defaultSubscribed` | `false` | the added checkbox's default for new documents |
+| `properties` | — | `{ key: { type, value, fallback?, description? } }` pushed as Resend contact properties and usable as `{{key}}` |
+| `label` | the slug | how the source reads in a list's **Source** select |
+
+## Access
+
+`access.manage` and `access.send` receive `{ req }` and return a boolean (or a promise of one). They guard the collections, the global and every endpoint.
+
+```ts
+resendBroadcastsPlugin({
+  access: {
+    manage: ({ req }) => Boolean(req.user?.roles?.includes('editor') || req.user?.roles?.includes('admin')),
+    send: ({ req }) => Boolean(req.user?.roles?.includes('admin')),
+  },
+  // …
+})
+```
+
+Reading subscribers in the preview picker always uses the caller's own access on the source collection, whatever these return.
+
+## What the plugin adds to your config
+
+| Added | Slug |
+| --- | --- |
+| fields and `afterChange`/`afterDelete` hooks on every source collection | your slugs |
+| Lists collection | `newsletter-lists` |
+| Campaigns collection, with the Preview & send view | `newsletter-campaigns` |
+| Sync runs collection | `newsletter-sync-runs` |
+| Newsletter Settings global | `newsletter-settings` |
+| root endpoints | `/api/resend-broadcasts/webhook`, `/api/resend-broadcasts/resync` |
+| `payload.resendBroadcasts` | attached in `onInit` |

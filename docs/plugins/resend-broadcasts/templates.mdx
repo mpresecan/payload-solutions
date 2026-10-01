@@ -1,0 +1,77 @@
+---
+title: Templates
+description: The design is a React Email component in your repo, with the same contract as Payload Emails — so one branded template can serve your transactional mail and your newsletters.
+---
+
+Every campaign is rendered inside a template: a React Email component that owns the shell — colours, spacing, the wordmark, the container. Editors write the words; the design is reviewed in pull requests.
+
+The plugin ships a neutral default with a dark-mode stylesheet. Register your own:
+
+```ts title="payload.config.ts"
+import { BrandTemplate } from './emails/template'
+
+resendBroadcastsPlugin({
+  // …
+  templates: { default: BrandTemplate },
+})
+```
+
+Register more than one and campaigns get a **Template** select.
+
+## The same contract as Payload Emails
+
+A template here takes the same props as a [Payload Emails template](/docs/plugins/payload-emails/templates) — `children`, `footer`, `preheader`, `subject`, `settings`, `variables` — and the body is converted with the same class names (`pe-text`, `pe-heading`, `pe-button`, …) and the same `styles` override. If you already have a branded template for transactional mail, register it with both plugins and your newsletters look like the rest of your product.
+
+```tsx title="src/emails/template.tsx"
+import { Body, Container, Head, Html, Preview, Section, Text } from '@react-email/components'
+import type { EmailTemplate } from '@payload-solutions/plugin-resend-broadcasts'
+
+export const BrandTemplate: EmailTemplate = ({ children, footer, preheader, settings }) => (
+  <Html lang="en">
+    <Head />
+    {preheader ? <Preview>{preheader}</Preview> : null}
+    <Body style={{ backgroundColor: '#f4f4f5', fontFamily: 'Inter, Helvetica, Arial, sans-serif', margin: 0, padding: '32px 12px' }}>
+      <Container style={{ margin: '0 auto', maxWidth: '600px' }}>
+        <Text style={{ fontWeight: 700, margin: '0 0 16px' }}>{settings.siteName}</Text>
+        <Section style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '40px' }}>{children}</Section>
+        <Section style={{ color: '#71717a', fontSize: '12px', padding: '20px 40px 0' }}>{footer}</Section>
+      </Container>
+    </Body>
+  </Html>
+)
+```
+
+## The props
+
+| Prop | What it is |
+| --- | --- |
+| `children` | the campaign body, already React Email elements with variables filled in |
+| `footer` | the Newsletter Settings footer **followed by the unsubscribe link** — render it |
+| `subject`, `preheader` | the subject and preview text, variables filled in |
+| `settings` | Newsletter Settings: `siteName`, `siteUrl`, `from`, `replyTo`, `footer`, `unsubscribeLabel` |
+| `unsubscribeUrl` | the unsubscribe link for this render, if you want to place one yourself |
+| `variables` | every variable the copy used, with the value this render gave it |
+
+`unsubscribeUrl` is Resend's `{{{RESEND_UNSUBSCRIBE_URL}}}` in a broadcast and a harmless link to your site in previews and tests.
+
+## The unsubscribe link is not optional
+
+Marketing email needs a working unsubscribe link, and Resend's per-contact link is what keeps your Payload documents in step through the [webhook](/docs/plugins/resend-broadcasts/webhooks). The plugin puts it in `footer` for you, so any template that renders `footer` is compliant. Before every send it checks that the rendered HTML contains Resend's placeholder, and refuses to send if your template dropped it.
+
+## Matching the body to the template
+
+The body converter styles every element inline from a `TemplateStyles` object. Attach your own to the template and the editor's copy picks it up:
+
+```ts
+BrandTemplate.styles = {
+  text: { color: '#27272a', fontSize: '15px', lineHeight: '1.65', margin: '0 0 14px' },
+  button: { backgroundColor: '#4f46e5', borderRadius: '8px', color: '#ffffff', padding: '12px 22px' },
+  link: { color: '#4f46e5' },
+}
+```
+
+Every element also carries a class from `EMAIL_CLASS`, so a `<style>` block in your template can restyle copy inside media queries — the default template's dark mode works this way. Both are exported from the package, as are `DefaultTemplate`, `defaultStyles` and `darkModeCSS` to build on.
+
+## Footer
+
+The footer is edited in **Newsletter Settings** with the same small editor as the body, and accepts the same variables. Use it for who you are, your postal address where the law asks for one, and why the reader is getting this. The unsubscribe link's text is **Unsubscribe link text** in the same settings.

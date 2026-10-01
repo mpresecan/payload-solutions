@@ -1,0 +1,92 @@
+---
+title: API
+description: payload.resendBroadcasts for server code, and the REST endpoints the admin uses.
+---
+
+## `payload.resendBroadcasts`
+
+Attached in `onInit`, before your own `onInit` runs, and typed through module augmentation — no import needed. `getResendBroadcasts(payload)` returns the same object and throws a clear error when the plugin is missing.
+
+| Method | What it does |
+| --- | --- |
+| `send(campaignId, { scheduledAt? })` | sends a draft or failed campaign to its list now, or at `scheduledAt` (a `Date` or ISO string, at least a minute ahead). Returns the updated campaign |
+| `cancel(campaignId)` | cancels a scheduled send, deletes the broadcast in Resend, returns the campaign as a draft |
+| `refreshStatus(campaignId)` | asks Resend where a scheduled or sending broadcast is, and records it |
+| `render({ campaign, mode?, subscriber? })` | renders a campaign (a document or an id). `mode: 'preview'` (default) fills every variable from `subscriber`; `mode: 'broadcast'` produces exactly what is sent to Resend |
+| `resync({ lists?, force? })` | reconciles Resend with the sources; limits it to some lists, or updates every contact with `force` |
+| `syncDocument({ collection, doc })` | pushes one subscriber document now: contact plus segment membership |
+| `idle()` | resolves once every background sync this process started has finished — useful in tests and scripts |
+| `client` | the throttled Resend client: `client.call(label, (resend) => resend.contacts.get(…))` |
+| `options` | the sanitized plugin options |
+
+Errors from Resend are thrown as `ResendApiError`, with Resend's error name in `code` and the HTTP status in `statusCode`. `isNotFound(error)` checks for a 404.
+
+```ts
+import { ResendApiError } from '@payload-solutions/plugin-resend-broadcasts'
+
+try {
+  await payload.resendBroadcasts.send(id)
+} catch (error) {
+  if (error instanceof ResendApiError && error.code === 'validation_error') {
+    // e.g. the from address is not on a verified domain
+  }
+  throw error
+}
+```
+
+### Rendering without sending
+
+```ts
+const { html, text, subject } = await payload.resendBroadcasts.render({
+  campaign: id,
+  mode: 'broadcast',
+})
+```
+
+`render` with a `subscriber` takes the plugin's collection-independent shape. Build one from a document with `toSubscriber`:
+
+```ts
+import { toSubscriber } from '@payload-solutions/plugin-resend-broadcasts'
+
+const source = payload.resendBroadcasts.options.sources.find((s) => s.collection === 'subscribers')!
+const doc = await payload.findByID({ collection: 'subscribers', id })
+const preview = await payload.resendBroadcasts.render({ campaign, subscriber: toSubscriber(source, doc) })
+```
+
+## REST endpoints
+
+All of them except the webhook need a logged-in user who passes the plugin's `access` functions. Campaign and list paths use your slugs — the defaults are shown.
+
+| Method and path | Access | What it does |
+| --- | --- | --- |
+| `POST /api/newsletter-campaigns/:id/preview` | manage | body `{ subscriber?: { collection, id } }` → `html`, `text`, `subject`, `preheader`, the subscriber, the list, the campaign status, and every variable with this subscriber's value |
+| `POST /api/newsletter-campaigns/:id/test` | manage | body `{ to, subscriber? }` → sends a test through Resend's email API |
+| `POST /api/newsletter-campaigns/:id/send` | send | body `{ scheduledAt? }` → sends or schedules the broadcast |
+| `POST /api/newsletter-campaigns/:id/cancel` | send | cancels a scheduled send |
+| `POST /api/newsletter-campaigns/:id/refresh` | manage | refreshes the status from Resend |
+| `GET /api/newsletter-lists/:id/subscribers` | manage | `?search=&page=&limit=&subscribed=true` → the list's members, read with the caller's own access |
+| `POST /api/newsletter-lists/:id/resync` | send | starts a background resync of one list → `{ runId }` |
+| `POST /api/resend-broadcasts/resync` | send | body `{ force? }` → starts a full background resync → `{ runId }` |
+| `POST /api/resend-broadcasts/webhook` | signature | Resend's contact events; see [Webhooks](/docs/plugins/resend-broadcasts/webhooks) |
+
+A background run is a document in `newsletter-sync-runs`; poll `GET /api/newsletter-sync-runs/:runId` until `status` is `finished` or `failed`. It carries `stats` and `errors`.
+
+The preview response also carries `privateImages`: image URLs a reader could not load, which block sending.
+
+Errors come back as `{ message }` with a meaningful status: 400 for something to fix, 403 without access, 409 when the campaign is in the wrong state, 502 when Resend refused the call (with its `code`).
+
+## Exports
+
+| Export | What it is |
+| --- | --- |
+| `resendBroadcastsPlugin` | the plugin |
+| `getResendBroadcasts` | `payload.resendBroadcasts`, or a clear error |
+| `DefaultTemplate`, `defaultStyles`, `darkModeCSS`, `EMAIL_CLASS` | building blocks for templates |
+| `createEmailEditor`, `emailEditorFeatures`, `ButtonBlock`, `createImageBlock` | the campaign body editor, to extend; pass `{ mediaCollection }` to include the Image block |
+| `findPrivateImages`, `isPublicImageUrl`, `absoluteUrl`, `IMAGE_WIDTHS` | the image checks and URL handling the send path uses |
+| `markdownToLexical` | Markdown (with `<Button label="…" url="…" />`) → the body editor's Lexical state, for seeding campaigns or the footer from code |
+| `renderCampaign`, `createResolver`, `variableCatalog`, `lexicalToReact`, `interpolate`, `extractTokens` | the rendering pipeline |
+| `toSubscriber` | a source document → the subscriber shape |
+| `createResendClient`, `ResendApiError`, `isNotFound` | the throttled client |
+| `RESEND_UNSUBSCRIBE_PLACEHOLDER`, `DEFAULT_SLUGS`, `ENDPOINT_BASE`, `LOCKED_STATUSES` | constants |
+| types | `ResendBroadcastsPluginOptions`, `SourceConfig`, `ContactPropertyDefinition`, `EmailTemplate`, `TemplateStyles`, `Subscriber`, `CampaignDoc`, `ListDoc`, `RenderedCampaign`, `ResyncResult`, … |

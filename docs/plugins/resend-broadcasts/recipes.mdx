@@ -1,0 +1,130 @@
+---
+title: Recipes
+description: A public sign-up endpoint, an opt-in checkbox on user accounts, a nightly resync, serverless hosts, bulk imports and developing against a mock.
+---
+
+## A public sign-up form
+
+Give the newsletter its own collection, let anyone create a document in it, and nothing else:
+
+```ts title="src/collections/Subscribers.ts"
+export const Subscribers: CollectionConfig = {
+  slug: 'subscribers',
+  access: {
+    create: () => true, // the public form
+    read: ({ req }) => Boolean(req.user),
+    update: ({ req }) => Boolean(req.user),
+    delete: ({ req }) => Boolean(req.user),
+  },
+  admin: { useAsTitle: 'email' },
+  fields: [{ name: 'source', type: 'text' }],
+}
+```
+
+```ts title="payload.config.ts"
+resendBroadcastsPlugin({
+  sources: [{ collection: 'subscribers', defaultSubscribed: true }],
+})
+```
+
+The plugin adds `email`, `name` and `subscribed`. Your form posts to Payload's own REST API:
+
+```ts
+await fetch('/api/subscribers', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, name, source: 'footer-form' }),
+})
+```
+
+The save creates the Resend contact and drops it into every list over `subscribers`. Add a unique index on `email` (or a `beforeValidate` hook that turns a duplicate sign-up into a no-op) so the same person cannot sign up twice, and put the endpoint behind your usual bot protection. For double opt-in, set `defaultSubscribed: false` and flip the checkbox from the confirmation link's handler.
+
+## An opt-in checkbox on user accounts
+
+With `{ collection: 'users' }` as a source, every user document gets **Subscribed to newsletters**, off by default. Show the same field on your account page and save it through the normal user update — the plugin does the rest:
+
+```ts
+await payload.update({
+  collection: 'users',
+  id: user.id,
+  data: { subscribed: true },
+  overrideAccess: false,
+  user,
+})
+```
+
+If your users collection should not get the field in the admin sidebar, add it yourself where you want it (for example in a **Preferences** tab), map it with `fields.subscribed`, and set `addFields: false`.
+
+## One list per plan
+
+```ts
+await payload.create({
+  collection: 'newsletter-lists',
+  data: { name: 'Pro customers', source: 'users', filter: { plan: { equals: 'pro' } } },
+})
+```
+
+When a user upgrades, their next save moves them into the Pro segment; a downgrade moves them out. Campaigns to "Pro customers" reach exactly the people who are Pro when Resend sends.
+
+## Resync every night
+
+The webhook keeps unsubscribes current, but a nightly reconciliation catches anything that slipped: a contact deleted in the dashboard, a webhook delivery that failed for a day. With Payload's job queue:
+
+```ts title="payload.config.ts"
+jobs: {
+  tasks: [
+    {
+      slug: 'newsletterResync',
+      schedule: [{ cron: '0 3 * * *', queue: 'nightly' }],
+      handler: async ({ req }) => {
+        const result = await req.payload.resendBroadcasts.resync()
+        return { output: result }
+      },
+    },
+  ],
+  autoRun: [{ cron: '*/5 * * * *', queue: 'nightly' }],
+},
+```
+
+On serverless hosts, run the queue from a scheduler instead of `autoRun` — [Payload Action Scheduler](/docs/plugins/payload-action-scheduler) and [Payload Clock](/docs/payload-clock) are made for this.
+
+## Serverless hosts
+
+Two things run outside the request that started them: filling a list's segment after it is created or refiltered, and the resync buttons. On a long-running server they simply finish. On a serverless host the function may be frozen once the response is sent, which can cut a large run short.
+
+- Keep `syncMode: 'await'` (the default) so document saves always finish their Resend calls before returning.
+- Run large resyncs from a job or a script, where they are awaited: `await payload.resendBroadcasts.resync()`.
+- If a run was cut short, the list's sidebar shows a stale **Last synced**; run it again. Every resync is safe to repeat.
+
+## Bulk imports
+
+Importing thousands of subscribers one save at a time makes one or more Resend calls per document. Skip the per-document sync and reconcile once at the end:
+
+```ts
+for (const row of rows) {
+  await payload.create({
+    collection: 'subscribers',
+    data: row,
+    context: { resendBroadcastsSkipSync: true },
+  })
+}
+await payload.resendBroadcasts.resync()
+```
+
+## Develop against a mock
+
+The plugin's dev app never talks to Resend unless you give it a key. It serves an in-memory Resend from a Next route — contacts, properties, segments, broadcasts and single emails — and points the plugin at it:
+
+```ts title="dev/payload.config.ts"
+resendBroadcastsPlugin({
+  apiKey: process.env.RESEND_API_KEY || 're_dev_mock',
+  resend: process.env.RESEND_API_KEY ? undefined : { baseUrl: `${serverURL}/resend-mock`, requestsPerSecond: 0 },
+  // …
+})
+```
+
+Open `/resend-mock/__mock/state` to see what "Resend" received, and `POST /resend-mock/__mock/contacts/<email>/unsubscribe` to play a reader unsubscribing — it delivers a signed webhook back to the app. The integration tests start the same mock on a random port. Copy `dev/resend-mock` into your own project to do the same.
+
+## Real Resend in development
+
+Set `RESEND_API_KEY` and a `from` on a domain verified in Resend, and use a separate Resend team (or at least separate lists) for development: every save of a source document creates or updates a real contact.

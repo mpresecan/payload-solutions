@@ -1,0 +1,77 @@
+---
+title: Resend Broadcasts
+description: Newsletters for Payload CMS on Resend Broadcasts. Any collection becomes a subscriber source, lists become Resend segments, and campaigns are written, previewed as any subscriber, tested and sent from the admin.
+---
+
+<Callout type="warn">
+**Alpha — in testing.** Resend Broadcasts 0.1 works end to end against a Resend mock and is now being tested against the real Resend API. Expect rough edges and breaking changes before 1.0, and try it on a test Resend team before you send to real subscribers. [Tell us](https://payload.solutions/#contact) what breaks.
+</Callout>
+
+Most projects already keep the people they want to write to in Payload — users, customers, a newsletter sign-up collection. Resend Broadcasts turns those collections into Resend contacts and segments, and gives your team a place in the admin to write a campaign, see it exactly as one particular subscriber will, send themselves a test, and send or schedule it through [Resend Broadcasts](https://resend.com/docs/dashboard/broadcasts/introduction).
+
+```ts title="payload.config.ts"
+resendBroadcastsPlugin({
+  from: 'Acme <news@acme.com>',
+  sources: [
+    { collection: 'users' },
+    { collection: 'subscribers', defaultSubscribed: true },
+  ],
+})
+```
+
+That is the whole setup. Every save of a `users` or `subscribers` document keeps its Resend contact current. An editor creates a **List** — "Everyone on the Pro plan" — which becomes a Resend segment, writes a **Campaign** in Lexical with `{{firstName|there}}` in it, opens **Preview & send**, clicks through the people in the list to check the copy, and sends.
+
+## What each side owns
+
+| Payload owns | Resend owns |
+| --- | --- |
+| who your subscribers are, their names and properties | delivery, at scale, from your verified domain |
+| which documents belong to which list | the per-contact unsubscribe link and preference page |
+| the campaign copy, its preview and its test sends | filling each contact's variables into the broadcast |
+| the design — a React Email template in your repo | skipping everyone who unsubscribed |
+
+Payload is the source of truth for **who exists and who is in which list**. Resend is the source of truth for **unsubscribes**: when a reader unsubscribes through Resend's link, a webhook switches their document off in Payload, and a resync never subscribes them again.
+
+## How it fits together
+
+| Piece | What it is |
+| --- | --- |
+| `resendBroadcastsPlugin()` | adds the fields, hooks, collections, global, endpoints and admin views |
+| a **source** | a collection whose documents are subscribers; `email`, `name` and `subscribed` are added if missing |
+| **Lists** (`newsletter-lists`) | one Resend segment each: a source, optionally narrowed by a Payload query |
+| **Campaigns** (`newsletter-campaigns`) | subject, preview text and a Lexical body, sent to one list |
+| **Preview & send** | the campaign's tab: pick a list and any person in it, test, send or schedule |
+| **Newsletter Settings** | sender, reply-to, site name, the footer, the default test recipient |
+| **Sync runs** | a record of every reconciliation with Resend |
+| `payload.resendBroadcasts` | the same operations from your own code |
+
+## What you get
+
+- Contacts kept in step on every save, email change and delete — names split for Resend, custom properties pushed with them.
+- Lists as Resend segments, filled in the background when created or refiltered, and kept current as documents change.
+- A preview that renders the campaign for any real subscriber, with a searchable picker and next/previous stepping through the list.
+- Variables with fallbacks — `{{firstName|there}}` — that become Resend's own `{{{contact.first_name|there}}}` placeholders at send time.
+- An **Image** block for uploads from your media collection, sized for email, with absolute URLs, and a check that refuses to send images readers could not load.
+- Test sends through Resend's email API, filled in as the subscriber you picked.
+- Send now or schedule, cancel a scheduled send, and pick up the delivered status.
+- Unsubscribes synced back by a signed webhook, and a full resync for existing data or drift.
+- An in-memory Resend mock for development and tests, so nothing needs a Resend account until you point it at one.
+
+## What it is not
+
+It is not an email builder: the design is a React Email component your developers own, and the body is written in a deliberately small Lexical editor. It does not do transactional email — that is what [Payload Emails](/docs/plugins/payload-emails) is for, and the two share the same template contract. It does not report opens and clicks inside Payload yet; Resend's dashboard has them for every broadcast.
+
+<Cards>
+  <Card title="Installation" href="/docs/plugins/resend-broadcasts/installation" description="API key, sources, the webhook, and the first boot." />
+  <Card title="Sources" href="/docs/plugins/resend-broadcasts/sources" description="Which collections are subscribers, the fields that are added, and how contacts are kept in sync." />
+  <Card title="Lists" href="/docs/plugins/resend-broadcasts/lists" description="Resend segments over one collection, narrowed by a Payload query." />
+  <Card title="Campaigns" href="/docs/plugins/resend-broadcasts/campaigns" description="Writing, variables and fallbacks, Preview & send, scheduling and the campaign lifecycle." />
+  <Card title="Templates" href="/docs/plugins/resend-broadcasts/templates" description="The React Email template, shared with Payload Emails, and the unsubscribe link it must carry." />
+  <Card title="Webhooks" href="/docs/plugins/resend-broadcasts/webhooks" description="Bringing unsubscribes from Resend back into Payload." />
+  <Card title="API" href="/docs/plugins/resend-broadcasts/api" description="payload.resendBroadcasts and the REST endpoints." />
+  <Card title="Recipes" href="/docs/plugins/resend-broadcasts/recipes" description="A sign-up endpoint, an opt-in checkbox for users, serverless hosts, real Resend in development." />
+</Cards>
+
+## Status
+
+0.1 — **alpha, in testing**. Not yet published to npm. Package `@payload-solutions/plugin-resend-broadcasts`, MIT. Resend is a trademark of Resend, Inc. This plugin is not affiliated with or endorsed by Resend.

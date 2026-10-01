@@ -1,0 +1,42 @@
+---
+title: Webhooks
+description: When a reader unsubscribes through Resend's link, a signed webhook switches their documents off in Payload.
+---
+
+Every broadcast carries Resend's per-contact unsubscribe link. Clicking it unsubscribes the contact in Resend. The webhook brings that back into Payload, so the **Subscribed to newsletters** checkbox — and anything in your app that reads it — tells the truth.
+
+## Set it up
+
+In the Resend dashboard, **Webhooks → Add endpoint**:
+
+| Setting | Value |
+| --- | --- |
+| Endpoint URL | `https://your-site.com/api/resend-broadcasts/webhook` (your `routes.api` if it is not `/api`) |
+| Events | `contact.updated`, `contact.created` |
+
+Copy the endpoint's signing secret (`whsec_…`) into `RESEND_WEBHOOK_SECRET`, or pass it as `webhookSecret`.
+
+## What it does
+
+1. Verifies the signature against the raw body, using Resend's own verifier (Standard Webhooks / Svix headers). An invalid or missing signature gets 401; a missing secret gets 503.
+2. Ignores every event but `contact.updated` and `contact.created`.
+3. Finds every document with that email address in **every** source collection, and sets its subscribed field to the opposite of the contact's `unsubscribed`.
+4. Writes with a context flag, so the change is not pushed straight back to Resend.
+
+It answers `{ received: true, updated: <count> }`.
+
+Re-subscribing works the same way in reverse: if a contact is marked subscribed again in Resend — from your own preference page, say — the documents are switched back on.
+
+## Without the webhook
+
+The webhook is optional. A [resync](/docs/plugins/resend-broadcasts/lists#resync) compares every contact with its documents and pulls unsubscribes back, so a nightly resync is a workable substitute — see [Recipes](/docs/plugins/resend-broadcasts/recipes#resync-every-night). Until then, the checkbox in Payload can say subscribed for someone Resend will not mail; Resend is what decides who gets the broadcast.
+
+## Testing it locally
+
+Resend cannot reach `localhost`. Either tunnel your dev server (`ngrok http 3000`, or similar) and point a test webhook at the tunnel, or use the plugin's dev mock, which plays the reader for you:
+
+```bash
+curl -X POST http://localhost:3500/resend-mock/__mock/contacts/ada@example.com/unsubscribe
+```
+
+That marks the contact unsubscribed in the mock and delivers a properly signed `contact.updated` event to the dev app's webhook.
