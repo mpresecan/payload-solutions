@@ -13,6 +13,7 @@ const SOURCE_PATHS: Record<string, string> = {
   '/docs/payload-stack': 'templates/payload-stack',
   '/docs/plugins/payload-consent': 'packages/plugin-consent',
   '/docs/plugins/payload-emails': 'packages/plugin-emails',
+  '/docs/plugins/resend-broadcasts': 'packages/plugin-resend-broadcasts',
   '/docs/plugins/payload-action-scheduler': 'packages/plugin-action-scheduler',
   '/docs/plugins/vercel-integration': 'packages/plugin-vercel',
 }

@@ -69,6 +69,16 @@ export async function seed(payload: Payload) {
         docsPath: '/docs/plugins/payload-emails',
       },
       {
+        name: 'Resend Broadcasts',
+        slug: 'resend-broadcasts',
+        packageName: '@payload-solutions/plugin-resend-broadcasts',
+        summary: 'Alpha, in testing: newsletters from any collection, sent as Resend broadcasts.',
+        description:
+          'Turn any collection with an email into newsletter subscribers kept in step with Resend contacts. Lists become Resend segments, filtered with a Payload query. Campaigns are written in the admin, previewed as any person in the list, tested, then sent or scheduled as a Resend broadcast — and unsubscribes come back by webhook.',
+        status: 'in-progress',
+        docsPath: '/docs/plugins/resend-broadcasts',
+      },
+      {
         name: 'Vercel Integration',
         slug: 'vercel-integration',
         packageName: '@payload-solutions/plugin-vercel',
@@ -109,6 +119,7 @@ export async function seed(payload: Payload) {
       { title: 'Payload Emails plugin 0.1', description: 'Code-defined transactional emails with admin-editable copy, React Email templates, preview and test sends.', stage: 'shipped', quarter: 'Q3 2026' },
       { title: 'Vercel Integration plugin 0.1', description: 'Deploys from the admin or after content changes, build status, cancel and rollback.', stage: 'shipped', quarter: 'Q3 2026' },
       { title: 'Payload Action Scheduler plugin 0.1', description: 'Scheduled and recurring actions on top of job queues, with an admin view.', stage: 'shipped', quarter: 'Q3 2026' },
+      { title: 'Resend Broadcasts plugin 0.1 (alpha)', description: 'In testing. Newsletters from any collection: Resend contacts and segments, campaigns previewed per subscriber, scheduling and unsubscribe sync.', stage: 'in-progress', quarter: 'Q4 2026' },
       { title: 'Payload Stack documentation', description: 'Guides for configuration, authentication, organizations, billing, deployment.', stage: 'in-progress', quarter: 'Q3 2026' },
       { title: 'Payload Clock beta', description: 'Hosted scheduler for serverless Payload job queues, with the companion plugin.', stage: 'planned', quarter: 'Q4 2026' },
       { title: 'Payload Stack on Payload 4', description: 'Move the boilerplate to Payload 4 once payload-auth supports it.', stage: 'exploring' },
