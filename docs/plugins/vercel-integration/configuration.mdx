@@ -128,7 +128,7 @@ All hooks are awaited; their errors are logged, never thrown into the request th
 | `header` | `true` | the header widget on every admin page |
 | `view` | `true` | the Deployments view at `/admin/deployments` and its nav link; `{ path: '/deploys' }` moves it; `false` removes it |
 | `documentPill` | `true` | the *Not deployed yet / Live* pill on tracked collections and globals |
-| `group` | `'Vercel'` | nav group of the `vercel-deployments` collection |
+| `group` | `'Vercel'` | nav group of the Deployments link (or of the `vercel-deployments` collection when `view` is `false`) |
 
 ## `slugs`
 

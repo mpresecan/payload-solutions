@@ -2,6 +2,7 @@ import type { AdminViewServerProps } from 'payload'
 
 import { DefaultTemplate } from '@payloadcms/next/templates'
 import { Banner, Gutter, SetStepNav } from '@payloadcms/ui'
+import { formatAdminURL } from 'payload/shared'
 import React from 'react'
 
 import type { DeploymentRecord, PendingChange, TargetStatus } from '../types.js'
@@ -11,6 +12,8 @@ import { DeploymentsClient } from './DeploymentsClient.js'
 export type DeploymentsViewData = {
   autoDeploy: false | { maxWaitMs: number; quietPeriodMs: number }
   history: Record<string, DeploymentRecord[]>
+  /** Admin URL of the deployments collection — the full, filterable log behind each History table. */
+  logHref: string
   /** Server clock at render time; the client formats countdowns from it until hydrated, so both sides agree. */
   now: string
   pending: Record<string, PendingChange[]>
@@ -43,6 +46,9 @@ export const DeploymentsView = async ({ initPageResult, params, searchParams }: 
       req={req}
       searchParams={searchParams}
       user={user ?? undefined}
+      // Custom root views get no header actions unless they pass them: without this the header widget
+      // (status pill + Deploy) would be missing on the one page about deployments.
+      viewActions={payload.config.admin?.components?.actions}
       viewType="dashboard"
       visibleEntities={visibleEntities}
     >
@@ -73,6 +79,7 @@ export const DeploymentsView = async ({ initPageResult, params, searchParams }: 
   const data: DeploymentsViewData = {
     autoDeploy: api.options.autoDeploy,
     history,
+    logHref: formatAdminURL({ adminRoute: payload.config.routes.admin, path: `/collections/${api.options.slugs.deployments}` }),
     now: new Date().toISOString(),
     pending,
     permissions: { deploy: Boolean(canDeploy), rollback: Boolean(canRollback) },

@@ -3,15 +3,25 @@ import { Button, Pill, Popup, PopupList, toast, Tooltip, useConfig, useModal } f
 import React, { useCallback, useState } from 'react'
 
 import type { TargetStatus } from '../types.js'
+import type { Presentation } from './status.js'
 
 import { ApiError, invalidateStatus, vercelApi } from './api.js'
 import { DEPLOY_DRAWER_SLUG, DeployDrawer } from './DeployDrawer.js'
 import { present } from './status.js'
 import { useVercelStatus } from './useVercelStatus.js'
 
+/** Which target the collapsed header pill speaks for when there are several: the one needing attention. */
+const URGENCY: Presentation['tone'][] = ['error', 'building', 'waiting', 'paused', 'pending', 'unconfigured', 'ok', 'idle']
+function mostUrgent(targets: TargetStatus[], now: number, autoDeploy: boolean): TargetStatus {
+  const rank = (t: TargetStatus) => URGENCY.indexOf(present(t, now, autoDeploy).tone)
+  return targets.reduce((a, b) => (rank(b) < rank(a) ? b : a))
+}
+
 /**
- * Rendered top-right on every admin page (`admin.components.actions`): one status pill per target and a
- * Deploy button. The status poll behind it is the heartbeat tick for automatic deployments.
+ * Rendered top-right on every admin page (`admin.components.actions`): a status pill and a Deploy button.
+ * With several targets the pill speaks for the one needing attention and opens a menu listing all of them —
+ * Payload caps the header's action area at 600px, so one pill per target overflows into the account icon.
+ * The status poll behind it is the heartbeat tick for automatic deployments.
  */
 export const HeaderWidget: React.FC = () => {
   const { config } = useConfig()
@@ -50,9 +60,9 @@ export const HeaderWidget: React.FC = () => {
   const configured = data.targets.filter((t) => t.configured)
   const inFlight = data.targets.some((t) => t.inFlight)
 
-  const renderTarget = (t: TargetStatus, withLabel: boolean) => {
+  const renderTarget = (t: TargetStatus, withLabel: boolean, suffix = '', linked = true) => {
     const p = present(t, now, autoDeploy)
-    const label = withLabel ? `${t.label}: ${p.text}` : p.text
+    const label = `${withLabel ? `${t.label}: ${p.text}` : p.text}${suffix}`
     return (
       <span
         key={t.slug}
@@ -60,7 +70,7 @@ export const HeaderWidget: React.FC = () => {
         onMouseLeave={() => setHover(null)}
         style={{ display: 'inline-flex', position: 'relative' }}
       >
-        <Pill pillStyle={p.pillStyle} size="small" to={viewHref}>
+        <Pill pillStyle={p.pillStyle} size="small" to={linked ? viewHref : undefined}>
           {label}
         </Pill>
         {p.detail && (
@@ -76,11 +86,11 @@ export const HeaderWidget: React.FC = () => {
 
   return (
     <div className="plugin-vercel-header" style={{ alignItems: 'center', display: 'inline-flex', gap: 'calc(var(--base) / 4)' }}>
-      {data.targets.length <= 2 ? (
-        data.targets.map((t) => renderTarget(t, data.targets.length > 1))
+      {data.targets.length === 1 ? (
+        renderTarget(data.targets[0]!, false)
       ) : (
         <Popup
-          button={renderTarget(data.targets[0]!, true)}
+          button={renderTarget(mostUrgent(data.targets, now, autoDeploy), true, ` · +${data.targets.length - 1}`, false)}
           buttonType="custom"
           horizontalAlign="right"
           render={() => <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '4px' }}>{data.targets.map((t) => renderTarget(t, true))}</div>}

@@ -109,7 +109,7 @@ export const vercelPlugin =
       }
       config.admin.components.afterNavLinks = [...(config.admin.components.afterNavLinks ?? []), `${COMPONENT_PREFIX}/client#NavLink`]
     }
-    config.custom = { ...(config.custom ?? {}), [PLUGIN_SLUG]: { viewPath: options.admin.view ? options.admin.view.path : null } }
+    config.custom = { ...(config.custom ?? {}), [PLUGIN_SLUG]: { navGroup: options.admin.group, viewPath: options.admin.view ? options.admin.view.path : null } }
 
     const incomingOnInit = config.onInit
     config.onInit = async (payload) => {

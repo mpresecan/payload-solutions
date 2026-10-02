@@ -23,7 +23,9 @@ export function createDeploymentsCollection(
     admin: {
       defaultColumns: ['target', 'createdAt', 'cause', 'triggeredBy', 'state', 'durationMs', 'changeCount', 'deploymentUrl'],
       description: 'Every deployment the plugin triggered or saw on Vercel. Rows are written by the plugin only.',
-      group: options.admin.group,
+      // With the Deployments view on, the view is the nav entry and links here as its "Full log"; listing the
+      // collection too would put a second "Vercel" group with a second "Deployments" in the sidebar.
+      group: options.admin.view ? false : options.admin.group,
       hidden: false,
       listSearchableFields: ['reason', 'deploymentId', 'deploymentUrl'],
       pagination: { defaultLimit: 25 },

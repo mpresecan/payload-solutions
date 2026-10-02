@@ -75,6 +75,10 @@ That writes `components/consent/consent-banner.tsx`, `components/consent/consent
 
 The banner is a **card**, bottom-left by default, not a full-width bar: it never covers the page and never blocks it, because a cookie wall is not valid consent. Accept and reject sit side by side at the same size, both filled, so neither is nudged; customise sits below them where it does not compete. If you would rather write your own, [Recipes](/docs/plugins/payload-consent/recipes#build-your-own-banner) has a 40-line version.
 
+<Screenshot name="payload-consent/banner" alt="The consent banner: title, description, policy links, Reject all, Accept all and Customize" caption="The banner from the registry, bottom-left. Reject all sits next to Accept all." width={448} height={282} />
+
+<Screenshot name="payload-consent/preferences" alt="The preferences dialog: one switch per category with its description and services" caption="Customize opens the preferences dialog." width={512} height={672} />
+
 ## Wire the frontend (Next.js App Router)
 
 ```tsx title="app/layout.tsx"

@@ -9,6 +9,8 @@ Everything the plugin adds lives in one admin group, **Privacy** by default (`ad
 
 Above the collection cards, Payload Consent shows the current state at a glance: whether consent is enabled, the four version hashes, how many decisions have been recorded in total and in the last 30 days, how many visitors granted each category, and a list of warnings.
 
+<Screenshot name="payload-consent/dashboard" alt="The dashboard widget with consent totals per category and a list of warnings" />
+
 Warnings are the useful part. The widget flags:
 
 - a tracker with no link to its vendor's privacy policy — you generally have to name the recipient of the data,
@@ -26,6 +28,8 @@ A global, organised into five tabs.
 
 ### General
 
+<Screenshot name="payload-consent/settings-general" alt="Consent settings, General tab: enabled switch, re-consent triggers, validity and recording mode" />
+
 | Field | What it does |
 | --- | --- |
 | **Enabled** | Master switch. Off means no banner anywhere and only required categories load — the plugin is inert but the data stays. |
@@ -37,6 +41,8 @@ A global, organised into five tabs.
 The settings global overrides the plugin options for recording mode and retention, so you can change them without a deploy.
 
 ### Jurisdictions
+
+<Screenshot name="payload-consent/settings-jurisdictions" alt="Consent settings, Jurisdictions tab: resolution from CDN headers, fallback model and overrides" />
 
 | Field | What it does |
 | --- | --- |
@@ -50,6 +56,8 @@ The built-in defaults are opt-in for the EEA, GB, CH, BR and CA, opt-out for the
 ### Banner
 
 Title, description, position, and the eight label strings (the six buttons plus the "always on" badge and the reload notice). All of it is localized when your Payload config has localization.
+
+<Screenshot name="payload-consent/settings-banner" alt="Consent settings, Banner tab: title, description, position and button labels" />
 
 **Position** is `bottom-left` by default, and every option renders the same card — `bottom` centres it, `center` puts it mid-screen. There is no full-width bar: a bar reads as a wall, and a wall that makes refusing harder than accepting is the thing regulators actually object to.
 
@@ -76,6 +84,8 @@ Settings for the public sub-processor list: the advance notice period (30 days b
 
 Four read-only hashes and the timestamp of the last change. You never edit these; they are recomputed whenever a category, tracker or published legal document changes. They exist so a visitor's stored decision can be compared against what you are asking today.
 
+<Screenshot name="payload-consent/settings-versions" alt="Consent settings, Versions tab: the four read-only version hashes" />
+
 | Hash | Computed from |
 | --- | --- |
 | `categoriesVersion` | every category's key and whether it is required |
@@ -90,6 +100,8 @@ The sub-processor list has a fifth hash of its own, on the Processors tab, and i
 ## Cookie categories
 
 The choices a visitor sees. Four are seeded; add or remove as you like, but every tracker must belong to exactly one, and a category that is still in use cannot be deleted — the admin refuses with a count of what is blocking it.
+
+<Screenshot name="payload-consent/categories" alt="The four seeded cookie categories: necessary, functional, analytics and marketing" />
 
 | Field | Notes |
 | --- | --- |
@@ -107,21 +119,29 @@ The seeded mapping is `necessary → security_storage`, `functional → function
 
 The heart of the plugin: one document per third-party script, pixel, embed, SDK or cookie. This list drives the banner, the loader and the cookie table, so a tracker that is not in here is a tracker nobody is being asked about.
 
+<Screenshot name="payload-consent/trackers" alt="Cookies & scripts: YouTube embeds, Stripe, Google Analytics 4 and PostHog with their category and kind" />
+
 [Cookies & scripts](/docs/plugins/payload-consent/trackers) covers the fields and the presets in full.
 
 ## Processors
 
 Everyone who receives personal data on your behalf, which is a superset of the tracker list: hosting, database, email, error tracking and payments never touch the consent banner. Drives the recipients and transfers tables in the privacy policy, the public sub-processor page and the DPA annex. See [Processors & DPA](/docs/plugins/payload-consent/processors).
 
+<Screenshot name="payload-consent/processors" alt="The processor register: each vendor with its role, country, sub-processor flag and verification state" />
+
 ## Consent records
 
 Read-only proof of each decision. They are created only through the consent endpoint, cannot be edited or deleted through the admin, and are purged after the retention period.
+
+<Screenshot name="payload-consent/records" alt="Consent records: date, source, country, granted categories and consent id for each decision" />
 
 The columns are the date, the source (`banner`, `preferences`, `api`, `gpc`, `withdraw`, `implicit`), the country, the granted categories and the consent id. [Records](/docs/plugins/payload-consent/records) explains what is and is not stored.
 
 ## Legal pages
 
 Privacy policy, terms, cookie policy and anything else, as drafts-enabled documents with a Lexical editor that has tables and two custom blocks. See [Legal pages](/docs/plugins/payload-consent/legal-pages).
+
+<Screenshot name="payload-consent/legal-pages" alt="The five seeded legal pages: DPA, sub-processors, cookie policy, terms and privacy policy" />
 
 ## Who can change what
 

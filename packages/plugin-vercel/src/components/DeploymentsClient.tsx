@@ -1,7 +1,7 @@
 'use client'
 import type { ClientField, Column } from 'payload'
 
-import { Banner, Button, Collapsible, Drawer, Pill, Popup, PopupList, Table, toast, useModal } from '@payloadcms/ui'
+import { Banner, Button, Collapsible, Drawer, Link, Pill, Popup, PopupList, Table, toast, useModal } from '@payloadcms/ui'
 import React, { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 
 import type { DeploymentRecord, PendingChange, TargetStatus } from '../types.js'
@@ -10,11 +10,9 @@ import type { DeploymentsViewData } from './DeploymentsView.js'
 
 import { formatDuration } from '../utils/duration.js'
 import { ApiError, invalidateStatus, relativeTime, vercelApi } from './api.js'
-import { DEPLOY_DRAWER_SLUG, DeployDrawer } from './DeployDrawer.js'
 import { causeLabel, present, stateLabel, statePillStyle } from './status.js'
 import { useVercelStatus } from './useVercelStatus.js'
 
-const VIEW_DEPLOY_DRAWER = `${DEPLOY_DRAWER_SLUG}-view`
 const CHANGES_DRAWER = 'plugin-vercel-changes'
 const ROLLBACK_DRAWER = 'plugin-vercel-rollback'
 
@@ -128,14 +126,7 @@ export const DeploymentsClient: React.FC<Props> = ({ initial }) => {
 
   return (
     <div className="plugin-vercel-view" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--base)' }}>
-      <div style={{ alignItems: 'baseline', display: 'flex', flexWrap: 'wrap', gap: 'var(--base)', justifyContent: 'space-between' }}>
-        <h1 style={{ margin: 0 }}>Deployments</h1>
-        {permissions.deploy && (
-          <Button buttonStyle="primary" onClick={() => openModal(VIEW_DEPLOY_DRAWER)} size="medium">
-            Deploy
-          </Button>
-        )}
-      </div>
+      <h1 style={{ margin: 0 }}>Deployments</h1>
 
       {stale.length > 0 && (
         <Banner type="error">
@@ -151,14 +142,14 @@ export const DeploymentsClient: React.FC<Props> = ({ initial }) => {
         const inFlight = t.inFlight
         return (
           <Collapsible
-            actions={
-              <Pill pillStyle={p.pillStyle} size="small">
-                {p.text}
-              </Pill>
-            }
             header={
-              <span style={{ fontWeight: 600 }}>
-                {t.label} <span style={{ color: 'var(--theme-elevation-500)', fontWeight: 400 }}>· {t.slug}</span>
+              <span style={{ alignItems: 'center', display: 'inline-flex', flexWrap: 'wrap', gap: 'calc(var(--base) / 2)' }}>
+                <span style={{ fontWeight: 600 }}>
+                  {t.label} <span style={{ color: 'var(--theme-elevation-500)', fontWeight: 400 }}>· {t.slug}</span>
+                </span>
+                <Pill pillStyle={p.pillStyle} size="small">
+                  {p.text}
+                </Pill>
               </span>
             }
             key={t.slug}
@@ -174,7 +165,7 @@ export const DeploymentsClient: React.FC<Props> = ({ initial }) => {
                     Live: <Pill pillStyle={statePillStyle(t.current.state)} size="small">{stateLabel(t.current.state)}</Pill>{' '}
                     <span style={{ color: 'var(--theme-elevation-500)' }}>
                       {relativeTime(t.current.readyAt ?? t.current.createdAt, now)} · {causeLabel(t.current.cause)}
-                      {t.current.triggeredBy ? ` by ${userLabel(t.current.triggeredBy)}` : ''}
+                      {t.current.triggeredBy ? ` by ${userLabel(rows.find((r) => r.id === t.current?.id)?.triggeredBy ?? t.current.triggeredBy)}` : ''}
                     </span>
                   </span>
                 ) : (
@@ -182,12 +173,12 @@ export const DeploymentsClient: React.FC<Props> = ({ initial }) => {
                 )}
                 <span style={{ flex: 1 }} />
                 {t.url && (
-                  <Button buttonStyle="secondary" el="anchor" newTab size="small" url={t.url}>
+                  <Button buttonStyle="secondary" el="anchor" margin={false} newTab size="small" url={t.url}>
                     Open site
                   </Button>
                 )}
                 {(inFlight?.inspectorUrl ?? t.current?.inspectorUrl) && (
-                  <Button buttonStyle="secondary" el="anchor" newTab size="small" url={inFlight?.inspectorUrl ?? t.current?.inspectorUrl ?? ''}>
+                  <Button buttonStyle="secondary" el="anchor" margin={false} newTab size="small" url={inFlight?.inspectorUrl ?? t.current?.inspectorUrl ?? ''}>
                     Inspect on Vercel
                   </Button>
                 )}
@@ -195,6 +186,7 @@ export const DeploymentsClient: React.FC<Props> = ({ initial }) => {
                   <Button
                     buttonStyle="secondary"
                     disabled={busy !== null}
+                    margin={false}
                     onClick={() => void run(`pause-${t.slug}`, () => vercelApi.pause(apiRoute, t.slug, !t.paused), t.paused ? 'Automatic deployments resumed' : 'Automatic deployments paused')}
                     size="small"
                   >
@@ -205,6 +197,7 @@ export const DeploymentsClient: React.FC<Props> = ({ initial }) => {
                   <Button
                     buttonStyle="error"
                     disabled={busy !== null}
+                    margin={false}
                     onClick={() => void run(`cancel-${t.slug}`, () => vercelApi.cancel(apiRoute, inFlight.deploymentId!), 'Deployment canceled')}
                     size="small"
                   >
@@ -212,7 +205,7 @@ export const DeploymentsClient: React.FC<Props> = ({ initial }) => {
                   </Button>
                 )}
                 {permissions.rollback && t.tokenConfigured && t.current?.state === 'ready' && (
-                  <Button buttonStyle="secondary" disabled={busy !== null} onClick={() => void openRollback(t)} size="small">
+                  <Button buttonStyle="secondary" disabled={busy !== null} margin={false} onClick={() => void openRollback(t)} size="small">
                     Roll back…
                   </Button>
                 )}
@@ -247,7 +240,12 @@ export const DeploymentsClient: React.FC<Props> = ({ initial }) => {
 
               {/* History */}
               <div>
-                <h3 style={{ margin: '0 0 calc(var(--base) / 2)' }}>History</h3>
+                <div style={{ alignItems: 'baseline', display: 'flex', justifyContent: 'space-between', margin: '0 0 calc(var(--base) / 2)' }}>
+                  <h3 style={{ margin: 0 }}>History</h3>
+                  <Link href={`${initial.logHref}?${new URLSearchParams({ 'where[target][equals]': t.slug }).toString()}`} prefetch={false}>
+                    Full log →
+                  </Link>
+                </div>
                 {rows.length === 0 ? (
                   <Banner type="default">No deployments yet — press Deploy to build the site for the first time.</Banner>
                 ) : (
@@ -286,6 +284,7 @@ export const DeploymentsClient: React.FC<Props> = ({ initial }) => {
                           r.changeCount > 0 ? (
                             <Button
                               buttonStyle="none"
+                              margin={false}
                               onClick={() => {
                                 setChangesFor(r)
                                 openModal(CHANGES_DRAWER)
@@ -304,12 +303,12 @@ export const DeploymentsClient: React.FC<Props> = ({ initial }) => {
                         render: (r) => (
                           <span style={{ display: 'inline-flex', gap: 'calc(var(--base) / 4)' }}>
                             {r.deploymentUrl && (
-                              <Button buttonStyle="none" el="anchor" newTab size="small" url={r.deploymentUrl}>
+                              <Button buttonStyle="none" el="anchor" margin={false} newTab size="small" url={r.deploymentUrl}>
                                 Open
                               </Button>
                             )}
                             {r.inspectorUrl && (
-                              <Button buttonStyle="none" el="anchor" newTab size="small" url={r.inspectorUrl}>
+                              <Button buttonStyle="none" el="anchor" margin={false} newTab size="small" url={r.inspectorUrl}>
                                 Inspect
                               </Button>
                             )}
@@ -374,7 +373,6 @@ export const DeploymentsClient: React.FC<Props> = ({ initial }) => {
         </ul>
       </Collapsible>
 
-      <DeployDrawer apiRoute={apiRoute} autoDeploy={autoDeploy} now={now} onDeployed={() => void reloadLists()} slug={VIEW_DEPLOY_DRAWER} targets={targets} />
 
       <Drawer slug={CHANGES_DRAWER} title={changesFor ? `Changes in deployment ${changesFor.deploymentId ?? `#${changesFor.id}`}` : 'Changes'}>
         {changesFor?.changes ? (
@@ -425,6 +423,7 @@ export const DeploymentsClient: React.FC<Props> = ({ initial }) => {
                   <Button
                     buttonStyle="secondary"
                     disabled={busy !== null}
+                    margin={false}
                     onClick={() => void run(`rollback-${id}`, () => vercelApi.rollback(apiRoute, rollbackFor.target.slug, id), `Rolled back to ${id}`)}
                     size="small"
                   >

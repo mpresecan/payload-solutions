@@ -41,7 +41,7 @@ export function present(t: TargetStatus, now: number, autoDeploy: boolean): Pres
       if (stale) {
         return { action: 'deploy-now', pillStyle: 'warning', text: `${t.pendingCount} pending · waiting for a runner`, tone: 'waiting' }
       }
-      return { action: 'deploy-now', pillStyle: 'light', text: `${t.pendingCount} ${t.pendingCount === 1 ? 'change' : 'changes'} · deploying in ${countdown(t.dueAt, now)}`, tone: 'pending' }
+      return { action: 'deploy-now', pillStyle: 'light', text: `${t.pendingCount} ${t.pendingCount === 1 ? 'change' : 'changes'} · ${new Date(t.dueAt).getTime() > now ? `deploying in ${countdown(t.dueAt, now)}` : 'deploying now'}`, tone: 'pending' }
     }
     return { action: 'deploy', pillStyle: 'light', text: `${t.pendingCount} ${t.pendingCount === 1 ? 'change' : 'changes'} to deploy`, tone: 'pending' }
   }

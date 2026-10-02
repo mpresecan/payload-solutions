@@ -14,6 +14,12 @@ export type MatchInput = {
   deployments: VercelDeployment[]
   /** When our hook call was made. */
   hookCalledAt: Date
+  /**
+   * Id of the deploy hook that was called (the last segment of its URL). Vercel tags hook deployments with
+   * `meta.deployHookId`, so when both are known a deployment from a different hook — another target on the
+   * same project — is never taken. Deployments without that tag are still matched by time alone.
+   */
+  hookId?: string
 }
 
 /**
@@ -27,6 +33,7 @@ export function matchDeployment(input: MatchInput): null | VercelDeployment {
     .filter((d) => d.source === 'git-deploy-hook')
     .filter((d) => (d.created ?? d.createdAt ?? 0) >= floor)
     .filter((d) => !input.claimed.has(deploymentId(d)))
+    .filter((d) => !input.hookId || !d.meta?.deployHookId || d.meta.deployHookId === input.hookId)
     .sort((a, b) => (a.created ?? a.createdAt ?? 0) - (b.created ?? b.createdAt ?? 0))
   return candidates[0] ?? null
 }

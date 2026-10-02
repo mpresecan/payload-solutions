@@ -15,10 +15,10 @@ test.describe('Vercel Integration admin', () => {
   })
 
   test('header widget, document pill, deployments view and a deployment end to end', async ({ page }) => {
-    // Header widget renders one pill per target plus the Deploy button.
+    // Header widget renders a status pill (a menu, with two targets) plus the Deploy button.
     const header = page.locator('.plugin-vercel-header')
     await expect(header).toBeVisible()
-    await expect(header.getByRole('button', { name: /Deploy/ })).toBeVisible()
+    await expect(header.getByRole('button', { name: /^Deploy( again)?$/ })).toBeVisible()
 
     // A content change (through the REST API, sharing the session cookie) shows up as pending. Payload only
     // accepts the cookie when the request carries an allow-listed Origin (or a same-origin Sec-Fetch-Site),
@@ -37,11 +37,11 @@ test.describe('Vercel Integration admin', () => {
     await page.goto(`/admin/collections/posts/${doc.id}`)
     await expect(page.locator('.plugin-vercel-document-pill')).toContainText('Not deployed yet')
 
-    // The Deployments view lists the change and can deploy it.
+    // The Deployments view lists the change; the header widget, rendered on this view too, deploys it.
     await page.goto('/admin/deployments')
     await expect(page.getByRole('heading', { name: 'Deployments' }).first()).toBeVisible()
     await expect(page.locator('.plugin-vercel-view')).toContainText(doc.title)
-    await page.locator('.plugin-vercel-view').getByRole('button', { name: 'Deploy', exact: true }).click()
+    await header.getByRole('button', { name: /^Deploy( again)?$/ }).click()
     await page.getByPlaceholder('Why this deployment?').fill('E2E deployment')
     await page.getByRole('button', { name: 'Deploy', exact: true }).last().click()
     await expect(page.getByText('Deployment of Website requested')).toBeVisible()

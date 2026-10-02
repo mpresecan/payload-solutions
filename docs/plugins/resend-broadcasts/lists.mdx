@@ -14,6 +14,10 @@ A list is what a campaign is sent to. Each one is a document in **Newsletter →
 
 The sidebar shows the Resend segment id, the number of **subscribed** members at the last sync, when that was, and any error.
 
+<Screenshot name="resend-broadcasts/lists" alt="The Lists table with Resync everything with Resend, and each list's subscribed members" />
+
+<Screenshot name="resend-broadcasts/list-edit" alt="A list in the admin: source and filter, and in the sidebar the Resend segment, member count and Resync button" />
+
 ## Filters
 
 The filter is an ordinary Payload `where` query, written as JSON, run against the source collection:
@@ -69,3 +73,5 @@ A resync only compares names and the subscription flag, because Resend does not 
 <Callout>
 A full resync over a large collection makes one request per changed contact and one per membership change, at your rate limit. Ten thousand new contacts at 2 requests a second is well over an hour. Ask Resend for a higher limit before a big first import, and raise `resend.requestsPerSecond` to match.
 </Callout>
+
+<Screenshot name="resend-broadcasts/sync-runs" alt="Sync runs: every resync with its scope, status, trigger and time" />

@@ -7,7 +7,8 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@payload-solutions/brand'],
   poweredByHeader: false,
   images: {
-    localPatterns: [{ pathname: '/api/media/file/**' }],
+    // Media from the CMS, and the admin screenshots the docs embed (public/images/docs).
+    localPatterns: [{ pathname: '/api/media/file/**' }, { pathname: '/images/**' }],
   },
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {

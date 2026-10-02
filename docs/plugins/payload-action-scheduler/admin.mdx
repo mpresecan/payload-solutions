@@ -5,6 +5,8 @@ description: The Scheduled Actions view — queue strip, status tabs, columns, r
 
 **Scheduled Actions** is Payload's own list view for the `scheduled-actions` collection, so search, Columns, Filters, pagination, selection and preferences work as they do everywhere else in the admin. The plugin adds the parts that make the queue operable without a developer. Every one of them is a Payload UI component — `Button`, `Pill`, `PillSelector`, `Banner`, `Popup`, `Drawer`, `ConfirmationModal`, `toast` — so the view follows the admin's theme, light and dark.
 
+<Screenshot name="payload-action-scheduler/list-nav" alt="Scheduled Actions in the Payload admin nav, with the queue strip above the table" />
+
 ## Queue strip
 
 Above the table:
@@ -34,9 +36,13 @@ The strip refreshes every 5 seconds while something is running, past due or due 
 
 Optional columns from the Columns menu: Group, Priority, Queue, Runs, Last duration, Created, Created by, Source, and the raw fields.
 
+<Screenshot name="payload-action-scheduler/list" alt="Rows showing the Action, Status, Schedule, Next / When, Attempts, Last result and Arguments columns" />
+
 ## Row actions
 
 The ⋯ menu on each row, and the same buttons in the log drawer and at the bottom of the detail view:
+
+<Screenshot name="payload-action-scheduler/row-menu" alt="The row menu of a pending action: Run now, Reschedule, Cancel, Duplicate, View log" />
 
 | Action | Pending | Running | Completed | Failed | Canceled |
 | --- | --- | --- | --- | --- | --- |
@@ -58,11 +64,17 @@ Select rows and open the list's menu: Run now, Retry, Cancel and Delete finished
 
 Clicking a result, or *View log*, opens a drawer without leaving the list: the hook and its label from code, the schedule in words and raw, the next time, attempts, runs, group, queue, priority, who created it and how; the latest error with its stack behind *Show stack*; the arguments, pretty-printed, with their size against the cap ("64 B of 8 KB"); and the timeline, newest first — scheduled, started, completed, failed with the retry time, timed out, lost, rescheduled, canceled, re-armed — each with attempt and duration. When the rolling window has trimmed older lines, the drawer says so. *Open full page →* goes to the detail view, which shows the same sections in Payload's document layout with the facts in the sidebar.
 
+<Screenshot name="payload-action-scheduler/log-drawer" alt="The log drawer of a webhook delivery that failed once with ECONNRESET and succeeded on the third attempt" />
+
 Finished actions are read-only in the detail view; pending ones let you change the time, priority, group and arguments, and the change re-dispatches the action.
+
+<Screenshot name="payload-action-scheduler/detail-failed" alt="The detail view of an action that failed permanently with 410 Gone, showing the error, arguments and log" caption="A permanent failure: the error, the arguments against the size cap, and the timeline." />
 
 ## Create New
 
 Payload's standard create form, tuned: pick a registered action (unregistered hooks are refused), enter arguments (plain JSON under the cap), choose **Once**, **Every interval** (seconds) or **Cron** — the cron field shows the expression in words as you type — set a time zone, group, priority, queue and whether the action is unique. Saving schedules it exactly as `payload.scheduler.schedule` would, records who created it, and opens it. Leave the date empty to run it as soon as possible.
+
+<Screenshot name="payload-action-scheduler/create" alt="The Create New form for a scheduled action" />
 
 ## Access
 

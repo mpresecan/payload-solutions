@@ -9,7 +9,9 @@ All surfaces are built from Payload's own UI components, so they follow the admi
 
 ## Header widget
 
-Registered in `admin.components.actions`, top-right on every admin page. One pill per target (a menu beyond two) and a **Deploy** button. The pill links to the Deployments view and hovers to show the detail (the error message, the live URL). States:
+Registered in `admin.components.actions`, top-right on every admin page. A status pill and a **Deploy** button. With one target the pill links to the Deployments view and hovers to show the detail (the error message, the live URL); with several it speaks for the target that needs attention — a failure first, then a build, then pending changes — reads *Website: 4 changes · deploying in 6:18 · +1*, and opens a menu with every target's pill. States:
+
+<Screenshot name="vercel-integration/header" alt="The header widget: a pill reading “Website: Building… · +1” next to a Deploy again button" width={800} height={56} />
 
 | Pill | Meaning |
 | --- | --- |
@@ -25,17 +27,27 @@ Registered in `admin.components.actions`, top-right on every admin page. One pil
 
 Disable it with `admin.header: false`.
 
+<Screenshot name="vercel-integration/header-menu" alt="The header pill opened as a menu listing the Website and Staging targets" caption="With two targets, the pill speaks for the one that needs attention and opens a menu with both." width={800} height={200} />
+
 ## Deploy drawer
 
 Target choice (when several are configured), the first ten pending changes, an optional reason that is stored on the row, and *Skip the build cache*. While a deployment is in flight the button reads **Deploy again** and the drawer says Vercel will cancel the running build.
 
+<Screenshot name="vercel-integration/deploy-drawer" alt="The Deploy drawer with a target choice, the pending change, a reason and the Skip the build cache option" />
+
 ## Deployments view
 
-`/admin/deployments`, linked from the nav under **Vercel**. Per target, collapsible: the live deployment with *Open site* and *Inspect on Vercel*, *Pause / Resume auto-deploy*, *Cancel build* and *Roll back…*; the hourly hook-call count and the last tick with its source; the pending changes table; the history table with cause, user, reason, state, duration, change count (opens a drawer with the items) and a row menu for cancel and roll back. A **Setup** panel at the bottom says which env vars are set, whether the webhook is enabled and which runners are configured. Move it with `admin.view: { path }` or disable it with `admin.view: false`.
+`/admin/deployments`, linked from the nav under **Vercel** (the `admin.group` name), with the same header widget as every other page — its **Deploy** button is the one to use here. Per target, collapsible: the live deployment with *Open site* and *Inspect on Vercel*, *Pause / Resume auto-deploy*, *Cancel build* and *Roll back…*; the hourly hook-call count and the last tick with its source; the pending changes table; the history table with cause, user, reason, state, duration, change count (opens a drawer with the items) and a row menu for cancel and roll back, and a *Full log →* link to the deployments collection filtered to that target. A **Setup** panel at the bottom says which env vars are set, whether the webhook is enabled and which runners are configured. Move it with `admin.view: { path }` or disable it with `admin.view: false`.
+
+<Screenshot name="vercel-integration/deployments-view" alt="The Deployments view in the admin nav, with the Website target expanded" />
+
+<Screenshot name="vercel-integration/deployments-history" alt="History of the Website target: a build in progress, an automatic deploy, a Git push, and a failed build with its error" caption="A failed build keeps its changes pending; the error is shown under its row." />
 
 ## Document pill
 
 `beforeDocumentControls` on every tracked collection and global: **Live**, **Not deployed yet · Deploy** (opens the drawer), **Deploying…** or **Deploy failed**, one per target when a document deploys to several. Disable with `admin.documentPill: false`.
+
+<Screenshot name="vercel-integration/document-pill" alt="The document pill on a page: production Deploying, staging Not deployed yet · Deploy" />
 
 ## What to do when…
 
@@ -50,4 +62,6 @@ Target choice (when several are configured), the first ten pending changes, an o
 
 ## Deployments collection
 
-`vercel-deployments` is a normal, read-only collection under the *Vercel* group: filter by target, cause or state, search by reason or deployment id. Rows are written only by the plugin; deleting needs `access.rollback`. The `vercel-changes` and `vercel-targets` collections are hidden.
+`vercel-deployments` is a normal, read-only collection, reached from *Full log →* in the Deployments view (it stays out of the sidebar while the view exists, so the nav has one *Vercel* group, not two; with `admin.view: false` it is listed under `admin.group` instead): filter by target, cause or state, search by reason or deployment id. Rows are written only by the plugin; deleting needs `access.rollback`. The `vercel-changes` and `vercel-targets` collections are hidden.
+
+<Screenshot name="vercel-integration/deployments-collection" alt="The vercel-deployments collection list with target, cause, user, state, duration and change count" />

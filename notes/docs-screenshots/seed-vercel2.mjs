@@ -1,0 +1,11 @@
+import { client } from './rest.mjs'
+const api = await client('http://localhost:3400')
+const mock = (p, d) => fetch(`http://localhost:3399/__mock/${p}`, { method: 'POST', body: JSON.stringify(d ?? {}) }).then((r) => r.json())
+await mock('config', { buildTimeMs: 900000 })
+await api.patch('/pages/2', { body: 'Plans and prices', _status: 'published' })
+await api.post('/posts', { title: 'Pricing, explained', excerpt: 'Why the plans are shaped the way they are.' })
+await api.post('/pages', { title: 'Changelog', body: 'What changed', _status: 'published' })
+console.log(JSON.stringify(await api.post('/vercel/deploy', { target: 'production', reason: 'Publish the pricing page' })).slice(0, 120))
+await api.post('/posts', { title: 'Customer story: Acme', excerpt: 'Draft for review' })
+await new Promise((r) => setTimeout(r, 8000))
+const s = await api.get('/vercel/status'); console.log(s.targets.map((t) => [t.slug, t.pendingCount, t.inFlight?.state, t.dueAt].join(' ')))

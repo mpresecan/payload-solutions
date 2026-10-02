@@ -11,6 +11,8 @@ Turn the whole collection off with `legalPages: false` if you already have one; 
 
 `legal-pages`, with drafts enabled.
 
+<Screenshot name="payload-consent/legal-page-edit" alt="Editing the privacy policy in the admin, with its review note and the policy-version block" />
+
 | Field | Notes |
 | --- | --- |
 | **Title** | Localized. |
@@ -57,6 +59,8 @@ Rendering is handled by `legalPageConverters` (below). It replaces Lexical's bui
 All three are exported as `CookieTableBlock`, `ProcessorTableBlock` and `PolicyVersionBlock` if you want them in another collection's editor.
 
 ## Rendering a legal page
+
+<Screenshot name="payload-consent/legal-page-frontend" alt="The privacy policy rendered on the site, including the generated recipients table" />
 
 ```tsx title="app/(frontend)/legal/[slug]/page.tsx"
 import { getPayload } from 'payload'

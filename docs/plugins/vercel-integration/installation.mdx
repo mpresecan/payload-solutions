@@ -71,7 +71,7 @@ On start the plugin creates one state row per target and logs two things worth r
 - `Target "staging" has no deploy hook URL; it will show as not configured.` — the env var for that target is unset. The admin shows the target greyed; nothing is triggered for it. This is the intended state on a developer machine.
 - `No Vercel token configured: deployments are triggered but their status cannot be read.` — zero-token mode, see below.
 
-Open the admin. The header shows a pill per target and a **Deploy** button. Publish a page: the pill counts it and starts a one-minute countdown; the page's edit view shows *Not deployed yet*. Open **Deployments** in the nav to see the pending list and, after the deploy, the history.
+Open the admin. The header shows a status pill and a **Deploy** button. Publish a page: the pill counts it and starts a one-minute countdown; the page's edit view shows *Not deployed yet*. Open **Deployments** in the nav to see the pending list and, after the deploy, the history.
 
 <Callout>
 With a database that Payload pushes schema to in development, the new collections appear at once. On a migration-based setup, create a migration after adding the plugin: `pnpm payload migrate:create`.
@@ -104,13 +104,13 @@ collections: {
 },
 ```
 
-Each target has its own window, pending list, history and hourly counter. The header shows one pill per target (a menu beyond two); the Deploy drawer asks which one.
+Each target has its own window, pending list, history and hourly counter. The header pill speaks for the target that needs attention and opens a menu listing all of them; the Deploy drawer asks which one.
 
 ## Where things live afterwards
 
 | What | Where |
 | --- | --- |
-| History | collection `vercel-deployments` (visible, read-only, group *Vercel*) and the Deployments view |
+| History | the Deployments view, and its *Full log* — collection `vercel-deployments` (read-only) |
 | Pending changes | collection `vercel-changes` (hidden; `GET /api/vercel/changes`) |
 | Per-target state (window, pause, counters) | collection `vercel-targets` (hidden) |
 | Endpoints | `/api/vercel/status`, `/deploy`, `/changes`, `/history`, `/document`, `/flush`, `/tick`, `/pause`, `/cancel`, `/rollback`, `/rollback-candidates`, `/webhook` |

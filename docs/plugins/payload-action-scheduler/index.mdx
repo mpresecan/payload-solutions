@@ -31,6 +31,8 @@ await payload.scheduler.cron('reports.weekly', {}, { cron: '0 9 * * 1', tz: 'Eur
 
 The queue you already run executes it, and the admin shows what happened.
 
+<Screenshot name="payload-action-scheduler/list" alt="The Scheduled Actions view: queue strip, status tabs and a table of pending, completed, failed and canceled actions" caption="Scheduled Actions — the queue, its runner and every action's last result on one screen." />
+
 ## What you get
 
 - **A typed API.** `payload.scheduler.schedule`, `enqueue`, `recurring`, `cron`, `cancel`, `cancelAll`, `next`, `has`, `find`, `runQueue`. `generate:types` adds `Config['scheduledActions']`, so hooks and their arguments autocomplete and mismatches fail at compile time.

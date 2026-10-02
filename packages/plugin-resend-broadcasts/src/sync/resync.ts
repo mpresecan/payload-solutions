@@ -92,6 +92,17 @@ export async function resync(ctx: SyncContext, args: ResyncArgs = {}): Promise<R
           })
         } else if (outcome === 'updated') {
           stats.contactsUpdated++
+          if (!known) {
+            // The contact appeared after the snapshot above — typically created by a resync of another list
+            // running at the same time. Without this it would be left out of every segment in step 3.
+            remote.set(subscriber.email, {
+              id: '',
+              email: subscriber.email,
+              first_name: subscriber.firstName,
+              last_name: subscriber.lastName,
+              unsubscribed: !subscriber.subscribed,
+            })
+          }
         }
       } catch (error) {
         note(error, `contact ${subscriber.email}`)

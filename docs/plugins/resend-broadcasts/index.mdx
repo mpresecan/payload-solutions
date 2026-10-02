@@ -21,6 +21,8 @@ resendBroadcastsPlugin({
 
 That is the whole setup. Every save of a `users` or `subscribers` document keeps its Resend contact current. An editor creates a **List** — "Everyone on the Pro plan" — which becomes a Resend segment, writes a **Campaign** in Lexical with `{{firstName|there}}` in it, opens **Preview & send**, clicks through the people in the list to check the copy, and sends.
 
+<Screenshot name="resend-broadcasts/preview" alt="Preview & send of a campaign: pick a list and a subscriber on the left, the email as that subscriber on the right" caption="Preview any campaign as any subscriber on the list, exactly as Resend will fill it in." />
+
 ## What each side owns
 
 | Payload owns | Resend owns |

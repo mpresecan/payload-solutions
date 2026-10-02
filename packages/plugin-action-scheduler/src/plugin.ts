@@ -1,4 +1,4 @@
-import type { CollectionConfig, Config, Payload } from 'payload'
+import type { CollectionConfig, Config, Endpoint, Payload } from 'payload'
 
 import type { InternalAPI } from './api/index.js'
 import type { ActionSchedulerOptions, ScheduledAction } from './types.js'
@@ -43,6 +43,29 @@ export const actionScheduler =
 
     const actions = createScheduledActionsCollection(options)
     attachHooks(actions)
+
+    // The admin view (queue strip, row menu, bulk menu, log drawer) talks to these routes. Their handlers
+    // need the per-instance store and API, which only exist once Payload is initialised, so each route
+    // is registered at config time and resolves the real handler from the runtime on first request.
+    const endpointsByPayload = new WeakMap<Payload, Endpoint[]>()
+    const runtimeEndpoints = (payload: Payload): Endpoint[] => {
+      let endpoints = endpointsByPayload.get(payload)
+      if (!endpoints) {
+        const { api, store } = getRuntime(payload)
+        endpoints = createEndpoints(options, store, () => api)
+        endpointsByPayload.set(payload, endpoints)
+      }
+      return endpoints
+    }
+    actions.endpoints = [
+      ...(Array.isArray(actions.endpoints) ? actions.endpoints : []),
+      ...createEndpoints(options, null as never, () => null as never).map(
+        (endpoint, index): Endpoint => ({
+          ...endpoint,
+          handler: (req) => runtimeEndpoints(req.payload)[index]!.handler(req),
+        }),
+      ),
+    ]
 
     config.collections = [...(config.collections ?? []), actions, ...(options.logs ? [createLogsCollection(options)] : [])]
     config.globals = [...(config.globals ?? []), createStatusGlobal(options)]

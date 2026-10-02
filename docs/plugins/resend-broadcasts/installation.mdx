@@ -75,6 +75,8 @@ Start the app. In the admin, a **Newsletter** group appears with Lists, Campaign
 Nobody is added to Resend before they opt in. A document whose subscribed checkbox is off never creates a contact; turning the checkbox off later marks the existing contact unsubscribed rather than deleting it.
 </Callout>
 
+<Screenshot name="resend-broadcasts/settings" alt="Newsletter Settings: from, reply-to, site name, site URL, footer, unsubscribe link text and test recipient" />
+
 ## Connect the unsubscribe webhook
 
 Resend handles the unsubscribe link in every broadcast. To mirror those unsubscribes in Payload, add a webhook in the Resend dashboard (**Webhooks → Add endpoint**):

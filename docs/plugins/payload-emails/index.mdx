@@ -34,6 +34,8 @@ await payload.emails.send('welcome', { input: { user, url } })
 
 That call is fully typed. An unknown key, a missing `url`, a wrong select value, or a `resolve` that forgets a variable are all compile errors — because the plugin writes `Config['emails']` into your `payload-types.ts` during `generate:types`, the same way Payload types job tasks.
 
+<Screenshot name="payload-emails/preview" alt="The Preview & test tab of the Welcome email: sample data on the left, the rendered email on the right" caption="Preview & test renders the real email for any sample input, then sends it to your inbox." />
+
 ## What each side owns
 
 | Owned by code, in your repo | Owned by the database, edited in the admin |

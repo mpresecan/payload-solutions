@@ -5,7 +5,11 @@ description: Write a campaign in the admin, preview it as any subscriber in the 
 
 A campaign is one email to one list. It lives in **Newsletter → Campaigns** with two tabs: **Edit**, where the copy is written, and **Preview & send**.
 
+<Screenshot name="resend-broadcasts/campaigns" alt="The Campaigns list: drafts, a scheduled campaign and a sent one" />
+
 ## Writing
+
+<Screenshot name="resend-broadcasts/campaign-edit" alt="Editing a campaign: name, list, subject, preview text and a body with an Image block" />
 
 | Field | What it is |
 | --- | --- |
@@ -81,6 +85,8 @@ The **subject and preview text** accept only values that are the same for everyo
 
 The second tab is laid out like Payload's own live preview: controls on the left, the rendered email in a sticky window on the right, with HTML and plain-text views, desktop and mobile widths, and a light/dark toggle that forces the email's `prefers-color-scheme` branch.
 
+<Screenshot name="resend-broadcasts/preview" alt="Preview & send: the audience picker and the rendered email" />
+
 ### Audience
 
 **Send to** is the campaign's list; changing it here saves the campaign. Under it are the list's subscribed count, when it was last synced and its segment id.
@@ -97,6 +103,8 @@ Sends the campaign to any address through Resend's email API, filled in as the s
 
 Choose **Send now** or **Schedule** and a date and time, then confirm. The plugin renders the campaign with Resend placeholders, checks it carries the unsubscribe link, and creates a broadcast to the list's segment with `send: true` — scheduled when you picked a time.
 
+<Screenshot name="resend-broadcasts/preview-send" alt="Send a test, Send now or Schedule, and the variables each subscriber gets" />
+
 | Status | Means | You can |
 | --- | --- | --- |
 | Draft | not yet given to Resend | edit, test, send, schedule |
@@ -109,9 +117,13 @@ While a campaign is scheduled, sending or sent its copy is **locked**: the field
 
 The lifecycle fields — status, broadcast id, scheduled and sent times, last error — are written only by the plugin. Values sent through the API are ignored, and **Duplicate** resets them, so a copy of a sent campaign starts as a fresh draft.
 
+<Screenshot name="resend-broadcasts/campaign-scheduled" alt="A scheduled campaign: its fields are locked and the sidebar shows the schedule and the Resend broadcast id" caption="Scheduled: the copy is locked until the schedule is cancelled." />
+
 ### Variables
 
 The last panel lists every variable, this subscriber's value for it, what Resend will receive, and whether the campaign uses it. Click one to copy it, then paste it into the body.
+
+<Screenshot name="resend-broadcasts/preview-dark-email" alt="The same campaign with the email's dark-mode branch forced on" caption="Dark forces the email's prefers-color-scheme branch." />
 
 ## Sending from code
 

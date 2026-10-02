@@ -5,6 +5,7 @@ import type { DeploymentRecord, DeploymentState, SanitizedTarget } from '../type
 import type { VercelDeployment } from '../vercel/types.js'
 
 import { reinstate } from '../changes/fold.js'
+import { parseHookUrl } from '../options.js'
 import {
   clientFor,
   createDeployment,
@@ -31,8 +32,13 @@ export async function inFlightRows(ctx: Ctx, target: string, req?: PayloadReques
   return findDeployments(ctx, { limit: 20, sort: 'createdAt', where: { and: [{ target: { equals: target } }, { state: { in: IN_FLIGHT_STATES } }] } }, req)
 }
 
-async function claimedIds(ctx: Ctx, target: string, req?: PayloadRequest): Promise<Set<string>> {
-  const rows = await findDeployments(ctx, { limit: 100, where: { and: [{ target: { equals: target } }, { deploymentId: { exists: true } }] } }, req)
+/**
+ * Deployment ids already claimed by any ledger row. Deliberately not scoped to one target: several targets
+ * often share a Vercel project (production and staging hooks on different branches), so a deployment
+ * claimed by one target's row must never be matched again by another's.
+ */
+async function claimedIds(ctx: Ctx, req?: PayloadRequest): Promise<Set<string>> {
+  const rows = await findDeployments(ctx, { limit: 200, sort: '-createdAt', where: { deploymentId: { exists: true } } }, req)
   return new Set(rows.map((r) => r.deploymentId).filter((id): id is string => Boolean(id)))
 }
 
@@ -155,9 +161,9 @@ export async function refreshTarget(ctx: Ctx, target: SanitizedTarget, opts: { f
         if (now - hookCalledAt.getTime() < 3_000) {
           continue
         }
-        claimed = claimed ?? (await claimedIds(ctx, target.slug, opts.req))
+        claimed = claimed ?? (await claimedIds(ctx, opts.req))
         const candidates = await listSince(hookCalledAt.getTime() - 60_000)
-        const match = matchDeployment({ claimed, deployments: candidates, hookCalledAt })
+        const match = matchDeployment({ claimed, deployments: candidates, hookCalledAt, hookId: parseHookUrl(target.hook)?.hookId })
         if (match) {
           claimed.add(deploymentId(match))
           await applyVercelDeployment(ctx, row, match, opts.req)
@@ -199,7 +205,7 @@ export async function scanExternal(ctx: Ctx, target: SanitizedTarget, opts: { fo
   try {
     const since = last ? last - 5 * 60_000 : now - 24 * 3_600_000
     const deployments = await client.listDeployments({ limit: 20, projectId: target.projectId, since })
-    const claimed = await claimedIds(ctx, target.slug, opts.req)
+    const claimed = await claimedIds(ctx, opts.req)
     // Leave hook deployments younger than the give-up window to the matcher.
     const others = unclaimedDeployments(deployments, claimed).filter(
       (d) => d.source !== 'git-deploy-hook' || now - (d.created ?? d.createdAt ?? now) > MATCH_GIVE_UP_MS,

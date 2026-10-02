@@ -62,6 +62,15 @@ describe('matching a hook call to a deployment', () => {
     expect(matchDeployment({ claimed: new Set(['early', 'late']), deployments, hookCalledAt })).toBeNull()
   })
 
+  test('skips deployments from another deploy hook on the same project', () => {
+    const hookCalledAt = at(0)
+    const fromHook = (uid: string, created: number, deployHookId: string): VercelDeployment => ({ ...dep(uid, created), meta: { deployHookId } })
+    const deployments = [fromHook('staging', at(-5000).getTime(), 'hook_staging'), fromHook('prod', at(1000).getTime(), 'hook_production')]
+    expect(matchDeployment({ claimed: new Set(), deployments, hookCalledAt })?.uid).toBe('staging')
+    expect(matchDeployment({ claimed: new Set(), deployments, hookCalledAt, hookId: 'hook_production' })?.uid).toBe('prod')
+    expect(matchDeployment({ claimed: new Set(), deployments: [dep('untagged', at(1000).getTime())], hookCalledAt, hookId: 'hook_production' })?.uid).toBe('untagged')
+  })
+
   test('tolerates 30 s of clock skew', () => {
     const hookCalledAt = at(0)
     expect(matchDeployment({ claimed: new Set(), deployments: [dep('skew', at(-20_000).getTime())], hookCalledAt })?.uid).toBe('skew')
