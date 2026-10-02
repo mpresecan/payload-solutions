@@ -74,9 +74,25 @@ export const brands: Record<BrandId, Brand> = {
 }
 
 /**
- * The colour of the mark's small facet (the lower-right triangle) for each brand — the same
- * values each app's icon.svg favicon uses, so the logo on the page matches the tab. The body of
- * the mark stays `currentColor`; only the facet carries the brand.
+ * The shared mark: a box drawn as only its lid and its base. The walls are left out on purpose;
+ * the eye supplies them. Built on the true isometric grid (30°) inside the 20 x 26 box the
+ * previous mark used, so every consumer keeps its sizing:
+ *
+ * - `MARK_LID_PATH` is the lid, a rhombus (cube edge 10.3 units). It carries the brand colour.
+ * - `MARK_BASE_PATH` is the base, the box's two lower front edges as one band (2.06 units deep,
+ *   ends cut vertically in line with the implied walls). It takes `currentColor`.
+ *
+ * Keep packages/brand/assets/*.svg and each app's icon.svg in step with these.
+ */
+export const MARK_LID_PATH = 'M10 3.535L18.92 8.685L10 13.835L1.08 8.685Z'
+export const MARK_BASE_PATH = 'M1.08 17.955L10 23.105L18.92 17.955V20.015L10 25.165L1.08 20.015Z'
+/** The box the two paths actually fill, inside the 20 x 26 viewBox. */
+export const MARK_INK = { x: 1.08, y: 3.535, w: 17.84, h: 21.63 }
+
+/**
+ * The colour of the mark's lid (historically "the facet") for each brand — the same values each
+ * app's icon.svg favicon uses, so the logo on the page matches the tab. The base of the mark
+ * stays `currentColor`; only the lid carries the brand.
  *
  * These are the favicon's contrast-stepped values, not the raw `--accent` tokens: Stack's
  * platinum #b4cee7 and Clock's brass #f0b84d merge into the near-white body at small sizes,

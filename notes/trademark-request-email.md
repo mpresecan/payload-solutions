@@ -38,15 +38,9 @@ We will not launch Payload Stack Pro, or charge for Payload Clock, without your 
 
 **4. Logo**
 
-Our mark is closely based on Payload's previous logo. Since Payload has moved to a new logo, we would like to ask whether we may use this earlier design as the mark for our three products.
+We do not use any Payload logo. Our three products share a mark of our own design: a box drawn only as its lid and its base, with the lid in each product's accent colour. It does not reproduce Payload's current or previous logo, and it is always paired with our own wordmarks ("Payload Clock", "Payload Stack", "Payload Solutions"), never with the Payload name alone.
 
-To set it apart from Payload's own branding:
-
-- The smaller lower shape of the mark is always shown in colour, in each product's own accent colour, never in the plain monochrome of the original.
-- It is paired with our own wordmarks ("Payload Clock", "Payload Stack", "Payload Solutions"), not with the Payload name alone.
-- We do not use Payload's current logo in any form.
-
-The attached image shows the mark and the three wordmarks. If you would rather we did not use the earlier design, please say so and we will promptly replace it with a mark of our own.
+The attached image shows the mark and the three wordmarks, so you can confirm it raises no concern.
 
 **5. Safeguards already in place**
 

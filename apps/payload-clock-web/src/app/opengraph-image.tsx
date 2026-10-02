@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og'
 import { readFile } from 'node:fs/promises'
-import { MARK_FACET_COLORS, ACCENT_COLORS, brands } from '@payload-solutions/brand'
+import { MARK_BASE_PATH, MARK_FACET_COLORS, MARK_LID_PATH, ACCENT_COLORS, brands } from '@payload-solutions/brand'
 
 export const alt = `${brands.clock.name}: ${brands.clock.tagline}`
 export const size = { width: 1200, height: 630 }
@@ -35,8 +35,8 @@ export default async function OpenGraphImage() {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 30 }}>
           <svg width="24" height="31" viewBox="0 0 20 26" fill="none">
-            <path d="M10.5 3.49976L0.713097 8.15257V20.4896L8.2737 25.1999V12.8629L18 7.99976L10.5 3.49976Z" fill="#f2f2f2" />
-            <path d="M11 23.5V15L18 19.5L11 23.5Z" fill={MARK_FACET_COLORS.clock} />
+            <path d={MARK_BASE_PATH} fill="#f2f2f2" />
+            <path d={MARK_LID_PATH} fill={MARK_FACET_COLORS.clock} />
           </svg>
           <span style={{ fontWeight: 400, letterSpacing: '-0.03em' }}>Payload</span>
           <span style={{ fontWeight: 500, letterSpacing: '-0.03em', marginLeft: -6 }}>Clock</span>

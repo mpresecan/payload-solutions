@@ -1,11 +1,8 @@
 # @payload-solutions/plugin-vercel
 
-Vercel Integration for Payload CMS. Your frontend is a separate Vercel project — Astro, a static Next export, a second Next app — and it has to be rebuilt when editors publish. This plugin gives editors a **Deploy** button on every admin page, shows **what is waiting to go live**, deploys **automatically one minute after the last change**, follows every deployment on Vercel, and can **cancel** or **roll back** from the same place. Nobody needs a Vercel login.
+<img alt="Vercel Integration — admin screenshot" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/banner.webp">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/deployments-view-dark.webp">
-  <img alt="The Deployments view: live deployment, pending changes and history" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/deployments-view-light.webp">
-</picture>
+Vercel Integration for Payload CMS. Your frontend is a separate Vercel project — Astro, a static Next export, a second Next app — and it has to be rebuilt when editors publish. This plugin gives editors a **Deploy** button on every admin page, shows **what is waiting to go live**, deploys **automatically one minute after the last change**, follows every deployment on Vercel, and can **cancel** or **roll back** from the same place. Nobody needs a Vercel login.
 
 ```ts
 import { vercelPlugin } from '@payload-solutions/plugin-vercel'

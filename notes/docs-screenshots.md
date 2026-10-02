@@ -40,3 +40,12 @@ Things learned while capturing (2026-10-02):
 - The JSON field editor (Monaco) loads from a CDN; with no network it renders an empty box, so pages
   showing a JSON field with a value (a Resend list filter) were shot on a document without one.
 - Payload's header actions area is capped at 600px — anything wider overlaps the account icon.
+
+## README banners
+
+Each plugin README opens with `public/images/docs/<plugin>/banner.webp` (1280×640 at 2×): the plugin
+name over an original dark, streaked background, with a crop of a light admin screenshot as a card
+below. `notes/docs-screenshots/banner.mjs` builds them from the captured PNGs; the crops used were
+scheduler `list` (x 0, y 40, w 1440), consent `dashboard` (290, 12, 1130), emails `preview`
+(30, 56, 1410), vercel `deployments-view` (295, 40, 1130), resend `preview` (30, 56, 1410).
+READMEs load images from `raw.githubusercontent.com/.../main/...`, so they appear once pushed to main.

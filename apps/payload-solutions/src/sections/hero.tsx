@@ -1,4 +1,4 @@
-import { PAYLOAD_URL } from '@payload-solutions/brand'
+import { MARK_BASE_PATH, MARK_LID_PATH, PAYLOAD_URL } from '@payload-solutions/brand'
 import { ActionRow, Eyebrow, IndependenceNote, ProseLink } from '@payload-solutions/brand/lattice'
 import { LiquidMark } from '@payload-solutions/brand/liquid-mark'
 
@@ -72,8 +72,8 @@ export function Hero() {
               fill="currentColor"
               aria-hidden="true"
             >
-              <path d="M10.5 3.49976L0.713097 8.15257V20.4896L8.2737 25.1999V12.8629L18 7.99976L10.5 3.49976Z" />
-              <path d="M11 23.5V15L18 19.5L11 23.5Z" />
+              <path d={MARK_BASE_PATH} />
+              <path d={MARK_LID_PATH} />
             </svg>
           </div>
         </LiquidMark>

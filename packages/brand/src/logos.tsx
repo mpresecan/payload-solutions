@@ -1,10 +1,10 @@
 import type { CSSProperties, SVGProps } from 'react'
-import { MARK_FACET_COLORS, brands, type BrandId } from './brands'
+import { MARK_BASE_PATH, MARK_FACET_COLORS, MARK_LID_PATH, brands, type BrandId } from './brands'
 
 /**
- * The shared mark used by all three brands (the mark first shipped with Payload Clock).
- * The body fills with `currentColor` so it inherits the surrounding text color in both themes;
- * the small facet takes `facet` (a brand colour from MARK_FACET_COLORS, as in the favicons).
+ * The shared mark used by all three brands: a box shown only as its lid and its base.
+ * The base fills with `currentColor` so it inherits the surrounding text color in both themes;
+ * the lid takes `facet` (a brand colour from MARK_FACET_COLORS, as in the favicons).
  * viewBox 20 x 26.
  */
 export function Mark({
@@ -26,11 +26,8 @@ export function Mark({
       {...props}
     >
       {title ? <title>{title}</title> : null}
-      <path
-        d="M10.5 3.49976L0.713097 8.15257V20.4896L8.2737 25.1999V12.8629L18 7.99976L10.5 3.49976Z"
-        fill="currentColor"
-      />
-      <path d="M11 23.5V15L18 19.5L11 23.5Z" fill={facet} />
+      <path d={MARK_BASE_PATH} fill="currentColor" />
+      <path d={MARK_LID_PATH} fill={facet} />
     </svg>
   )
 }

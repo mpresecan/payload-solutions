@@ -1,11 +1,8 @@
 # @payload-solutions/plugin-action-scheduler
 
-WooCommerce Action Scheduler for Payload CMS. Declare an action once in code, schedule it at runtime with arguments — once, as soon as possible, on an interval or on a cron — and let Payload's job queue run it. The plugin keeps a small, bounded ledger of every action and gives the admin a Scheduled Actions view with status tabs, a Run queue button, runner health, per-row Run now / Retry / Cancel and a log for every action.
+<img alt="Payload Action Scheduler — admin screenshot" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-action-scheduler/banner.webp">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-action-scheduler/list-dark.webp">
-  <img alt="Scheduled Actions: queue strip, status tabs and the action table" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-action-scheduler/list-light.webp">
-</picture>
+WooCommerce Action Scheduler for Payload CMS. Declare an action once in code, schedule it at runtime with arguments — once, as soon as possible, on an interval or on a cron — and let Payload's job queue run it. The plugin keeps a small, bounded ledger of every action and gives the admin a Scheduled Actions view with status tabs, a Run queue button, runner health, per-row Run now / Retry / Cancel and a log for every action.
 
 ```ts
 await payload.scheduler.schedule('orders.remind', { orderId }, { scheduleAt: tomorrow })

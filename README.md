@@ -18,20 +18,14 @@ Open-source products, plugins and websites for teams building SaaS on [Payload C
 <tr>
 <td width="50%" valign="top">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/dashboard-dark.webp">
-  <img alt="Payload Consent" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/dashboard-light.webp">
-</picture>
+<img alt="Payload Consent" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/banner.webp">
 
 <sub><b><a href="packages/plugin-consent">Payload Consent</a></b> — cookie categories, trackers, legal pages and consent records in the admin.</sub>
 
 </td>
 <td width="50%" valign="top">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/preview-dark.webp">
-  <img alt="Payload Emails" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/preview-light.webp">
-</picture>
+<img alt="Payload Emails" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/banner.webp">
 
 <sub><b><a href="packages/plugin-emails">Payload Emails</a></b> — transactional email copy your team edits, previews and test-sends.</sub>
 
@@ -40,20 +34,14 @@ Open-source products, plugins and websites for teams building SaaS on [Payload C
 <tr>
 <td width="50%" valign="top">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/deployments-view-dark.webp">
-  <img alt="Vercel Integration" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/deployments-view-light.webp">
-</picture>
+<img alt="Vercel Integration" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/banner.webp">
 
 <sub><b><a href="packages/plugin-vercel">Vercel Integration</a></b> — deploy, follow, cancel and roll back Vercel builds from the admin.</sub>
 
 </td>
 <td width="50%" valign="top">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-action-scheduler/list-dark.webp">
-  <img alt="Payload Action Scheduler" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-action-scheduler/list-light.webp">
-</picture>
+<img alt="Payload Action Scheduler" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-action-scheduler/banner.webp">
 
 <sub><b><a href="packages/plugin-action-scheduler">Payload Action Scheduler</a></b> — scheduled and recurring actions with a real admin view.</sub>
 
@@ -62,10 +50,7 @@ Open-source products, plugins and websites for teams building SaaS on [Payload C
 <tr>
 <td width="50%" valign="top">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/resend-broadcasts/preview-dark.webp">
-  <img alt="Resend Broadcasts" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/resend-broadcasts/preview-light.webp">
-</picture>
+<img alt="Resend Broadcasts" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/resend-broadcasts/banner.webp">
 
 <sub><b><a href="packages/plugin-resend-broadcasts">Resend Broadcasts</a></b> (alpha) — newsletters sent as Resend broadcasts.</sub>
 

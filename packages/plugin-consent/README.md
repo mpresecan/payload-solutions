@@ -1,11 +1,8 @@
 # @payload-solutions/plugin-consent
 
-**Payload Consent** — cookie categories, trackers, legal pages and consent records managed in the Payload admin. One config endpoint drives the banner, the script gating and the generated cookie table, so they can never disagree.
+<img alt="Payload Consent — admin screenshot" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/banner.webp">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/dashboard-dark.webp">
-  <img alt="The Payload Consent dashboard widget with decisions per category and warnings" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/dashboard-light.webp">
-</picture>
+**Payload Consent** — cookie categories, trackers, legal pages and consent records managed in the Payload admin. One config endpoint drives the banner, the script gating and the generated cookie table, so they can never disagree.
 
 Documentation: **https://payload.solutions/docs/plugins/payload-consent**
 

@@ -1,11 +1,8 @@
 # @payload-solutions/plugin-emails
 
-Code-defined transactional emails for Payload CMS. You declare each email once in TypeScript — its key, the input callers pass, the variables editors may use, and default copy. The plugin keeps one document per email in the admin, where non-developers edit the subject and body, preview it with sample data, send themselves a test, and switch non-critical emails off. Application code sends with one typed call.
+<img alt="Payload Emails — admin screenshot" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/banner.webp">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/preview-dark.webp">
-  <img alt="Preview & test: sample data on the left, the rendered Welcome email on the right" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/preview-light.webp">
-</picture>
+Code-defined transactional emails for Payload CMS. You declare each email once in TypeScript — its key, the input callers pass, the variables editors may use, and default copy. The plugin keeps one document per email in the admin, where non-developers edit the subject and body, preview it with sample data, send themselves a test, and switch non-critical emails off. Application code sends with one typed call.
 
 ```ts
 await payload.emails.send('welcome', { input: { user, url } })

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { MARK_BASE_PATH, MARK_INK, MARK_LID_PATH } from './brands'
 import { useReducedMotionSafe } from './reduced-motion'
 
 /**
@@ -60,12 +61,9 @@ const DEFAULTS: Required<LiquidMarkOptions> = {
   origin: [0.68, 0.5],
 }
 
-/** packages/brand/assets/mark.svg, as path data plus the bounding box the paths actually fill. */
-const MARK_PATHS = [
-  'M10.5 3.49976L0.713097 8.15257V20.4896L8.2737 25.1999V12.8629L18 7.99976L10.5 3.49976Z',
-  'M11 23.5V15L18 19.5L11 23.5Z',
-]
-const MARK_BOX = { x: 0.71, y: 3.5, w: 17.29, h: 21.7 }
+/** The shared mark, as path data plus the bounding box the paths actually fill. */
+const MARK_PATHS = [MARK_BASE_PATH, MARK_LID_PATH]
+const MARK_BOX = MARK_INK
 
 const VERT = `#version 300 es
 in vec2 aPos;

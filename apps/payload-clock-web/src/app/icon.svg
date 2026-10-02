@@ -1,12 +1,11 @@
 <!--
-  Payload Clock favicon. The facet carries the brass accent, stepped to #C98A12: the token
-  value #f0b84d holds only 1.9:1 against the #f2f2f2 body at 16px and the two shapes merge.
-  This step holds 3.1:1 against the body and 6.4:1 on black, matching how the Stack icon is cut.
+  Payload Clock favicon. The lid carries the brass accent, stepped to #C98A12 (the token
+  #f0b84d is too pale next to the #f2f2f2 base at 16px). 6.4:1 on black.
 -->
 <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="64" height="64" fill="#000000"/>
-  <g transform="translate(15 8) scale(1.75)">
-    <path d="M10.5 3.49976L0.713097 8.15257V20.4896L8.2737 25.1999V12.8629L18 7.99976L10.5 3.49976Z" fill="#F2F2F2"/>
-    <path d="M11 23.5V15L18 19.5L11 23.5Z" fill="#C98A12"/>
+  <g transform="translate(14.5 6.5) scale(1.75)">
+    <path d="M1.08 17.955L10 23.105L18.92 17.955V20.015L10 25.165L1.08 20.015Z" fill="#F2F2F2"/>
+    <path d="M10 3.535L18.92 8.685L10 13.835L1.08 8.685Z" fill="#C98A12"/>
   </g>
 </svg>

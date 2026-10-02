@@ -1,7 +1,14 @@
 'use client'
 
 import { useCallback, useEffect, useId, useRef, useState, type PointerEvent } from 'react'
-import { MARK_FACET_COLORS, brands, type BrandId } from './brands'
+import {
+  MARK_BASE_PATH,
+  MARK_FACET_COLORS,
+  MARK_INK,
+  MARK_LID_PATH,
+  brands,
+  type BrandId,
+} from './brands'
 import { useReducedMotionSafe } from './reduced-motion'
 
 /* -------------------------------------------------------------------------------------------------
@@ -45,12 +52,10 @@ const CAP_TOP = H - CAP * GIANT
 /** Optical gap between the mark and the word. */
 const GAP = 70
 
-/** The mark is drawn in a 20 x 26 box; its ink spans x 0.713..18 and y 3.5..25.2. */
-const MARK_INK = { x: 0.713, y: 3.5, w: 17.287, h: 21.7 }
 
 /**
  * The mark is sized to the *visible* band rather than the full cap height, so the crop never
- * eats the notch that gives the mark its shape: letters stay legible from their tops, a
+ * eats the base that makes the lid read as a box: letters stay legible from their tops, a
  * geometric glyph does not.
  */
 function markGeometry(crop: number) {
@@ -260,7 +265,7 @@ export function FooterWordmark({
                 <rect width={W} height={H} fill="#000" />
                 <g fill="#fff">
                   <g transform={markTransform}>
-                    <path d="M10.5 3.49976L0.713097 8.15257V20.4896L8.2737 25.1999V12.8629L18 7.99976L10.5 3.49976Z" />
+                    <path d={MARK_BASE_PATH} />
                   </g>
                   {kicker ? (
                     <text
@@ -289,12 +294,12 @@ export function FooterWordmark({
                 </g>
               </mask>
 
-              {/* The facet gets a mask of its own so it can be lit in the brand colour — the same
+              {/* The lid (the facet) gets a mask of its own so it can be lit in the brand colour — the same
                   material as the rest of the lockup, carrying the hue the favicon carries. */}
               <mask id={facetMaskId}>
                 <rect width={W} height={H} fill="#000" />
                 <path
-                  d="M11 23.5V15L18 19.5L11 23.5Z"
+                  d={MARK_LID_PATH}
                   transform={markTransform}
                   fill="#fff"
                 />

@@ -1,7 +1,14 @@
 import { ImageResponse } from 'next/og'
 import { readFile } from 'node:fs/promises'
 import type { ReactElement } from 'react'
-import { ACCENT_COLORS, MARK_FACET_COLORS, type AccentId, brands } from '@payload-solutions/brand'
+import {
+  ACCENT_COLORS,
+  MARK_BASE_PATH,
+  MARK_FACET_COLORS,
+  MARK_LID_PATH,
+  type AccentId,
+  brands,
+} from '@payload-solutions/brand'
 
 const brand = brands.solutions
 
@@ -29,11 +36,8 @@ const GRID_X = [64, 332, 600, 868, 1136]
 function Mark({ width, fill, facet = fill }: { width: number; fill: string; facet?: string }) {
   return (
     <svg width={width} height={(width * 26) / 20} viewBox="0 0 20 26" fill="none">
-      <path
-        d="M10.5 3.49976L0.713097 8.15257V20.4896L8.2737 25.1999V12.8629L18 7.99976L10.5 3.49976Z"
-        fill={fill}
-      />
-      <path d="M11 23.5V15L18 19.5L11 23.5Z" fill={facet} />
+      <path d={MARK_BASE_PATH} fill={fill} />
+      <path d={MARK_LID_PATH} fill={facet} />
     </svg>
   )
 }
