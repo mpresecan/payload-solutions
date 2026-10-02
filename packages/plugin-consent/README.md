@@ -2,6 +2,11 @@
 
 **Payload Consent** — cookie categories, trackers, legal pages and consent records managed in the Payload admin. One config endpoint drives the banner, the script gating and the generated cookie table, so they can never disagree.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/dashboard-dark.webp">
+  <img alt="The Payload Consent dashboard widget with decisions per category and warnings" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/dashboard-light.webp">
+</picture>
+
 Documentation: **https://payload.solutions/docs/plugins/payload-consent**
 
 ```bash
@@ -24,6 +29,57 @@ export default buildConfig({
   ],
 })
 ```
+
+## Screenshots
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/trackers-dark.webp">
+  <img alt="Cookies & scripts" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/trackers-light.webp">
+</picture>
+
+<sub>Cookies & scripts — the list that drives the banner, script gating and the cookie table.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/banner-dark.webp">
+  <img alt="The consent banner" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/banner-light.webp">
+</picture>
+
+<sub>The banner from the registry: Reject all next to Accept all.</sub>
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/processors-dark.webp">
+  <img alt="The processor register" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/processors-light.webp">
+</picture>
+
+<sub>The processor register behind the privacy policy and the DPA annex.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/records-dark.webp">
+  <img alt="Consent records" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/records-light.webp">
+</picture>
+
+<sub>Immutable consent records.</sub>
+
+</td>
+</tr>
+</table>
+
+More in the documentation: https://payload.solutions/docs/plugins/payload-consent
 
 ## What it adds
 

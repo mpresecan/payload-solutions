@@ -2,6 +2,11 @@
 
 Vercel Integration for Payload CMS. Your frontend is a separate Vercel project — Astro, a static Next export, a second Next app — and it has to be rebuilt when editors publish. This plugin gives editors a **Deploy** button on every admin page, shows **what is waiting to go live**, deploys **automatically one minute after the last change**, follows every deployment on Vercel, and can **cancel** or **roll back** from the same place. Nobody needs a Vercel login.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/deployments-view-dark.webp">
+  <img alt="The Deployments view: live deployment, pending changes and history" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/deployments-view-light.webp">
+</picture>
+
 ```ts
 import { vercelPlugin } from '@payload-solutions/plugin-vercel'
 
@@ -33,6 +38,57 @@ Peer dependencies: `payload ^3.88`, `@payloadcms/ui`, `@payloadcms/next`, `react
 - **Status** — with `VERCEL_TOKEN`: polling (`/v7/deployments`, `/v13/deployments/{id}`) plus an optional signed webhook receiver (`POST /api/vercel/webhook`, HMAC-SHA1 `x-vercel-signature`, Pro/Enterprise accounts).
 - **Admin** — header widget (`admin.components.actions`), Deployments view (`/admin/deployments`), document pill (`beforeDocumentControls`), and the deployments collection list. Built from `@payloadcms/ui` components.
 - **Local API** — `payload.vercel.deploy()`, `.status()`, `.pending()`, `.markChanged()`, `.pause()`, `.cancel()`, `.rollback()`, `.tick()`.
+
+## Screenshots
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/deploy-drawer-dark.webp">
+  <img alt="The Deploy drawer" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/deploy-drawer-light.webp">
+</picture>
+
+<sub>Deploy from any admin page, with a reason and the changes it carries.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/document-pill-dark.webp">
+  <img alt="The document pill" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/document-pill-light.webp">
+</picture>
+
+<sub>Every tracked document says whether it is live yet.</sub>
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/deployments-history-dark.webp">
+  <img alt="Deployment history with a failed build" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/deployments-history-light.webp">
+</picture>
+
+<sub>A failed build keeps its changes pending.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/header-menu-dark.webp">
+  <img alt="The header status pill and menu" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/header-menu-light.webp">
+</picture>
+
+<sub>The header pill on every admin page.</sub>
+
+</td>
+</tr>
+</table>
+
+More in the documentation: https://payload.solutions/docs/plugins/vercel-integration
 
 ## Development
 

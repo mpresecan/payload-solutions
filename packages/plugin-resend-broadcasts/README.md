@@ -2,6 +2,11 @@
 
 Newsletters for Payload CMS on [Resend Broadcasts](https://resend.com/docs/dashboard/broadcasts/introduction). Any collection with an email becomes a subscriber source kept in step with Resend contacts; lists created in the admin become Resend segments; campaigns are written in Lexical, previewed as any person in the list, tested, and sent or scheduled as a Resend broadcast. Unsubscribes come back by signed webhook.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/resend-broadcasts/preview-dark.webp">
+  <img alt="Preview & send: a campaign previewed as one subscriber in the list" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/resend-broadcasts/preview-light.webp">
+</picture>
+
 Full documentation: **https://payload.solutions/docs/plugins/resend-broadcasts**
 
 ## Install
@@ -45,6 +50,57 @@ Add `media: { collection: 'media' }` for an **Image** block in campaigns; the me
 In the admin: **Newsletter → Lists** (Resend segments, optionally filtered with a Payload query), **Campaigns** (with the **Preview & send** tab), **Sync runs** and **Newsletter Settings**.
 
 Write `{{firstName|there}}` in a campaign and the preview shows each subscriber's own value; at send time it becomes Resend's `{{{contact.first_name|there}}}`, so the campaign is rendered once and Resend personalises it per contact.
+
+## Screenshots
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/resend-broadcasts/campaign-edit-dark.webp">
+  <img alt="Writing a campaign" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/resend-broadcasts/campaign-edit-light.webp">
+</picture>
+
+<sub>Campaigns are written in Lexical, with an Image block.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/resend-broadcasts/preview-send-dark.webp">
+  <img alt="Send a test, send now or schedule" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/resend-broadcasts/preview-send-light.webp">
+</picture>
+
+<sub>Send a test, then send now or schedule — with every variable explained.</sub>
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/resend-broadcasts/lists-dark.webp">
+  <img alt="Lists as Resend segments" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/resend-broadcasts/lists-light.webp">
+</picture>
+
+<sub>Lists become Resend segments and stay in sync.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/resend-broadcasts/campaigns-dark.webp">
+  <img alt="The campaigns list" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/resend-broadcasts/campaigns-light.webp">
+</picture>
+
+<sub>Drafts, scheduled and sent campaigns.</sub>
+
+</td>
+</tr>
+</table>
+
+More in the documentation: https://payload.solutions/docs/plugins/resend-broadcasts
 
 ## Develop
 

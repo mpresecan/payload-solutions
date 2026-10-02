@@ -2,11 +2,67 @@
 
 Code-defined transactional emails for Payload CMS. You declare each email once in TypeScript — its key, the input callers pass, the variables editors may use, and default copy. The plugin keeps one document per email in the admin, where non-developers edit the subject and body, preview it with sample data, send themselves a test, and switch non-critical emails off. Application code sends with one typed call.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/preview-dark.webp">
+  <img alt="Preview & test: sample data on the left, the rendered Welcome email on the right" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/preview-light.webp">
+</picture>
+
 ```ts
 await payload.emails.send('welcome', { input: { user, url } })
 ```
 
 Ported from the Klick17 WordPress `K7P_Email` framework and rebuilt on Payload primitives: collections, versions, localization, Lexical, the email adapter, jobs, and `generate:types`.
+
+## Screenshots
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/editor-dark.webp">
+  <img alt="Editing an email with its variable chips" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/editor-light.webp">
+</picture>
+
+<sub>Editors change the copy; the sidebar lists the variables this email may use.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/list-dark.webp">
+  <img alt="The Transactional Emails list" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/list-light.webp">
+</picture>
+
+<sub>One document per email declared in code.</sub>
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/settings-template-dark.webp">
+  <img alt="Email Settings, Template tab" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/settings-template-light.webp">
+</picture>
+
+<sub>Email Settings — the Template tab previews the design that lives in code.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/log-dark.webp">
+  <img alt="The Email Log" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/log-light.webp">
+</picture>
+
+<sub>Every send, test sends included.</sub>
+
+</td>
+</tr>
+</table>
+
+More in the documentation: https://payload.solutions/docs/plugins/payload-emails
 
 ## Install
 

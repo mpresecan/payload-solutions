@@ -2,6 +2,11 @@
 
 WooCommerce Action Scheduler for Payload CMS. Declare an action once in code, schedule it at runtime with arguments — once, as soon as possible, on an interval or on a cron — and let Payload's job queue run it. The plugin keeps a small, bounded ledger of every action and gives the admin a Scheduled Actions view with status tabs, a Run queue button, runner health, per-row Run now / Retry / Cancel and a log for every action.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-action-scheduler/list-dark.webp">
+  <img alt="Scheduled Actions: queue strip, status tabs and the action table" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-action-scheduler/list-light.webp">
+</picture>
+
 ```ts
 await payload.scheduler.schedule('orders.remind', { orderId }, { scheduleAt: tomorrow })
 await payload.scheduler.cron('reports.weekly', {}, { cron: '0 9 * * 1', tz: 'Europe/Warsaw' })
@@ -75,6 +80,48 @@ payload.scheduler.runQueue()          // what the admin button calls
 ```
 
 Function-style exports (`scheduleAction(payload, …)`, `unscheduleAction`, `nextScheduledAction`, …) mirror the `as_*` API.
+
+## Screenshots
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-action-scheduler/log-drawer-dark.webp">
+  <img alt="The log drawer of a retried webhook" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-action-scheduler/log-drawer-light.webp">
+</picture>
+
+<sub>Every action keeps a timeline: attempts, errors, retries.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-action-scheduler/detail-failed-dark.webp">
+  <img alt="A permanently failed action" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-action-scheduler/detail-failed-light.webp">
+</picture>
+
+<sub>A permanent failure with its error, arguments and log.</sub>
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-action-scheduler/row-menu-dark.webp">
+  <img alt="The row menu" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-action-scheduler/row-menu-light.webp">
+</picture>
+
+<sub>Run now, Reschedule, Cancel, Duplicate — per row and in bulk.</sub>
+
+</td>
+<td width="50%"></td>
+</tr>
+</table>
+
+More in the documentation: https://payload.solutions/docs/plugins/payload-action-scheduler
 
 ## Why the ledger stays small
 
