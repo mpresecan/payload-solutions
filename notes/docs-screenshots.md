@@ -44,8 +44,17 @@ Things learned while capturing (2026-10-02):
 ## README banners
 
 Each plugin README opens with `public/images/docs/<plugin>/banner.webp` (1280×640 at 2×): the plugin
-name over an original dark, streaked background, with a crop of a light admin screenshot as a card
-below. `notes/docs-screenshots/banner.mjs` builds them from the captured PNGs; the crops used were
-scheduler `list` (x 0, y 40, w 1440), consent `dashboard` (290, 12, 1130), emails `preview`
-(30, 56, 1410), vercel `deployments-view` (295, 40, 1130), resend `preview` (30, 56, 1410).
+name over an original dark, streaked background, with a light admin screenshot as a card below.
+
+The card screenshots are captured at the card's own width (`card.mjs`, viewport 1120 CSS px; 1300 for
+the scheduler table, scaled down), so the admin reflows to fit instead of being cropped at the sides:
+
+```sh
+node ../../notes/docs-screenshots/card.mjs http://localhost:3300 /admin/collections/transactional-emails/1/preview card/emails.png
+```
+
+`banner.mjs` composes them; `sw` is the capture width, `y` the top offset that starts the card at the
+page title. Used: scheduler `/admin/collections/scheduled-actions` (sw 1300, y 44), consent `/admin`
+(sw 1120, y 8), emails `…/transactional-emails/1/preview` (y 45), vercel `/admin/deployments` (y 0,
+header pill visible), resend `…/newsletter-campaigns/1/preview` (y 45).
 READMEs load images from `raw.githubusercontent.com/.../main/...`, so they appear once pushed to main.

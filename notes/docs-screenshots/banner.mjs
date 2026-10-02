@@ -28,7 +28,7 @@ for (const s of SPECS) {
   .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,7,11,.15) 0%,rgba(5,7,11,.55) 100%)}
   h1{position:absolute;top:58px;left:0;right:0;margin:0;text-align:center;font:400 ${s.size || 104}px/1 Geist,sans-serif;color:#fff;letter-spacing:-0.01em}
   .card{position:absolute;left:80px;top:203px;width:1120px;height:480px;border-radius:12px 12px 0 0;overflow:hidden;background:#fff;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-  .card img{position:absolute;width:${1440 * scale}px;left:${-s.x * scale}px;top:${-s.y * scale}px}
+  .card img{position:absolute;width:${(s.sw || 1440) * scale}px;left:${-s.x * scale}px;top:${-s.y * scale}px}
   </style></head><body><div class="bg">${bg}<div class="shade"></div></div><h1>${s.title}</h1><div class="card"><img src="${img}"></div></body></html>`)
   await page.waitForTimeout(300)
   await page.screenshot({ path: s.out })
