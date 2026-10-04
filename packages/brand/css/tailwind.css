@@ -290,6 +290,11 @@
   padding: 0;
   color: var(--fg);
   border-bottom: 1px solid var(--border);
+  /* Glass: see --glass-tint in tokens.css. On the button rather than on the face, so the
+     blur stays put while the faces slide through it. */
+  background-color: var(--glass-tint);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
 }
 
 /*
@@ -312,7 +317,7 @@
 }
 
 /*
-  Sides, below lg. The face is opaque (see below), so it paints over the two content-edge
+  Sides, below lg. The face is glass (see below), so it blurs the two content-edge
   hairlines GridColumns draws behind it — and below lg those edges are the only vertical
   lines on the page, which left a stack of rows reading as underlined labels floating on
   black. So the row draws its own sides on a phone. From lg the lattice has its quarter and
@@ -333,12 +338,11 @@
   width: 100%;
   align-items: center;
   /*
-    Opaque, so a button that spans two columns reads as one object instead of being cut in
-    half by the grid line behind it. payloadcms.com does the same thing with its
-    forceBackground modifier; its own buttons are one column wide, so it only needs it
-    occasionally, and ours are two.
+    Transparent: the button underneath carries the glass (tint + backdrop blur), which is what
+    keeps a two-column button reading as one object over the grid line behind it. This used
+    to be an opaque var(--bg), payloadcms.com's forceBackground approach.
   */
-  background-color: var(--bg);
+  background-color: transparent;
   gap: 1rem;
   padding: var(--slide-pad-y) var(--slide-pad-x);
   font-weight: 500;

@@ -135,6 +135,15 @@
   --crt-opacity: 0.02;
 
   /*
+    Glass, for the slide buttons: a translucent tint of the page plus a backdrop blur, so a
+    button floats over whatever sits behind it (the hero field, the grid lines) instead of
+    punching an opaque hole in it. The blur is what keeps a grid line behind a two-column
+    button from cutting it in half, the job the opaque face used to do.
+  */
+  --glass-tint: color-mix(in oklab, var(--bg) 45%, transparent);
+  --glass-blur: 14px;
+
+  /*
     Footer wordmark. The giant lockup is cut out of a plate the colour of the page, and the
     letterforms are revealed only by a light of the OPPOSITE polarity: white on the dark
     theme, ink on the light one. The plate follows --bg so a light page no longer ends on a

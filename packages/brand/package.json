@@ -19,6 +19,7 @@
     "./iso-stack": "./src/iso-stack.tsx",
     "./clock-dial": "./src/clock-dial.tsx",
     "./liquid-mark": "./src/liquid-mark.tsx",
+    "./package-field": "./src/package-field.tsx",
     "./parallax": "./src/parallax.tsx",
     "./ambient-backdrop": "./src/ambient-backdrop.tsx",
     "./crt-grain": "./src/crt-grain.tsx",

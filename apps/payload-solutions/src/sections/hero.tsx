@@ -1,19 +1,22 @@
-import { MARK_BASE_PATH, MARK_LID_PATH, PAYLOAD_URL } from '@payload-solutions/brand'
+import { PAYLOAD_URL } from '@payload-solutions/brand'
 import { ActionRow, Eyebrow, IndependenceNote, ProseLink } from '@payload-solutions/brand/lattice'
-import { LiquidMark } from '@payload-solutions/brand/liquid-mark'
+import { PackageField } from '@payload-solutions/brand/package-field'
 
 /**
  * The umbrella hero. No product visual on purpose: payload.solutions has a portfolio, not one
- * product, and the products sit directly underneath. The mark itself is the subject — an ink
- * field that the pointer tears apart and that reassembles into the silhouette.
+ * product, and the products sit directly underneath. The visual is the mark multiplied into
+ * a floor of packages (PackageField): hover lights the boxes under the pointer in their
+ * product colours, a click sends a ripple across the floor. It replaced the LiquidMark ink
+ * field once the mark became the lid-and-base box, whose meaning lives in the gap and the
+ * coloured lid — both of which the ink blur erased.
  *
  * The IsoStack illustration stays with Payload Stack, whose identity it actually is.
  */
 export function Hero() {
   return (
     <section className="relative isolate overflow-hidden" aria-labelledby="hero-heading">
-      {/* Scrim: keeps the copy at AA over the ink without dimming the mark. Only needed from
-          lg, where the mark sits behind the copy; below that it has a band of its own. */}
+      {/* Scrim: keeps the copy at AA over the package field without dimming its centre. Only
+          needed from lg, where the field sits behind the copy; below that it has a band of its own. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 hidden lg:block"
@@ -45,38 +48,18 @@ export function Hero() {
       </div>
 
       {/*
-        The mark. From lg it is the hero's background, filling the section behind the copy —
-        the composition this hero was designed around, and the one that works.
-
-        Below lg it gets a band of its own beneath the copy. On a phone the mark is nearly as
-        wide as the screen, so as a background it sat directly behind the headline and the
-        action rows; once those rows became opaque it was sliced into stray wedges showing
-        through the gaps and through the translucent hairlines. Given a band, it reads as a
-        mark again and the copy sits on clean black.
-
-        The band is 5:4 and capped at 26rem so it stays under LiquidMark's 1.35 aspect
-        threshold at every width below lg — past that the component treats the element as a
-        wide hero background and pushes the mark off to the right, which is correct there and
-        wrong here. Full-bleed on a phone, a centred stage on a tablet.
+        The package field. From lg it is the hero's background, under the scrim (-z-20 against
+        the scrim's -z-10) so the copy keeps its contrast. Below lg it gets a band of its own
+        beneath the copy, for the same reason the old mark did: as a background on a phone it
+        would sit directly behind the headline and the action rows. The band is 5:4 and
+        capped at 26rem, which keeps it under PackageField's 1.35 threshold so the floor is
+        centred there and pushed right from lg.
 
         It comes after the copy in the DOM so the phone order is right; from lg the absolute
         positioning makes DOM order irrelevant.
       */}
-      <div className="edge-fade relative mx-auto aspect-[5/4] w-full max-w-[26rem] lg:absolute lg:inset-0 lg:-z-10 lg:aspect-auto lg:max-w-none">
-        <LiquidMark className="absolute inset-0">
-          {/* Visible whenever WebGL2 is unavailable; the canvas paints over it otherwise. */}
-          <div className="absolute inset-0 grid place-items-center lg:justify-items-end lg:pr-[18%]">
-            <svg
-              viewBox="0 0 20 26"
-              className="h-[70%] w-auto text-fg lg:h-[min(52vh,22rem)]"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path d={MARK_BASE_PATH} />
-              <path d={MARK_LID_PATH} />
-            </svg>
-          </div>
-        </LiquidMark>
+      <div className="edge-fade relative mx-auto aspect-[5/4] w-full max-w-[26rem] lg:absolute lg:inset-0 lg:-z-20 lg:aspect-auto lg:max-w-none">
+        <PackageField className="absolute inset-0" />
       </div>
     </section>
   )
