@@ -51,7 +51,8 @@ export function withStringApiKeyReferences({ collection }: { collection: Collect
     typeof value === 'number' ? String(value) : Array.isArray(value) ? value.map(stringify) : value
   const fix = (where: unknown): unknown => {
     if (Array.isArray(where)) return where.map(fix)
-    if (!where || typeof where !== 'object') return where
+    // Only walk plain objects: a Date (the api-key plugin's rate-limit window) must pass through.
+    if (!where || typeof where !== 'object' || Object.getPrototypeOf(where) !== Object.prototype) return where
     return Object.fromEntries(
       Object.entries(where).map(([key, value]) =>
         key === 'referenceId' && value && typeof value === 'object'
