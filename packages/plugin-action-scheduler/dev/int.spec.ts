@@ -179,6 +179,27 @@ describe('admin writes', () => {
   })
 })
 
+describe('external cron', () => {
+  test('one call to the jobs endpoint runs an overdue action, even the first time it is called', async () => {
+    // Due an hour from now: past the 15 minute dispatch horizon, so no job yet; the tick promotes it.
+    const ref = await payload.scheduler.schedule('orders.remind', { orderId: 'cron_1' }, { scheduleAt: new Date(Date.now() + 3_600_000) })
+    expect((await row(ref.id)).jobId).toBeFalsy()
+    // Then nothing called the queue for a while and it became overdue.
+    await payload.db.updateOne({ collection: ACTIONS, id: ref.id, data: { scheduleAt: new Date(Date.now() - 3_600_000).toISOString() } })
+
+    // Exactly what GET /api/payload-jobs/run?allQueues=true does, once.
+    await payload.jobs.handleSchedules({ allQueues: true })
+    await payload.jobs.run({ allQueues: true, overrideAccess: true, silent: true })
+
+    const doc = await row(ref.id)
+    expect(doc.status).toBe('complete')
+    expect(doc.note).toBe('reminded cron_1')
+    expect(executions.filter((e) => e.args.orderId === 'cron_1')).toHaveLength(1)
+    const status = await payload.findGlobal({ slug: 'scheduler-status', overrideAccess: true })
+    expect(status.lastRun).toMatchObject({ trigger: 'runner' })
+  })
+})
+
 describe('runQueue and maintenance', () => {
   test('runQueue executes due actions and records the run on the status global', async () => {
     await payload.scheduler.enqueue('orders.remind', { orderId: 'q1' })

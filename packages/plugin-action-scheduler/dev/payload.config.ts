@@ -53,7 +53,9 @@ export default buildConfig({
       dispatchHorizon: '15m',
       recurring: [{ key: 'analytics.hourly', hook: 'analytics.rollup', cron: '0 * * * *', tz: 'Europe/Warsaw' }],
       retention: { complete: '1d', canceled: '1d', failed: '7d' },
-      tick: isTest ? false : { cron: '* * * * *' },
+      // On in tests too: they never autorun, so the tick only runs where a test drives the queue the
+      // way the /api/payload-jobs/run endpoint does (handleSchedules, then run).
+      tick: { cron: '* * * * *' },
     }),
   ],
   secret: process.env.PAYLOAD_SECRET || 'test-secret_key',
