@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 
 import { Auth } from '@/components/auth/auth'
 import { Logo } from '@/components/marketing/logo'
+import stack from '@/stack.config'
 
 /**
  * All authentication screens: /auth/sign-in, /auth/sign-up, /auth/forgot-password,
@@ -10,6 +11,11 @@ import { Logo } from '@/components/marketing/logo'
  * The <Auth> router resolves the view from the path segment.
  */
 
+/**
+ * Only the views this project's auth configuration provides. A view whose plugin is off (magic
+ * link without `'magic-link'` in `auth.methods`, two-factor, invitations without organizations)
+ * has no component to render, so prerendering it would throw "Unknown view" and fail the build.
+ */
 const KNOWN = new Set([
   'sign-in',
   'sign-up',
@@ -21,10 +27,9 @@ const KNOWN = new Set([
   'callback',
   'error',
   'redirect',
-  'magic-link',
-  'magic-link-sent',
-  'two-factor',
-  'accept-invitation',
+  ...(stack.features.magicLink ? ['magic-link', 'magic-link-sent'] : []),
+  ...(stack.features.twoFactor ? ['two-factor'] : []),
+  ...(stack.features.organizations ? ['accept-invitation'] : []),
 ])
 
 type Params = { params: Promise<{ path: string }> }
