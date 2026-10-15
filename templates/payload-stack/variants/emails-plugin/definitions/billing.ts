@@ -1,4 +1,4 @@
-import { defineEmail } from '@payload-solutions/plugin-emails'
+import { defineEmail, type EmailDefinition } from '@payload-solutions/plugin-emails'
 
 import { as, billingInput, billingVariables, resolveBilling, str } from './shared'
 
@@ -11,7 +11,16 @@ import { as, billingInput, billingVariables, resolveBilling, str } from './share
  * source of truth for what was actually charged: these messages tell the story, the invoice proves it.
  */
 
-export const subscriptionStarted = defineEmail({
+/**
+ * These emails are registered only when billing is on (./index.ts), and the plugin types `slug`,
+ * `resolve` and `to` against the generated email registry, which lists registered emails only. With
+ * `billing.provider: 'none'` every definition below would fail `pnpm build`, so they are typed against
+ * the open registry instead. `resolve` already narrows its own input with `as<…>()`.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const defineBillingEmail = defineEmail as unknown as (definition: EmailDefinition<any>) => EmailDefinition<any>
+
+export const subscriptionStarted = defineBillingEmail({
   slug: 'subscription-started',
   label: 'Subscription started',
   description: 'Confirms a new paid subscription.',
@@ -61,7 +70,7 @@ The current period runs until {{period.end}}, and renews automatically unless yo
   },
 })
 
-export const subscriptionUpdated = defineEmail({
+export const subscriptionUpdated = defineBillingEmail({
   slug: 'subscription-updated',
   label: 'Plan changed',
   description: 'Confirms a move between plans, up or down.',
@@ -120,7 +129,7 @@ Any difference for the rest of this period is settled on your next invoice. The 
   },
 })
 
-export const subscriptionCanceled = defineEmail({
+export const subscriptionCanceled = defineBillingEmail({
   slug: 'subscription-canceled',
   label: 'Subscription cancelled',
   description: 'Confirms a cancellation that takes effect at the end of the period.',
@@ -153,7 +162,7 @@ If something pushed you to cancel, we would like to hear it: [{{support.email}}]
   sample: { accessUntil: '2026-10-08T00:00:00Z', accountName: 'Acme Inc', email: 'ada@example.com', planName: 'Team' },
 })
 
-export const subscriptionEnded = defineEmail({
+export const subscriptionEnded = defineBillingEmail({
   slug: 'subscription-ended',
   label: 'Subscription ended',
   description: 'Sent when a subscription has actually lapsed.',
@@ -184,7 +193,7 @@ Your account and your data are still here. Starting a subscription again turns e
   sample: { accountName: 'Acme Inc', email: 'ada@example.com', endedAt: '2026-10-08T00:00:00Z', planName: 'Team' },
 })
 
-export const trialEnding = defineEmail({
+export const trialEnding = defineBillingEmail({
   slug: 'trial-ending',
   label: 'Trial ending',
   description: 'Warns that a free trial is about to finish.',
@@ -222,7 +231,7 @@ Not the right fit? Cancel before {{trial.endsAt}} and you will not be charged.
   },
 })
 
-export const trialExpired = defineEmail({
+export const trialExpired = defineBillingEmail({
   slug: 'trial-expired',
   label: 'Trial expired',
   description: 'Sent when a trial finished without becoming a subscription.',
@@ -249,7 +258,7 @@ If it did not do what you needed, tell us what was missing: [{{support.email}}](
   sample: { accountName: 'Acme Inc', email: 'ada@example.com', planName: 'Team' },
 })
 
-export const paymentSucceeded = defineEmail({
+export const paymentSucceeded = defineBillingEmail({
   slug: 'payment-succeeded',
   label: 'Payment receipt',
   description: 'Receipt for a successful charge.',
@@ -294,7 +303,7 @@ Every invoice is kept under [billing]({{url.billing}}), where you can also chang
   },
 })
 
-export const paymentFailed = defineEmail({
+export const paymentFailed = defineBillingEmail({
   slug: 'payment-failed',
   label: 'Payment failed',
   description: 'Asks for a new payment method after a charge is declined.',
