@@ -71,7 +71,12 @@ function plugins(): BetterAuthPlugin[] {
     // Roles, bans and impersonation. payload-auth forwards users.roles / adminRoles to it.
     admin(),
     lastLoginMethod(),
-    apiKey(),
+    // Keys created under Settings → API keys authenticate requests sent with an `x-api-key` header
+    // as the user who owns the key. Without this, Better Auth only verifies keys through its own
+    // endpoint and every key is rejected by Payload's REST and GraphQL API.
+    // Better Auth's default limit is 10 requests per key per day, which stops a customer's
+    // integration within minutes. Allow 120 per minute per key instead; tune it to your API.
+    apiKey({ enableSessionForAPIKeys: true, rateLimit: { enabled: true, timeWindow: 60_000, maxRequests: 120 } }),
   ]
 
   if (stack.features.twoFactor) {
