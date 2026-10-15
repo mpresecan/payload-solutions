@@ -11,6 +11,8 @@ import sharp from 'sharp'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { toPayloadId } from '@/lib/ids'
+import { ORGANIZATIONS } from '@/lib/org-collections'
+import stack from '@/stack.config'
 import { seedLegal } from '@/consent/seed'
 import {
   api,
@@ -63,7 +65,7 @@ async function addMember(owner: Actor, orgId: string, member: Actor, role: 'memb
   }
 }
 
-describe('projects are isolated per organization', () => {
+describe.skipIf(!stack.features.organizations)('projects are isolated per organization', () => {
   it('a member reads their organization\'s projects and nothing from other organizations', async () => {
     const { alice, bob, project } = await twoOrganizations()
     const mine = await payload.find({ collection: 'projects', user: await asUser(alice), overrideAccess: false })
@@ -108,7 +110,8 @@ describe('projects are isolated per organization', () => {
       user,
       overrideAccess: false,
     })
-    expect(String((ok as { tenant: unknown }).tenant && (typeof ok.tenant === 'object' ? (ok.tenant as { id: unknown }).id : ok.tenant))).toBe(String(toPayloadId(payload, orgB.id)))
+    const tenant = (ok as unknown as { tenant: unknown }).tenant
+    expect(String(tenant && (typeof tenant === 'object' ? (tenant as { id: unknown }).id : tenant))).toBe(String(toPayloadId(payload, orgB.id)))
   })
 
   it('a project needs a tenant when organizations are enabled', async () => {
@@ -155,7 +158,7 @@ describe('projects are isolated per organization', () => {
   })
 })
 
-describe('tenancy helpers with real sessions', () => {
+describe.skipIf(!stack.features.organizations)('tenancy helpers with real sessions', () => {
   async function helpersFor(actor: Actor) {
     vi.resetModules()
     vi.doMock('@/lib/auth/session', () => ({
@@ -305,17 +308,17 @@ describe('legal pages', () => {
 })
 
 describe('organizations and users through Payload', () => {
-  it('a user reads only the organizations they belong to', async () => {
+  it.skipIf(!stack.features.organizations)('a user reads only the organizations they belong to', async () => {
     const { alice, orgA, orgB } = await twoOrganizations()
-    const visible = await payload.find({ collection: 'organizations', user: await asUser(alice), overrideAccess: false, limit: 500 })
+    const visible = await payload.find({ collection: ORGANIZATIONS, user: await asUser(alice), overrideAccess: false, limit: 500 })
     const ids = visible.docs.map((d) => String(d.id))
     expect(ids).toContain(String(toPayloadId(payload, orgA.id)))
     expect(ids).not.toContain(String(toPayloadId(payload, orgB.id)))
   })
 
-  it('anonymous visitors cannot read organizations', async () => {
+  it.skipIf(!stack.features.organizations)('anonymous visitors cannot read organizations', async () => {
     await twoOrganizations()
-    await expect(payload.find({ collection: 'organizations', overrideAccess: false })).rejects.toThrow(/not allowed/)
+    await expect(payload.find({ collection: ORGANIZATIONS, overrideAccess: false })).rejects.toThrow(/not allowed/)
   })
 
   it('a regular user cannot promote themselves through Payload', async () => {
@@ -327,7 +330,7 @@ describe('organizations and users through Payload', () => {
     expect(doc.role).toEqual(['user'])
   })
 
-  it('a regular user cannot edit their tenants array directly', async () => {
+  it.skipIf(!stack.features.organizations)('a regular user cannot edit their tenants array directly', async () => {
     const { alice, orgB } = await twoOrganizations()
     await expect(
       payload.update({

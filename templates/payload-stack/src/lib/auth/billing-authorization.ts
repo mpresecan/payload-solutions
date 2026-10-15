@@ -1,3 +1,5 @@
+import { MEMBERS, type MemberDoc } from '@/lib/org-collections'
+
 /**
  * Who may manage a subscription.
  *
@@ -23,7 +25,7 @@ export async function authorizeSubscriptionReference({
   const { toPayloadId } = await import('@/lib/ids')
   const payload = await getPayloadClient()
   const members = await payload.find({
-    collection: 'members',
+    collection: MEMBERS,
     where: {
       and: [
         { user: { equals: toPayloadId(payload, user.id) } },
@@ -34,6 +36,6 @@ export async function authorizeSubscriptionReference({
     limit: 1,
     overrideAccess: true,
   })
-  const role = members.docs[0]?.role
+  const role = (members.docs[0] as unknown as MemberDoc | undefined)?.role
   return typeof role === 'string' && (SUBSCRIPTION_MANAGER_ROLES as readonly string[]).includes(role)
 }

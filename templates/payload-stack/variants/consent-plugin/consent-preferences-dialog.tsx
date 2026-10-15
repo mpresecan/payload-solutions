@@ -48,7 +48,7 @@ export function ConsentPreferencesDialog() {
           ) : null}
         </div>
 
-        <DialogFooter className="grid grid-cols-2 gap-2 border-t p-4 dark:bg-background/20 sm:flex sm:justify-between">
+        <DialogFooter className="mx-0 mb-0 grid grid-cols-2 gap-2 border-t p-4 dark:bg-background/20 sm:flex sm:justify-between">
           <div className="col-span-2 grid grid-cols-2 gap-2 sm:flex">
             <Button onClick={rejectAll} size="sm" variant="ghost">
               {banner.labels.rejectAll}

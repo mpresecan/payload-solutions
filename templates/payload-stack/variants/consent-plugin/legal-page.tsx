@@ -1,4 +1,4 @@
-import { RichText } from '@payloadcms/richtext-lexical/react'
+import { RichText, type JSXConverters } from '@payloadcms/richtext-lexical/react'
 import { legalPageConverters } from '@payload-solutions/plugin-consent/rsc'
 import { getConsentConfig, getProcessorTableData } from '@payload-solutions/plugin-consent/server'
 import { headers } from 'next/headers'
@@ -28,13 +28,16 @@ export async function renderLegalPageContent(page: LegalPage, effectiveDate: str
     <RichText
       converters={({ defaultConverters }) => ({
         ...defaultConverters,
-        ...legalPageConverters({
+        // The plugin types its converters structurally so it does not depend on
+        // @payloadcms/richtext-lexical; its `table` converter takes a narrower node than
+        // JSXConverters' index signature allows, so name the type it is used as here.
+        ...(legalPageConverters({
           categories: consent.categories,
           trackers: consent.trackers,
           documentsVersion: consent.versions.documentsVersion,
           effectiveDate,
           ...processors,
-        }),
+        }) as unknown as JSXConverters),
       })}
       data={page.content}
     />

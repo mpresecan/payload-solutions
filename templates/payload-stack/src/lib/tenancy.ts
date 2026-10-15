@@ -4,6 +4,7 @@ import type { Where } from 'payload'
 
 import { getSession } from '@/lib/auth/session'
 import { toPayloadId } from '@/lib/ids'
+import { MEMBERS, ORGANIZATIONS, type MemberDoc, type OrganizationDoc } from '@/lib/org-collections'
 import { getPayloadClient } from '@/lib/payload'
 import stack from '@/stack.config'
 
@@ -33,33 +34,33 @@ export async function getCurrentUserId(): Promise<string | number | null> {
 }
 
 /** The active organization document, or null. */
-export async function getActiveOrganization() {
+export async function getActiveOrganization(): Promise<OrganizationDoc | null> {
   const id = await getActiveOrganizationId()
   if (!id) return null
   const payload = await getPayloadClient()
   try {
-    return await payload.findByID({ collection: 'organizations', id, depth: 0, overrideAccess: true })
+    return (await payload.findByID({ collection: ORGANIZATIONS, id, depth: 0, overrideAccess: true })) as unknown as OrganizationDoc
   } catch {
     return null
   }
 }
 
 /** Organizations the current user belongs to. */
-export async function listUserOrganizations() {
+export async function listUserOrganizations(): Promise<OrganizationDoc[]> {
   if (!stack.features.organizations) return []
   const session = await getSession()
   if (!session) return []
   const payload = await getPayloadClient()
   const memberships = await payload.find({
-    collection: 'members',
+    collection: MEMBERS,
     where: { user: { equals: toPayloadId(payload, session.user.id) } },
     depth: 1,
     limit: 100,
     overrideAccess: true,
   })
-  return memberships.docs
+  return (memberships.docs as unknown as MemberDoc[])
     .map((m) => (typeof m.organization === 'object' ? m.organization : null))
-    .filter((o): o is NonNullable<typeof o> => o !== null)
+    .filter((o): o is OrganizationDoc => o !== null)
 }
 
 /**

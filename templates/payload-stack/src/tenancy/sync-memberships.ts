@@ -1,5 +1,7 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook, CollectionConfig, Payload, PayloadRequest } from 'payload'
 
+import { MEMBERS } from '@/lib/org-collections'
+
 /**
  * Bridge between Better Auth organizations and Payload's multi-tenant plugin.
  *
@@ -28,7 +30,7 @@ async function rebuildUserTenants(payload: Payload, req: PayloadRequest, userId:
   // `req` is passed so both operations join the transaction Better Auth's adapter opened;
   // without it they wait on locks held by that transaction and time out.
   const memberships = await payload.find({
-    collection: 'members',
+    collection: MEMBERS,
     where: { user: { equals: userId } },
     depth: 0,
     limit: 500,

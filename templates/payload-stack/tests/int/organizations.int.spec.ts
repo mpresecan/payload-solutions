@@ -7,6 +7,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 
 import stack from '@/stack.config'
 import { toPayloadId } from '@/lib/ids'
+import { MEMBERS, ORGANIZATIONS } from '@/lib/org-collections'
 import {
   api,
   type AuthApi,
@@ -33,13 +34,13 @@ beforeAll(async () => {
 
 async function membersOf(orgId: string | number) {
   const result = await payload.find({
-    collection: 'members',
+    collection: MEMBERS,
     where: { organization: { equals: toPayloadId(payload, orgId) } },
     depth: 0,
     limit: 100,
     overrideAccess: true,
   })
-  return result.docs as Array<{ user: string | number; role: string }>
+  return result.docs as unknown as Array<{ user: string | number; role: string }>
 }
 
 async function invite(owner: Actor, orgId: string, email: string, role: 'member' | 'admin' | 'owner' = 'member') {
@@ -55,7 +56,7 @@ async function invite(owner: Actor, orgId: string, email: string, role: 'member'
   }
 }
 
-describe('creating an organization', () => {
+describe.skipIf(!stack.features.organizations)('creating an organization', () => {
   it('makes the creator a member with the configured creatorRole, mirrored into users.tenants, and activates it', async () => {
     const owner = await signUp(payload)
     const org = await createOrganization(payload, owner, 'Acme')
@@ -76,7 +77,7 @@ describe('creating an organization', () => {
   it('stores the organization in Payload with the extra onboardedAt field', async () => {
     const owner = await signUp(payload)
     const org = await createOrganization(payload, owner)
-    const doc = (await payload.findByID({ collection: 'organizations', id: toPayloadId(payload, org.id), depth: 0, overrideAccess: true })) as { name: string; slug: string; onboardedAt?: string | null }
+    const doc = (await payload.findByID({ collection: ORGANIZATIONS, id: toPayloadId(payload, org.id), depth: 0, overrideAccess: true })) as unknown as { name: string; slug: string; onboardedAt?: string | null }
     expect(doc.name).toBe(org.name)
     expect(doc.slug).toBe(org.slug)
     expect(doc.onboardedAt).toBeNull()
@@ -128,7 +129,7 @@ describe('creating an organization', () => {
   })
 })
 
-describe('invitations', () => {
+describe.skipIf(!stack.features.organizations)('invitations', () => {
   it('emails the invitee a link with the invitation id, expiring in 48 hours', async () => {
     const owner = await signUp(payload, { name: 'Mira Lindqvist' })
     const org = await createOrganization(payload, owner, 'Acme')
@@ -241,7 +242,7 @@ describe('invitations', () => {
   })
 })
 
-describe('membership changes', () => {
+describe.skipIf(!stack.features.organizations)('membership changes', () => {
   async function orgWithMember() {
     const owner = await signUp(payload)
     const org = await createOrganization(payload, owner)
@@ -292,7 +293,7 @@ describe('membership changes', () => {
   })
 })
 
-describe('deleting an organization', () => {
+describe.skipIf(!stack.features.organizations)('deleting an organization', () => {
   it('removes members, clears tenants and cascades to tenant-scoped documents', async () => {
     const owner = await signUp(payload)
     const org = await createOrganization(payload, owner)
@@ -311,7 +312,7 @@ describe('deleting an organization', () => {
     expect(await membersOf(org.id)).toHaveLength(0)
     expect(tenantIds(await userDoc(payload, owner))).toEqual([])
     expect(tenantIds(await userDoc(payload, member))).toEqual([])
-    const orgs = await payload.find({ collection: 'organizations', where: { id: { equals: toPayloadId(payload, org.id) } }, overrideAccess: true })
+    const orgs = await payload.find({ collection: ORGANIZATIONS, where: { id: { equals: toPayloadId(payload, org.id) } }, overrideAccess: true })
     expect(orgs.totalDocs).toBe(0)
     const projects = await payload.find({ collection: 'projects', where: { id: { equals: project.id } }, overrideAccess: true })
     expect(projects.totalDocs).toBe(0)
@@ -324,12 +325,12 @@ describe('deleting an organization', () => {
     const { invitation } = await invite(owner, org.id, admin.email, 'admin')
     await auth.acceptInvitation({ body: { invitationId: invitation.id }, headers: admin.headers })
     await expectApiError(auth.deleteOrganization({ body: { organizationId: org.id }, headers: admin.headers }), /.*/)
-    const orgs = await payload.find({ collection: 'organizations', where: { id: { equals: toPayloadId(payload, org.id) } }, overrideAccess: true })
+    const orgs = await payload.find({ collection: ORGANIZATIONS, where: { id: { equals: toPayloadId(payload, org.id) } }, overrideAccess: true })
     expect(orgs.totalDocs).toBe(1)
   })
 })
 
-describe('updating an organization', () => {
+describe.skipIf(!stack.features.organizations)('updating an organization', () => {
   it('owners can rename; members cannot', async () => {
     const owner = await signUp(payload)
     const org = await createOrganization(payload, owner)
@@ -340,7 +341,7 @@ describe('updating an organization', () => {
     const renamed = await auth.updateOrganization({ body: { organizationId: org.id, data: { name: 'Renamed Org' } }, headers: owner.headers })
     expect(renamed?.name).toBe('Renamed Org')
     await expectApiError(auth.updateOrganization({ body: { organizationId: org.id, data: { name: 'Hijacked' } }, headers: member.headers }), /.*/)
-    const doc = (await payload.findByID({ collection: 'organizations', id: toPayloadId(payload, org.id), depth: 0, overrideAccess: true })) as { name: string }
+    const doc = (await payload.findByID({ collection: ORGANIZATIONS, id: toPayloadId(payload, org.id), depth: 0, overrideAccess: true })) as unknown as { name: string }
     expect(doc.name).toBe('Renamed Org')
   })
 })
