@@ -27,6 +27,7 @@ import {
   twoFactorEmailOptions,
 } from '@/emails/hooks'
 import { env } from '@/lib/env'
+import { MEMBERS, type MemberDoc } from '@/lib/org-collections'
 import { toStripePlans } from '@/lib/stack'
 import { withStripeEvents, withTrialCallbacks } from '@/scheduler/hooks'
 import stack from '@/stack.config'
@@ -70,7 +71,12 @@ function plugins(): BetterAuthPlugin[] {
     // Roles, bans and impersonation. payload-auth forwards users.roles / adminRoles to it.
     admin(),
     lastLoginMethod(),
-    apiKey(),
+    // Keys created under Settings → API keys authenticate requests sent with an `x-api-key` header
+    // as the user who owns the key. Without this, Better Auth only verifies keys through its own
+    // endpoint and every key is rejected by Payload's REST and GraphQL API.
+    // Better Auth's default limit is 10 requests per key per day, which stops a customer's
+    // integration within minutes. Allow 120 per minute per key instead; tune it to your API.
+    apiKey({ enableSessionForAPIKeys: true, rateLimit: { enabled: true, timeWindow: 60_000, maxRequests: 120 } }),
   ]
 
   if (stack.features.twoFactor) {
@@ -225,6 +231,35 @@ export const betterAuthOptions: BetterAuthOptions = {
   session: {
     cookieCache: { enabled: true, maxAge: 60 * 5 },
   },
+
+  // A new session (every sign-in, and every impersonation) starts without an active organization,
+  // so tenantScope() matches nothing: a returning user lands on an empty dashboard until they pick
+  // their organization in the switcher. Start the session in the organization they joined last.
+  databaseHooks: stack.features.organizations
+    ? {
+        session: {
+          create: {
+            before: async (session) => {
+              if ((session as { activeOrganizationId?: string | null }).activeOrganizationId) return
+              const payload = await payloadClient()
+              const { toPayloadId } = await import('@/lib/ids')
+              const memberships = await payload.find({
+                collection: MEMBERS,
+                where: { user: { equals: toPayloadId(payload, session.userId) } },
+                sort: '-createdAt',
+                depth: 0,
+                limit: 1,
+                overrideAccess: true,
+              })
+              const member = memberships.docs[0] as unknown as MemberDoc | undefined
+              if (!member) return
+              const organization = typeof member.organization === 'object' ? member.organization.id : member.organization
+              return { data: { ...session, activeOrganizationId: String(organization) } }
+            },
+          },
+        },
+      }
+    : undefined,
 
   plugins: plugins(),
 }

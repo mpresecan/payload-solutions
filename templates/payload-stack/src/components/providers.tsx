@@ -38,7 +38,8 @@ export function Providers({ children, billingReady }: { children: ReactNode; bil
 
   const plugins = useMemo<AuthPlugin[]>(() => {
     const list: AuthPlugin[] = [
-      adminPlugin(),
+      // Land on the customer's dashboard, not on an admin page they cannot open.
+      adminPlugin({ impersonationRedirectTo: paths.dashboard.home }),
       lastLoginMethodPlugin(),
       themePlugin({ useTheme }),
       deleteUserPlugin(),
