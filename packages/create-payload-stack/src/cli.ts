@@ -12,6 +12,7 @@ import {
   type AuthMethod,
   type BillingMode,
   type CliFlags,
+  type PackageManager,
   type ProjectOptions,
   type SocialProvider,
 } from './options'
@@ -283,6 +284,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
         env: { ...process.env, CI: 'true' },
       })
       s2.stop(`Installed dependencies with ${packageManager}`)
+      await generateArtifacts(directory, packageManager, slug)
     } catch (error) {
       s2.stop('Dependency installation failed')
       p.log.warn(`Run ${pc.cyan(installCommand(packageManager))} inside ./${slug} to retry.\n${error instanceof Error ? error.message.split('\n')[0] : ''}`)
@@ -322,4 +324,34 @@ export async function run(flags: CliFlags, positionalName?: string) {
   ]
   p.note(steps.join('\n'), 'Done. Next steps:')
   p.outro(`Docs: ${pc.underline(DOCS)}`)
+}
+
+/**
+ * The template ships `importMap.js` and `payload-types.ts` generated for its own checkout: every
+ * optional plugin on, organizations on. Once the variants are applied those files describe a
+ * different project, so the admin logs missing components (the Payload Consent dashboard widget,
+ * for one) and the types still list collections the project no longer has. Regenerate both from
+ * the configured project. Neither command needs the database to be running.
+ *
+ * Never throws: a failure here leaves a working project with stale generated files, so it is a
+ * warning with the command to run, not a failed scaffold.
+ */
+async function generateArtifacts(directory: string, packageManager: PackageManager, slug: string) {
+  const s = p.spinner()
+  s.start('Generating the admin import map and Payload types')
+  const failed: string[] = []
+  for (const script of ['generate:importmap', 'generate:types']) {
+    const [bin, ...args] = runCommand(packageManager, script).split(' ')
+    try {
+      await execa(bin!, args, { cwd: directory, env: { ...process.env, CI: 'true' } })
+    } catch {
+      failed.push(runCommand(packageManager, script))
+    }
+  }
+  if (failed.length === 0) {
+    s.stop('Generated the admin import map and Payload types')
+    return
+  }
+  s.stop('Could not generate every file')
+  p.log.warn(`Run ${failed.map((c) => pc.cyan(c)).join(' and ')} inside ./${slug} before the first build.`)
 }
