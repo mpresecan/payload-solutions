@@ -3,7 +3,7 @@ import type Stripe from 'stripe'
 
 import { formatPrice } from '@/lib/stack'
 
-import { DUNNING_INTERVAL_DAYS, daysFromNow, TRIAL_REMINDER_DAYS } from './actions/billing'
+import { DUNNING_INTERVAL_DAYS, daysFromNow, PAYMENT_REMINDER, TRIAL_REMINDER, TRIAL_REMINDER_DAYS } from './actions/billing'
 
 /**
  * Where the scheduling happens.
@@ -68,7 +68,7 @@ export function withTrialCallbacks<T extends { onTrialEnd?: unknown }>(bundle: T
       const scheduleAt = lead.getTime() > Date.now() + 60_000 ? lead : new Date(Date.now() + 60_000)
       await attempt(`the trial reminder for ${subscription.referenceId}`, (payload) =>
         payload.scheduler.schedule(
-          'billing.trial-reminder',
+          TRIAL_REMINDER,
           {
             plan: subscription.plan,
             referenceId: subscription.referenceId!,
@@ -116,7 +116,7 @@ export function withStripeEvents<T extends { onEvent?: (event: Stripe.Event) => 
         const currency = (invoice.currency ?? 'usd').toUpperCase()
         await attempt(`a payment follow-up for invoice ${invoice.id}`, (payload) =>
           payload.scheduler.schedule(
-            'billing.payment-reminder',
+            PAYMENT_REMINDER,
             {
               accountName: invoice.customer_name ?? email,
               amount: formatPrice(invoice.amount_due ?? 0, currency),
@@ -142,7 +142,7 @@ export function withStripeEvents<T extends { onEvent?: (event: Stripe.Event) => 
           return
         }
         await attempt(`nothing — clearing follow-ups for invoice ${invoice.id}`, (payload) =>
-          payload.scheduler.cancelAll('billing.payment-reminder', { group: invoiceGroup(invoice.id!) }),
+          payload.scheduler.cancelAll(PAYMENT_REMINDER, { group: invoiceGroup(invoice.id!) }),
         )
       }
     },

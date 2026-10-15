@@ -1,4 +1,4 @@
-import { defineAction, SkipAction } from '@payload-solutions/plugin-action-scheduler'
+import { defineAction, SkipAction, type ActionSlug } from '@payload-solutions/plugin-action-scheduler'
 import type { Payload } from 'payload'
 import Stripe from 'stripe'
 
@@ -23,6 +23,14 @@ export const DUNNING_INTERVAL_DAYS = 3
 export const DUNNING_MAX_NOTICES = 2
 
 export type TrialReminderArgs = { plan: string; referenceId: string; trialEnd?: null | string }
+
+/**
+ * The billing actions are registered only when billing is on (see ./index.ts), and the generated
+ * `ActionSlug` union lists registered actions only. With `billing.provider: 'none'` a literal
+ * 'billing.*' slug would fail `pnpm build`, so code that schedules or cancels them names them here.
+ */
+export const TRIAL_REMINDER = 'billing.trial-reminder' as unknown as ActionSlug
+export const PAYMENT_REMINDER = 'billing.payment-reminder' as unknown as ActionSlug
 
 export const trialReminder = defineAction<TrialReminderArgs>({
   slug: 'billing.trial-reminder',
@@ -95,7 +103,7 @@ export const paymentReminder = defineAction<PaymentReminderArgs>({
     if (args.notice < DUNNING_MAX_NOTICES) {
       // Same group as the first one, so `invoice.paid` still calls the whole ladder off.
       await payload.scheduler.schedule(
-        'billing.payment-reminder',
+        PAYMENT_REMINDER,
         { ...args, notice: args.notice + 1 } as never,
         { group: action.group, scheduleAt: daysFromNow(DUNNING_INTERVAL_DAYS), unique: true },
       )
