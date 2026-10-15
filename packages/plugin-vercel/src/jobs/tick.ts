@@ -7,7 +7,7 @@ import { TICK_TASK_SLUG } from '../options.js'
 import { tick } from '../deploy/tick.js'
 
 /**
- * `vercel:tick` — a scheduled task with no input, so any job runner (autoRun, `payload jobs:run`, a cron on
+ * `vercel-tick` — a scheduled task with no input, so any job runner (autoRun, `payload jobs:run`, a cron on
  * `/api/payload-jobs/run`, Payload Clock) becomes a runner for automatic deployments. It is deleted on
  * completion like any other successful job.
  */

@@ -11,7 +11,7 @@ import { COMPONENT_PREFIX, PLUGIN_SLUG } from './constants.js'
 import { createTargetsCollection } from './collections/targets.js'
 import { createEndpoints } from './endpoints/index.js'
 import { createTickTask } from './jobs/tick.js'
-import { sanitizeOptions } from './options.js'
+import { LEGACY_TICK_TASK_SLUG, sanitizeOptions } from './options.js'
 import { createCtx, getTargetState } from './store.js'
 
 function labelOf(entity: { label?: unknown; slug: string }): string {
@@ -115,6 +115,12 @@ export const vercelPlugin =
     config.onInit = async (payload) => {
       ctx = createCtx(payload, options)
       payload.vercel = createVercelAPI(ctx)
+      try {
+        // A tick queued under the pre-0.2 slug has no task to run it any more; the next schedule queues a new one.
+        await payload.db.deleteMany({ collection: 'payload-jobs' as never, where: { taskSlug: { equals: LEGACY_TICK_TASK_SLUG } } })
+      } catch (error) {
+        payload.logger.error({ err: error, msg: '[plugin-vercel] Could not remove ticks queued under the old task slug' })
+      }
       for (const target of options.targets) {
         try {
           await getTargetState(ctx, target.slug)

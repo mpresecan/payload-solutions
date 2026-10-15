@@ -20,7 +20,7 @@ async function row(id: number | string) {
   return payload.findByID({ collection: ACTIONS, id, depth: 0, overrideAccess: true })
 }
 async function jobs() {
-  return payload.db.find({ collection: 'payload-jobs', pagination: false, where: { taskSlug: { equals: 'scheduler:run' } } })
+  return payload.db.find({ collection: 'payload-jobs', pagination: false, where: { taskSlug: { equals: 'scheduler-run' } } })
 }
 async function runAll() {
   await payload.jobs.run({ allQueues: true, limit: 100, overrideAccess: true, silent: true })
@@ -224,5 +224,16 @@ describe('runQueue and maintenance', () => {
     expect(size).toBeLessThan(8192 + 4096)
     const { totalDocs } = await payload.count({ collection: LOGS, overrideAccess: true, where: { action: { equals: ref.id } } })
     expect(totalDocs).toBeLessThanOrEqual(50)
+  })
+})
+
+describe('GraphQL', () => {
+  test('the plugin keeps /api/graphql working: its task slugs are valid GraphQL names', async () => {
+    const { GRAPHQL_POST } = await import('@payloadcms/next/routes')
+    const res = await GRAPHQL_POST(config)(
+      new Request('http://localhost/api/graphql', { body: JSON.stringify({ query: '{ __typename }' }), headers: { 'content-type': 'application/json' }, method: 'POST' }),
+    )
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ data: { __typename: 'Query' } })
   })
 })

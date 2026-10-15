@@ -52,7 +52,7 @@ export type TickOptions = {
   adminHeartbeat?: boolean
   /** `navigator.sendBeacon('/api/vercel/flush')` when an admin tab closes fires pending targets at once. Default true. */
   beacon?: boolean
-  /** Register the `vercel:tick` scheduled task. Default true. */
+  /** Register the `vercel-tick` scheduled task. Default true. */
   job?: boolean | { cron?: string; queue?: string }
   /** Shared secret accepted in the `x-vercel-plugin-secret` header by `POST /api/vercel/tick`. */
   secret?: string

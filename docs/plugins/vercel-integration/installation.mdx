@@ -62,7 +62,7 @@ pnpm payload generate:importmap
 pnpm payload generate:types
 ```
 
-The plugin adds three collections (`vercel-deployments`, `vercel-changes`, `vercel-targets`), a scheduled task (`vercel:tick`) and admin components. The dev server regenerates the import map on its own; in CI run both commands.
+The plugin adds three collections (`vercel-deployments`, `vercel-changes`, `vercel-targets`), a scheduled task (`vercel-tick`) and admin components. The dev server regenerates the import map on its own; in CI run both commands.
 
 ## First boot
 
@@ -82,7 +82,7 @@ With a database that Payload pushes schema to in development, the new collection
 1. **The hook works.** Press **Deploy**. Within a few seconds the Vercel dashboard shows a deployment marked as created by the deploy hook. Without a token the row in Payload stays *Triggered*.
 2. **The token works.** With `VERCEL_TOKEN` set, the same row moves to *Queued*, *Building* and *Ready* (or *Failed* with Vercel's error). If the widget says *Vercel token rejected*, the token is invalid or belongs to a team and `VERCEL_TEAM_ID` is missing.
 3. **Automatic deploys fire.** Publish something and keep the admin open: the countdown reaches zero and a row with cause *Automatic* appears. Close the tab right after publishing instead: the beacon fires the pending target at once.
-4. **Nobody is left waiting.** If the site is edited from scripts or by API clients with no admin open, add a runner: the `vercel:tick` task under `jobs.autoRun` or a cron (see [Automatic deploys](/docs/plugins/vercel-integration/auto-deploy)). The Deployments view shows the last tick and its source.
+4. **Nobody is left waiting.** If the site is edited from scripts or by API clients with no admin open, add a runner: the `vercel-tick` task under `jobs.autoRun` or a cron (see [Automatic deploys](/docs/plugins/vercel-integration/auto-deploy)). The Deployments view shows the last tick and its source.
 5. **Webhook (optional, Pro/Enterprise).** Create an account webhook for the deployment events pointing at `/api/vercel/webhook`, set `VERCEL_WEBHOOK_SECRET`, and watch a deployment move without the poll.
 
 ## Without a token
@@ -114,5 +114,5 @@ Each target has its own window, pending list, history and hourly counter. The he
 | Pending changes | collection `vercel-changes` (hidden; `GET /api/vercel/changes`) |
 | Per-target state (window, pause, counters) | collection `vercel-targets` (hidden) |
 | Endpoints | `/api/vercel/status`, `/deploy`, `/changes`, `/history`, `/document`, `/flush`, `/tick`, `/pause`, `/cancel`, `/rollback`, `/rollback-candidates`, `/webhook` |
-| Scheduled task | `vercel:tick` on queue `vercel` |
+| Scheduled task | `vercel-tick` on queue `vercel` |
 | Local API | `payload.vercel` |

@@ -469,3 +469,14 @@ describe('cancel, rollback, external, webhook, retention', () => {
     expect(removed).toBe(2)
   })
 })
+
+describe('GraphQL', () => {
+  test('the plugin keeps /api/graphql working: its task slugs are valid GraphQL names', async () => {
+    const { GRAPHQL_POST } = await import('@payloadcms/next/routes')
+    const res = await GRAPHQL_POST(config)(
+      new Request('http://localhost/api/graphql', { body: JSON.stringify({ query: '{ __typename }' }), headers: { 'content-type': 'application/json' }, method: 'POST' }),
+    )
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ data: { __typename: 'Query' } })
+  })
+})

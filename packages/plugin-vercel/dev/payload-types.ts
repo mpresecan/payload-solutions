@@ -114,7 +114,7 @@ export interface Config {
   user: User;
   jobs: {
     tasks: {
-      'vercel:tick': TaskVercelTick;
+      'vercel-tick': TaskVercelTick;
       inline: {
         input: unknown;
         output: unknown;
@@ -364,7 +364,7 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'vercel:tick';
+        taskSlug: 'inline' | 'vercel-tick';
         taskID: string;
         input?:
           | {
@@ -397,7 +397,7 @@ export interface PayloadJob {
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'vercel:tick') | null;
+  taskSlug?: ('inline' | 'vercel-tick') | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;

@@ -48,10 +48,10 @@ describe('registration', () => {
     expect(config.globals.map((g) => g.slug)).toContain('scheduler-status')
 
     const tasks = config.jobs?.tasks ?? []
-    expect(tasks.map((t) => t.slug)).toEqual(expect.arrayContaining(['scheduler:run', 'scheduler:tick']))
+    expect(tasks.map((t) => t.slug)).toEqual(expect.arrayContaining(['scheduler-run', 'scheduler-tick']))
     // The tick is the only task with a schedule of its own; the run task is dispatched per action.
-    expect(tasks.find((t) => t.slug === 'scheduler:tick')?.schedule).toBeTruthy()
-    expect(tasks.find((t) => t.slug === 'scheduler:run')?.schedule).toBeUndefined()
+    expect(tasks.find((t) => t.slug === 'scheduler-tick')?.schedule).toBeTruthy()
+    expect(tasks.find((t) => t.slug === 'scheduler-run')?.schedule).toBeUndefined()
   })
 
   it('contributes a typescript schema, so args are generated types and not `unknown`', async () => {

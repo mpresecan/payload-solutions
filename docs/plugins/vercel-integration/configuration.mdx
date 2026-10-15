@@ -86,7 +86,7 @@ Who is allowed to fire due windows and refresh statuses.
 | --- | --- | --- |
 | `adminHeartbeat` | `true` | the header widget's status poll runs a tick on the server |
 | `beacon` | `true` | `navigator.sendBeacon('/api/vercel/flush')` when an admin tab closes fires pending targets at once |
-| `job` | `{ cron: '* * * * *', queue: 'vercel' }` | the `vercel:tick` scheduled task; `false` registers no task |
+| `job` | `{ cron: '* * * * *', queue: 'vercel' }` | the `vercel-tick` scheduled task; `false` registers no task |
 | `secret` | — | accepted in the `x-vercel-plugin-secret` header by `POST /api/vercel/tick`, for external crons |
 
 ## `access`

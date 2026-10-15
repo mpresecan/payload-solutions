@@ -13,7 +13,7 @@ A serverless Payload cannot hold a timer, so the plugin does not depend on a run
 | --- | --- | --- |
 | Admin heartbeat | the header widget's status poll runs a tick on the server | the editor who made the change is in the admin and watches the countdown |
 | Beacon | `navigator.sendBeacon('/api/vercel/flush')` on tab close fires pending targets immediately | the editor closes the tab 20 seconds after saving |
-| `vercel:tick` task | a scheduled task (`* * * * *`, queue `vercel`) run by `jobs.autoRun`, `payload jobs:run`, a Pro cron on `/api/payload-jobs/run?queue=vercel`, or Payload Clock | headless writes with no admin open |
+| `vercel-tick` task | a scheduled task (`* * * * *`, queue `vercel`) run by `jobs.autoRun`, `payload jobs:run`, a Pro cron on `/api/payload-jobs/run?queue=vercel`, or Payload Clock | headless writes with no admin open |
 | `POST /api/vercel/tick` | any cron with the `x-vercel-plugin-secret` header (or an admin session) | external schedulers, uptime monitors |
 
 Every tick also refreshes in-flight deployments, records external ones and applies retention. Ticks are safe to run concurrently: the trigger for a window is inserted under a unique key, so two ticks that observe the same window produce one deployment.
