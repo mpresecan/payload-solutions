@@ -318,6 +318,29 @@ describe.skipIf(!stack.features.organizations)('deleting an organization', () =>
     expect(projects.totalDocs).toBe(0)
   })
 
+  it('can be deleted from the Payload admin while it still has members and invitations', async () => {
+    const owner = await signUp(payload)
+    const org = await createOrganization(payload, owner)
+    const member = await signUp(payload)
+    const { invitation } = await invite(owner, org.id, member.email)
+    await auth.acceptInvitation({ body: { invitationId: invitation.id }, headers: member.headers })
+    const pending = await signUp(payload)
+    await invite(owner, org.id, pending.email)
+
+    // The admin and REST API delete the row directly, without Better Auth removing members first.
+    await payload.delete({ collection: ORGANIZATIONS, id: toPayloadId(payload, org.id), overrideAccess: true })
+
+    expect(await membersOf(org.id)).toHaveLength(0)
+    const invitations = await payload.find({
+      collection: 'invitations' as never,
+      where: { organization: { equals: toPayloadId(payload, org.id) } },
+      overrideAccess: true,
+    })
+    expect(invitations.totalDocs).toBe(0)
+    expect(tenantIds(await userDoc(payload, owner))).toEqual([])
+    expect(tenantIds(await userDoc(payload, member))).toEqual([])
+  })
+
   it('only owners may delete', async () => {
     const owner = await signUp(payload)
     const org = await createOrganization(payload, owner)
