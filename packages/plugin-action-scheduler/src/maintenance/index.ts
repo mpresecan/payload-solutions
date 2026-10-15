@@ -1,4 +1,4 @@
-import type { CollectionSlug, Field, Payload, TaskConfig } from 'payload'
+import type { CollectionSlug, Field, Payload } from 'payload'
 
 import type { Engine } from '../engine/execute.js'
 import type { Store } from '../engine/store.js'
@@ -208,19 +208,6 @@ export function createMaintenance(
     }
   }
 
-  const tickTask: TaskConfig<any> | null = options.tick
-    ? {
-        slug: TICK_TASK_SLUG,
-        handler: async () => {
-          await tick()
-          return { output: {} }
-        },
-        label: 'Scheduler maintenance',
-        retries: 0,
-        schedule: [{ cron: options.tick.cron, queue: options.tick.queue }],
-      }
-    : null
-
   /**
    * Declarative series from `options.recurring`: created if missing, updated if the schedule changed,
    * canceled if removed from the list. Runs at init.
@@ -275,5 +262,5 @@ export function createMaintenance(
     }
   }
 
-  return { jobsHaveLeases, promote, purge, reconcileSeries, sweep, tick, tickTask }
+  return { jobsHaveLeases, promote, purge, reconcileSeries, sweep, tick }
 }

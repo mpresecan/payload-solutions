@@ -1,4 +1,4 @@
-import type { CollectionConfig, Config, Endpoint, Payload } from 'payload'
+import type { CollectionConfig, Config, Endpoint, Payload, TaskConfig } from 'payload'
 
 import type { InternalAPI } from './api/index.js'
 import type { ActionSchedulerOptions, ScheduledAction } from './types.js'
@@ -14,10 +14,14 @@ import { createEndpoints } from './endpoints/index.js'
 import { createStatusGlobal } from './globals/scheduler-status.js'
 import { createMaintenance } from './maintenance/index.js'
 import { sanitizeOptions } from './options.js'
+import { TICK_TASK_SLUG } from './types.js'
 import { createSchedulerTypeScriptSchema } from './typescript/schema.js'
 import { hashArgs, serializeArgs, uniqueKeyFor } from './utils/hash.js'
 import { nextCronRun, validateCron } from './utils/recurrence.js'
 import { toDate } from './utils/duration.js'
+
+/** Payload does not export its schedule hook types; take them from the task config. */
+type BeforeScheduleFn = NonNullable<NonNullable<NonNullable<TaskConfig['schedule']>[number]['hooks']>['beforeSchedule']>
 
 export const actionScheduler =
   (incoming: ActionSchedulerOptions) =>
@@ -89,16 +93,39 @@ export const actionScheduler =
       }
       const tasks = [runTask]
       if (options.tick) {
+        const tickQueue = options.tick.queue
         tasks.push({
-          slug: 'scheduler:tick',
+          slug: TICK_TASK_SLUG,
           handler: async ({ req }: { input: { actionId?: string }; req: { payload: Payload } }) => {
-            await getRuntime(req.payload).maintenance.tick()
+            const runtime = getRuntime(req.payload)
+            await runtime.maintenance.tick()
+            // The tick turns due actions into jobs, but the call that runs it fetched its jobs
+            // before they existed. Run them now, the way the admin's Run queue button does, so one
+            // call to /api/payload-jobs/run executes everything that is due. Otherwise every action
+            // waits for the next call: a minute on a per-minute cron, a day on a daily one.
+            await runtime.api.runQueue({ trigger: 'runner' })
             return { output: {} }
           },
           inputSchema: [],
           label: 'Scheduler maintenance',
           retries: 0,
-          schedule: [{ cron: options.tick.cron, queue: options.tick.queue }],
+          schedule: [
+            {
+              cron: options.tick.cron,
+              hooks: {
+                // The first time the tick is scheduled, Payload aims it at the next cron slot after
+                // now, so the very first call to the run endpoint queues it and runs nothing. The
+                // tick is safe to run at any time: make that first one runnable straight away.
+                beforeSchedule: async (args: Parameters<BeforeScheduleFn>[0]) => {
+                  const result = await args.defaultBeforeSchedule(args)
+                  const stats = args.jobStats as { stats?: { scheduledRuns?: { queues?: Record<string, { tasks?: Record<string, { lastScheduledRun?: string }> }> } } } | null
+                  const lastScheduledRun = stats?.stats?.scheduledRuns?.queues?.[tickQueue]?.tasks?.[TICK_TASK_SLUG]?.lastScheduledRun
+                  return lastScheduledRun ? result : { ...result, waitUntil: undefined }
+                },
+              },
+              queue: tickQueue,
+            },
+          ],
         } as never)
       }
       config.jobs.tasks = [...(config.jobs.tasks ?? []), ...(tasks as never[])]

@@ -17,7 +17,7 @@ One call does both jobs: it queues anything whose schedule has come round (the m
 
 ## The tick
 
-`scheduler:tick` is a task with Payload's own `schedule` (every minute by default). Each tick records a heartbeat (runner health in the admin), promotes actions that came within the dispatch horizon (15 minutes), recovers attempts whose runner died (`lost`, then retried), re-dispatches orphans, deletes transport jobs stuck in `processing` on Payload 3.x, and purges finished rows past retention once an hour.
+`scheduler:tick` is a task with Payload's own `schedule` (every minute by default). Each tick records a heartbeat (runner health in the admin), promotes actions that came within the dispatch horizon (15 minutes), recovers attempts whose runner died (`lost`, then retried), re-dispatches orphans, deletes transport jobs stuck in `processing` on Payload 3.x, and purges finished rows past retention once an hour. It then runs whatever is due, the way **Run queue** does, so the call that ran the tick also runs the actions it promoted instead of leaving them for the next call. The first tick ever scheduled is runnable at once rather than at the next cron slot, so even a project's first call runs what is due.
 
 Because the tick uses `schedule`, Payload turns on job stats, which adds one small global and a `meta` column on `payload-jobs`. Set `tick: false` to avoid that: every action is then dispatched at schedule time, health is unknown, and sweeping runs inside `runQueue()`.
 
