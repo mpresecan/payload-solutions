@@ -1,3 +1,5 @@
+import type { CollectionBeforeOperationHook, CollectionConfig, Where } from 'payload'
+
 /**
  * Workarounds for known payload-auth 3.0.0 issues. Each entry names the upstream problem so it can
  * be deleted once a fix ships. See also `adminInvitations.collectionOverrides` in payload.config.ts.
@@ -34,5 +36,34 @@ export function silenceKnownPayloadAuthWarnings() {
       return
     }
     original.apply(console, args)
+  }
+}
+
+/**
+ * payload-auth 3.0.0 marks the api-key plugin's `referenceId` as a relationship to users, so its
+ * adapter turns the owner id into a number before querying (`referenceId = 2`). The column it
+ * builds is a text field holding "2", so on SQLite and Postgres nothing matches: Settings → API keys
+ * always says "No API keys" and keys cannot be revoked. Turn numeric `referenceId` values in where
+ * clauses back into strings. MongoDB (text ids) is unaffected. Remove once fixed upstream.
+ */
+export function withStringApiKeyReferences({ collection }: { collection: CollectionConfig }): CollectionConfig {
+  const stringify = (value: unknown): unknown =>
+    typeof value === 'number' ? String(value) : Array.isArray(value) ? value.map(stringify) : value
+  const fix = (where: unknown): unknown => {
+    if (Array.isArray(where)) return where.map(fix)
+    if (!where || typeof where !== 'object') return where
+    return Object.fromEntries(
+      Object.entries(where).map(([key, value]) =>
+        key === 'referenceId' && value && typeof value === 'object'
+          ? [key, Object.fromEntries(Object.entries(value).map(([op, v]) => [op, stringify(v)]))]
+          : [key, fix(value)],
+      ),
+    )
+  }
+  const beforeOperation: CollectionBeforeOperationHook = ({ args }) =>
+    args && 'where' in args && args.where ? { ...args, where: fix(args.where) as Where } : args
+  return {
+    ...collection,
+    hooks: { ...collection.hooks, beforeOperation: [...(collection.hooks?.beforeOperation ?? []), beforeOperation] },
   }
 }

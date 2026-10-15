@@ -22,7 +22,7 @@ import { legalCollections } from '@/consent/collections'
 import { consentPlugins } from '@/consent/plugin'
 import { seedLegal } from '@/consent/seed'
 import { ADMIN_ROLES, ROLES, betterAuthOptions } from '@/lib/auth/options'
-import { silenceKnownPayloadAuthWarnings } from '@/lib/auth/payload-auth-workarounds'
+import { silenceKnownPayloadAuthWarnings, withStringApiKeyReferences } from '@/lib/auth/payload-auth-workarounds'
 import { env, sentryReady } from '@/lib/env'
 import { schedulerJobs } from '@/scheduler/jobs'
 import { schedulerPlugins } from '@/scheduler/plugin'
@@ -73,8 +73,10 @@ export const payloadAuthOptions = {
       }),
     }),
   },
-  pluginCollectionOverrides: stack.features.organizations
-    ? {
+  pluginCollectionOverrides: {
+    apiKeys: withStringApiKeyReferences,
+    ...(stack.features.organizations
+      ? {
         members: withMembershipSync,
         organizations: ({ collection }) =>
           withTenantCleanup({
@@ -89,7 +91,8 @@ export const payloadAuthOptions = {
             },
           }),
       }
-    : undefined,
+      : {}),
+  },
 } satisfies PayloadAuthOptions
 
 const plugins: Plugin[] = [
