@@ -233,6 +233,20 @@ describe('withTenantCleanup (src/tenancy/cleanup.ts)', () => {
     }
   })
 
+  it('also removes the organization\'s invitations and members, so a delete from the admin does not trip their foreign keys', async () => {
+    const { withTenantCleanup, TENANT_SCOPED_COLLECTIONS } = await import('@/tenancy/cleanup')
+    const out = withTenantCleanup({ slug: 'organizations', fields: [] })
+    // Teams are off: no `teams` / `teamMembers` collections are registered.
+    const payload = { collections: { invitations: {}, members: {} }, delete: vi.fn(async () => ({ docs: [], errors: [] })), find: vi.fn() }
+    const req = { payload } as unknown as PayloadRequest
+    await out.hooks!.beforeDelete![0]!({ id: 42, req, collection: out, context: {} } as never)
+    const deleted = payload.delete.mock.calls.map((c) => (c as unknown as [{ collection: string; where: unknown }])[0])
+    expect(deleted.map((d) => d.collection)).toEqual([...TENANT_SCOPED_COLLECTIONS, 'invitations', 'members'])
+    expect(deleted.at(-2)).toMatchObject({ where: { organization: { equals: 42 } }, overrideAccess: true, req })
+    expect(deleted.at(-1)).toMatchObject({ where: { organization: { equals: 42 } }, overrideAccess: true, req })
+    expect(payload.find).not.toHaveBeenCalled()
+  })
+
   it('covers exactly the collections the multi-tenant plugin manages', async () => {
     const { TENANT_SCOPED_COLLECTIONS } = await import('@/tenancy/cleanup')
     expect([...TENANT_SCOPED_COLLECTIONS]).toEqual(['projects', 'media'])

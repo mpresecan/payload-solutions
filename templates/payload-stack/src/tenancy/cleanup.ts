@@ -26,8 +26,11 @@ const ORGANIZATION_RECORDS: { slug: string; where: (id: string | number, teamIds
   { slug: 'members', where: (id) => ({ organization: { equals: id } }) },
 ]
 
+/** Whether a collection is registered (teams only exist with `stack.features.teams`). */
+const has = (req: PayloadRequest, slug: string) => Boolean(req.payload.collections?.[slug as CollectionSlug])
+
 async function teamIdsOf(req: PayloadRequest, id: string | number) {
-  if (!req.payload.collections['teams' as CollectionSlug]) return []
+  if (!has(req, 'teams')) return []
   const teams = await req.payload.find({
     collection: 'teams' as CollectionSlug,
     where: { organization: { equals: id } },
@@ -52,7 +55,7 @@ const beforeTenantDelete: CollectionBeforeDeleteHook = async ({ id, req }) => {
 
   const teamIds = await teamIdsOf(req, id)
   for (const { slug, where } of ORGANIZATION_RECORDS) {
-    if (!req.payload.collections[slug as CollectionSlug]) continue
+    if (!has(req, slug)) continue
     if (slug === 'teamMembers' && teamIds.length === 0) continue
     await req.payload.delete({
       collection: slug as CollectionSlug,
