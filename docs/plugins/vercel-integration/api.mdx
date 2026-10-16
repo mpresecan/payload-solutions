@@ -68,4 +68,4 @@ All hooks are awaited and their errors are logged, never thrown into the request
 
 ## Scheduled task
 
-`vercel:tick` is registered on `config.jobs.tasks` with a native `schedule` (`* * * * *` on queue `vercel`). It carries no input and is deleted on completion like any successful job. Run it with `jobs.autoRun`, `payload jobs:run --queue vercel`, a cron on `/api/payload-jobs/run?queue=vercel`, or Payload Clock.
+`vercel-tick` is registered on `config.jobs.tasks` with a native `schedule` (`* * * * *` on queue `vercel`). It carries no input and is deleted on completion like any successful job. Run it with `jobs.autoRun`, `payload jobs:run --queue vercel`, a cron on `/api/payload-jobs/run?queue=vercel`, or Payload Clock.

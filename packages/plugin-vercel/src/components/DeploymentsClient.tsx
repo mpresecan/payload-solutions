@@ -130,7 +130,7 @@ export const DeploymentsClient: React.FC<Props> = ({ initial }) => {
 
       {stale.length > 0 && (
         <Banner type="error">
-          {stale.map((t) => t.label).join(', ')}: changes are waiting but no runner has ticked in 15 minutes. Keep an admin tab open, run the <code>vercel:tick</code> job, or call{' '}
+          {stale.map((t) => t.label).join(', ')}: changes are waiting but no runner has ticked in 15 minutes. Keep an admin tab open, run the <code>vercel-tick</code> job, or call{' '}
           <code>POST {apiRoute}/vercel/tick</code> from a cron.
         </Banner>
       )}

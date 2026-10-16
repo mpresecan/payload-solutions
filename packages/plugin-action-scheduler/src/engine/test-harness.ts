@@ -178,7 +178,7 @@ export function createHarness(actions: ActionDefinition<any>[], overrides: Parti
     findGlobal: db.findGlobal,
     jobs: {
       queue: async ({ input, waitUntil }: { input: Record<string, unknown>; waitUntil?: Date }) => {
-        const job = { id: seq++, input, processing: false, taskSlug: 'scheduler:run', updatedAt: new Date().toISOString(), waitUntil } as Doc
+        const job = { id: seq++, input, processing: false, taskSlug: 'scheduler-run', updatedAt: new Date().toISOString(), waitUntil } as Doc
         table('payload-jobs').push(job)
         jobs.queued.push({ id: job.id, input, waitUntil })
         return job

@@ -126,7 +126,7 @@ Payload deletes successful jobs because each job stores its input and every log 
 
 ## Runners
 
-Anything that runs Payload jobs runs actions: `jobs.autoRun`, `payload jobs:run --all-queues --handle-schedules`, Vercel cron calling `GET /api/payload-jobs/run?allQueues=true`, Payload Clock, or the admin's **Run queue** button. A `scheduler:tick` task (Payload's own `schedule`) promotes far-future actions, recovers lost attempts, purges by retention and records a heartbeat the admin turns into runner health. `tick: false` switches it off.
+Anything that runs Payload jobs runs actions: `jobs.autoRun`, `payload jobs:run --all-queues --handle-schedules`, Vercel cron calling `GET /api/payload-jobs/run?allQueues=true`, Payload Clock, or the admin's **Run queue** button. A `scheduler-tick` task (Payload's own `schedule`) promotes far-future actions, recovers lost attempts, purges by retention and records a heartbeat the admin turns into runner health. `tick: false` switches it off.
 
 ## Development
 

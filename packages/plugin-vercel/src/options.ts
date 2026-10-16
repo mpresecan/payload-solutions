@@ -16,7 +16,11 @@ export const DEFAULT_QUIET_PERIOD_MS = 60_000
 export const DEFAULT_MAX_WAIT_MS = 10 * 60_000
 export const DEFAULT_TICK_QUEUE = 'vercel'
 export const DEFAULT_TICK_CRON = '* * * * *'
-export const TICK_TASK_SLUG = 'vercel:tick'
+// No ':' — Payload puts task slugs into its GraphQL schema, where only [_a-zA-Z0-9] is allowed (it turns
+// '-' into '_'); 'vercel:tick' made every request to /api/graphql fail.
+export const TICK_TASK_SLUG = 'vercel-tick'
+/** The slug before 0.2. Jobs still queued under it are removed at init. */
+export const LEGACY_TICK_TASK_SLUG = 'vercel:tick'
 
 const HOOK_URL = /^https?:\/\/[^/]+\/v1\/integrations\/deploy\/([^/?#]+)\/([^/?#]+)/i
 

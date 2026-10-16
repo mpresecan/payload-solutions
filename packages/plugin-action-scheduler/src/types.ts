@@ -300,8 +300,12 @@ export type SanitizedActionSchedulerOptions = {
   tick: false | { cron: string; queue: string }
 }
 
-export const RUN_TASK_SLUG = 'scheduler:run'
-export const TICK_TASK_SLUG = 'scheduler:tick'
+// No ':' — Payload puts task slugs into its GraphQL schema, where only [_a-zA-Z0-9] is allowed (it turns
+// '-' into '_'); 'scheduler:run' made every request to /api/graphql fail.
+export const RUN_TASK_SLUG = 'scheduler-run'
+export const TICK_TASK_SLUG = 'scheduler-tick'
+/** Slugs before 0.3. Jobs still queued under them are removed at init and their actions re-dispatched. */
+export const LEGACY_TASK_SLUGS = ['scheduler:run', 'scheduler:tick']
 export const COMPONENT_PREFIX = '@payload-solutions/plugin-action-scheduler'
 
 declare module 'payload' {

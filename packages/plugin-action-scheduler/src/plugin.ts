@@ -14,7 +14,7 @@ import { createEndpoints } from './endpoints/index.js'
 import { createStatusGlobal } from './globals/scheduler-status.js'
 import { createMaintenance } from './maintenance/index.js'
 import { sanitizeOptions } from './options.js'
-import { TICK_TASK_SLUG } from './types.js'
+import { LEGACY_TASK_SLUGS, RUN_TASK_SLUG, TICK_TASK_SLUG } from './types.js'
 import { createSchedulerTypeScriptSchema } from './typescript/schema.js'
 import { hashArgs, serializeArgs, uniqueKeyFor } from './utils/hash.js'
 import { nextCronRun, validateCron } from './utils/recurrence.js'
@@ -79,7 +79,7 @@ export const actionScheduler =
     if (!options.disabled) {
       config.jobs = config.jobs ?? { tasks: [] }
       const runTask = {
-        slug: 'scheduler:run',
+        slug: RUN_TASK_SLUG,
         handler: async ({ input, req }: { input: { actionId?: string }; req: { payload: Payload } }) => {
           const actionId = String(input?.actionId ?? '')
           if (actionId) {
@@ -143,6 +143,13 @@ export const actionScheduler =
         const status = (await payload.findGlobal({ slug: options.statusSlug as never, depth: 0 })) as { id?: unknown }
         if (!status.id) {
           await payload.db.updateGlobal({ slug: options.statusSlug, data: {} })
+        }
+        try {
+          // Jobs queued under the pre-0.3 slugs have no task to run them any more. Remove them; the
+          // tick's sweep then re-dispatches their actions as orphans under the current slug.
+          await payload.db.deleteMany({ collection: 'payload-jobs' as never, where: { taskSlug: { in: LEGACY_TASK_SLUGS } } })
+        } catch (error) {
+          payload.logger.error({ err: error }, '[action-scheduler] could not remove jobs queued under the old task slugs')
         }
         try {
           await maintenance.reconcileSeries()
