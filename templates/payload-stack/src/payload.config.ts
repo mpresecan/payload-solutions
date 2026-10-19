@@ -29,7 +29,7 @@ import { schedulerPlugins } from '@/scheduler/plugin'
 import stack from '@/stack.config'
 import { TENANT_SCOPED_COLLECTIONS, withTenantCleanup } from '@/tenancy/cleanup'
 import { withMembershipSync } from '@/tenancy/sync-memberships'
-import { validateTenantMembership } from '@/tenancy/validate-tenant'
+import { tenantPickerOptions, validateTenantMembership } from '@/tenancy/validate-tenant'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -108,8 +108,9 @@ if (stack.features.organizations) {
       // Keep in step with TENANT_SCOPED_COLLECTIONS (src/tenancy/cleanup.ts).
       collections: Object.fromEntries(TENANT_SCOPED_COLLECTIONS.map((slug) => [slug, {}])),
       userHasAccessToAllTenants: (user) => isAdmin(user),
-      // API callers may only file documents under organizations they belong to (admins: any).
-      tenantField: { validate: validateTenantMembership },
+      // API callers may only file documents under organizations they belong to (admins: any), and
+      // the admin's tenant picker offers the same set (the plugin's default ignores site admins).
+      tenantField: { validate: validateTenantMembership, filterOptions: tenantPickerOptions },
       tenantsArrayField: {
         includeDefaultField: true,
         arrayFieldName: 'tenants',
