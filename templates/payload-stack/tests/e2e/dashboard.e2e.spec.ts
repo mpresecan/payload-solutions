@@ -1,7 +1,7 @@
 /**
  * Onboarding, the dashboard shell and the Projects example: the first-run flow, sidebar
  * navigation derived from stack.config.ts, overview cards, and creating / deleting projects
- * that stay scoped to the active organization.
+ * that stay scoped to the active organization (or, without organizations, to their owner).
  */
 import stack from '@/stack.config'
 import {
@@ -18,6 +18,8 @@ import {
 } from './fixtures'
 
 test.describe('onboarding', () => {
+  test.skip(!stack.features.organizations, 'organizations are disabled in stack.config.ts')
+
   test('a new user is sent to onboarding, creates an organization and lands on the dashboard', async ({ page }) => {
     const user = await signUpViaApi(page, { name: 'Mira Lindqvist' })
     await page.goto(`${BASE}/dashboard`)
@@ -64,13 +66,43 @@ test.describe('onboarding', () => {
   })
 })
 
+test.describe('without organizations', () => {
+  test.skip(stack.features.organizations, 'organizations are enabled in stack.config.ts')
+
+  test('a new user goes straight to the dashboard, and onboarding is never shown', async ({ page }) => {
+    await signUpViaApi(page, { name: 'Mira Lindqvist' })
+    await page.goto(`${BASE}/dashboard`)
+    await expect(page.getByRole('heading', { name: /welcome back, Mira/i })).toBeVisible()
+    await expect(page).toHaveURL(/\/dashboard$/)
+    await page.goto(`${BASE}/onboarding`)
+    await page.waitForURL(/\/dashboard$/, { timeout: 60_000 })
+    // No organization screens to reach.
+    for (const path of ['/dashboard/organization/settings', '/dashboard/organization/people', '/dashboard/settings/organizations']) {
+      const response = await page.goto(`${BASE}${path}`)
+      expect(response?.status(), path).toBe(404)
+    }
+  })
+
+  test('projects belong to their owner: another user sees none of them', async ({ page, account, browser }) => {
+    await createProjectViaUi(page, `Owned by ${account.user.name}`)
+    await expect(projectRow(page, `Owned by ${account.user.name}`)).toBeVisible()
+    const other = await browser.newContext()
+    const otherPage = await other.newPage()
+    await signUpViaApi(otherPage)
+    await otherPage.goto(`${BASE}/dashboard/projects`)
+    await expect(otherPage.getByText('No projects yet')).toBeVisible()
+    await other.close()
+  })
+})
+
 test.describe('dashboard shell', () => {
-  test('shows the welcome, the overview cards and the sidebar for the enabled features', async ({ page, member }) => {
+  test('shows the welcome, the overview cards and the sidebar for the enabled features', async ({ page, account }) => {
     await page.goto(`${BASE}/dashboard`)
     await expect(page.getByRole('heading', { name: /welcome back, E2E/i })).toBeVisible()
-    await expect(page.getByText(`You are working in ${member.org.name}`)).toBeVisible()
+    await expect(page.getByText(account.org ? `You are working in ${account.org.name}` : `Here is what is happening in ${stack.name}`)).toBeVisible()
     await expect(page.getByRole('link', { name: /manage projects/i })).toHaveAttribute('href', '/dashboard/projects')
-    await expect(page.getByRole('link', { name: /invite people/i })).toHaveAttribute('href', '/dashboard/organization/people')
+    if (account.org) await expect(page.getByRole('link', { name: /invite people/i })).toHaveAttribute('href', '/dashboard/organization/people')
+    else await expect(page.getByRole('link', { name: /invite people/i })).toHaveCount(0)
     if (stack.features.billing) {
       await expect(page.getByRole('link', { name: /manage billing/i })).toHaveAttribute(
         'href',
@@ -83,37 +115,43 @@ test.describe('dashboard shell', () => {
     const sidebar = page.locator('[data-slot="sidebar"]').first()
     await expect(sidebar.getByRole('link', { name: 'Overview' })).toHaveAttribute('href', '/dashboard')
     await expect(sidebar.getByRole('link', { name: 'Projects' })).toHaveAttribute('href', '/dashboard/projects')
-    await expect(sidebar.getByText('Organization', { exact: true })).toBeVisible()
+    await expect(sidebar.getByText('Organization', { exact: true })).toHaveCount(account.org ? 1 : 0)
     await expect(sidebar.getByText('Settings', { exact: true })).toBeVisible()
     await expect(sidebar.getByRole('link', { name: 'Documentation' })).toHaveAttribute('href', /payload\.solutions/)
     await expect(sidebar.getByRole('link', { name: 'Support' })).toHaveAttribute('href', `mailto:${stack.support.email}`)
     await expect(sidebar.getByRole('link', { name: 'Payload admin' })).toHaveCount(0)
     // The organization switcher shows the active organization.
-    await expect(sidebar.getByText(member.org.name)).toBeVisible()
-    await expect(sidebar.getByText(member.org.slug)).toBeVisible()
+    if (account.org) {
+      await expect(sidebar.getByText(account.org.name)).toBeVisible()
+      await expect(sidebar.getByText(account.org.slug)).toBeVisible()
+    }
     // The user menu shows who is signed in.
-    await expect(sidebar.getByText(member.user.email)).toBeVisible()
+    await expect(sidebar.getByText(account.user.email)).toBeVisible()
   })
 
-  test('sidebar sub-navigation links match the routes', async ({ page, member }) => {
-    expect(member.org.id).toBeTruthy()
+  test('sidebar sub-navigation links match the routes', async ({ page, account }) => {
+    expect(account.user.id).toBeTruthy()
     await page.goto(`${BASE}/dashboard`)
     const sidebar = page.locator('[data-slot="sidebar"]').first()
     const groups: Array<[group: string, children: Array<[label: string, href: string]>]> = [
-      [
-        'Organization',
-        [
-          ['General', '/dashboard/organization/settings'],
-          ['People', '/dashboard/organization/people'],
-          ...(stack.features.billingAttachedTo === 'organization' ? [['Billing', '/dashboard/organization/billing'] as [string, string]] : []),
-        ],
-      ],
+      ...(stack.features.organizations
+        ? [
+            [
+              'Organization',
+              [
+                ['General', '/dashboard/organization/settings'],
+                ['People', '/dashboard/organization/people'],
+                ...(stack.features.billingAttachedTo === 'organization' ? [['Billing', '/dashboard/organization/billing'] as [string, string]] : []),
+              ],
+            ] as [string, Array<[string, string]>],
+          ]
+        : []),
       [
         'Settings',
         [
           ['Account', '/dashboard/settings/account'],
           ['Security', '/dashboard/settings/security'],
-          ['Organizations', '/dashboard/settings/organizations'],
+          ...(stack.features.organizations ? [['Organizations', '/dashboard/settings/organizations'] as [string, string]] : []),
           ...(stack.features.billingAttachedTo === 'user' ? [['Billing', '/dashboard/settings/billing'] as [string, string]] : []),
         ],
       ],
@@ -130,9 +168,9 @@ test.describe('dashboard shell', () => {
     }
   })
 
-  test('the user menu offers account settings, theme toggle and sign out', async ({ page, member }) => {
+  test('the user menu offers account settings, theme toggle and sign out', async ({ page, account }) => {
     await page.goto(`${BASE}/dashboard`)
-    await page.getByRole('button', { name: new RegExp(member.user.email) }).click()
+    await page.getByRole('button', { name: new RegExp(account.user.email) }).click()
     await expect(page.getByRole('menuitem', { name: /account settings/i })).toHaveAttribute('href', '/dashboard/settings/account')
     await expect(page.getByRole('menuitem', { name: /dark theme|light theme/i })).toBeVisible()
     await expect(page.getByRole('menuitem', { name: /sign out/i })).toBeVisible()
@@ -143,7 +181,7 @@ test.describe('dashboard shell', () => {
 })
 
 test.describe('projects', () => {
-  test('creates a project, shows it in the list and on the overview count, then deletes it', async ({ page, member }) => {
+  test('creates a project, shows it in the list and on the overview count, then deletes it', async ({ page, account }) => {
     await page.goto(`${BASE}/dashboard/projects`)
     await expect(page.getByText('No projects yet')).toBeVisible()
 
@@ -166,11 +204,11 @@ test.describe('projects', () => {
     await page.getByRole('button', { name: 'Delete', exact: true }).click()
     await expect(page.getByText('Project deleted')).toBeVisible()
     await expect(page.getByText('No projects yet')).toBeVisible()
-    expect(member.org.id).toBeTruthy()
+    expect(account.user.id).toBeTruthy()
   })
 
-  test('validates the name and keeps the description optional', async ({ page, member }) => {
-    expect(member.org.id).toBeTruthy()
+  test('validates the name and keeps the description optional', async ({ page, account }) => {
+    expect(account.user.id).toBeTruthy()
     await page.goto(`${BASE}/dashboard/projects`)
     const name = page.getByRole('textbox', { name: 'Name' })
     // Native validation blocks a single character (minLength=2).

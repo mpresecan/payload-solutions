@@ -13,9 +13,13 @@ test.describe('homepage', () => {
     await expect(page.getByText(stack.description)).toBeVisible()
     await expect(page.getByRole('link', { name: /get started/i }).first()).toHaveAttribute('href', '/auth/sign-up')
     await expect(page.getByRole('heading', { name: 'Sign in your way' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Built for teams' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Simple pricing' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'See pricing' })).toHaveAttribute('href', '/pricing')
+    await expect(page.getByRole('heading', { name: stack.features.organizations ? 'Built for teams' : 'Your account, your data' })).toBeVisible()
+    if (stack.features.billing) {
+      await expect(page.getByRole('heading', { name: 'Simple pricing' })).toBeVisible()
+      await expect(page.getByRole('link', { name: 'See pricing' })).toHaveAttribute('href', '/pricing')
+    } else {
+      await expect(page.getByRole('heading', { name: 'Free while in preview' })).toBeVisible()
+    }
   })
 
   test('header shows the configured navigation and sign-in links, footer shows legal pages', async ({ page }) => {
@@ -76,7 +80,8 @@ test.describe('legal pages', () => {
     test(`/legal/${slug} renders the seeded ${title}`, async ({ page }) => {
       await page.goto(`${BASE}/legal/${slug}`)
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(title)
-      await expect(page.getByText(/^Effective /)).toBeVisible()
+      // The date line under the title. Payload Consent's generated documents repeat it in the body.
+      await expect(page.getByText(/^Effective /).first()).toBeVisible()
       await expect(page.locator('article h2').first()).toBeVisible()
       // The seed writes the company into privacy and terms, the product name into all three.
       await expect(page.locator('article')).toContainText(slug === 'cookies' ? stack.name : stack.legal.company)

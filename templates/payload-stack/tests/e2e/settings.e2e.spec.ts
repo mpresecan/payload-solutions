@@ -7,11 +7,11 @@ import stack from '@/stack.config'
 import { BASE, PASSWORD, expect, getSessionViaApi, signInViaApi, test } from './fixtures'
 
 test.describe('account', () => {
-  test('shows the profile and saves a new name', async ({ page, member }) => {
+  test('shows the profile and saves a new name', async ({ page, account }) => {
     await page.goto(`${BASE}/dashboard/settings/account`)
     await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
     const name = page.locator('input[name="name"]').first()
-    await expect(name).toHaveValue(member.user.name)
+    await expect(name).toHaveValue(account.user.name)
     await name.fill('Renamed Tester')
     await page.getByRole('button', { name: /save/i }).first().click()
     await expect(page.getByText(/profile updated/i)).toBeVisible()
@@ -19,17 +19,17 @@ test.describe('account', () => {
     await expect(page.locator('[data-slot="sidebar"]').first().getByText('Renamed Tester')).toBeVisible()
   })
 
-  test('shows the avatar, change-email and appearance cards with the current email', async ({ page, member }) => {
+  test('shows the avatar, change-email and appearance cards with the current email', async ({ page, account }) => {
     await page.goto(`${BASE}/dashboard/settings/account`)
     await expect(page.getByRole('button', { name: /change avatar/i })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Change email' })).toBeVisible()
-    await expect(page.getByRole('textbox', { name: /email/i })).toHaveValue(member.user.email)
+    await expect(page.getByRole('textbox', { name: /email/i })).toHaveValue(account.user.email)
     await expect(page.getByRole('button', { name: /update email/i })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Appearance' })).toBeVisible()
   })
 
-  test('the settings tabs match the enabled features', async ({ page, member }) => {
-    expect(member.org.id).toBeTruthy()
+  test('the settings tabs match the enabled features', async ({ page, account }) => {
+    expect(account.user.id).toBeTruthy()
     await page.goto(`${BASE}/dashboard/settings/account`)
     const tabs = ['Account', 'Security', ...(stack.features.organizations ? ['Organizations'] : []), ...(stack.features.billingAttachedTo === 'user' ? ['Billing'] : [])]
     for (const tab of tabs) await expect(page.getByRole('link', { name: tab, exact: true }).first()).toBeVisible()
@@ -41,8 +41,8 @@ test.describe('account', () => {
 })
 
 test.describe('security', () => {
-  test('shows the cards for the configured methods', async ({ page, member }) => {
-    expect(member.org.id).toBeTruthy()
+  test('shows the cards for the configured methods', async ({ page, account }) => {
+    expect(account.user.id).toBeTruthy()
     await page.goto(`${BASE}/dashboard/settings/security`)
     if (stack.features.emailPassword) await expect(page.getByText(/change password/i).first()).toBeVisible()
     if (stack.features.twoFactor) await expect(page.getByText(/two-factor/i).first()).toBeVisible()
@@ -54,7 +54,7 @@ test.describe('security', () => {
     await expect(page.getByText(/current session/i).first()).toBeVisible()
   })
 
-  test('changes the password; the old one stops working', async ({ page, member, context }) => {
+  test('changes the password; the old one stops working', async ({ page, account, context }) => {
     test.skip(!stack.features.emailPassword, 'password auth is disabled in stack.config.ts')
     await page.goto(`${BASE}/dashboard/settings/security`)
     await page.getByRole('textbox', { name: 'Current password' }).fill(PASSWORD)
@@ -64,17 +64,17 @@ test.describe('security', () => {
     await expect(page.getByText(/password changed/i)).toBeVisible()
 
     await context.clearCookies()
-    await expect(signInViaApi(page, member.user.email, PASSWORD)).rejects.toThrow(/401|INVALID/i)
-    await signInViaApi(page, member.user.email, 'Changed-Long-Passw0rd!')
-    expect((await getSessionViaApi(page))?.user.email).toBe(member.user.email)
+    await expect(signInViaApi(page, account.user.email, PASSWORD)).rejects.toThrow(/401|INVALID/i)
+    await signInViaApi(page, account.user.email, 'Changed-Long-Passw0rd!')
+    expect((await getSessionViaApi(page))?.user.email).toBe(account.user.email)
   })
 
-  test('lists sessions and signs out other devices', async ({ page, member, browser }) => {
+  test('lists sessions and signs out other devices', async ({ page, account, browser }) => {
     // A second browser signs in as the same user.
     const other = await browser.newContext()
     const otherPage = await other.newPage()
-    await signInViaApi(otherPage, member.user.email)
-    expect((await getSessionViaApi(otherPage))?.user.email).toBe(member.user.email)
+    await signInViaApi(otherPage, account.user.email)
+    expect((await getSessionViaApi(otherPage))?.user.email).toBe(account.user.email)
 
     const listSessions = async () => {
       const response = await page.request.get(`${BASE}/api/auth/list-sessions`, { headers: { origin: BASE } })
@@ -93,14 +93,14 @@ test.describe('security', () => {
     await expect.poll(async () => (await listSessions()).length, { timeout: 30_000 }).toBe(1)
     // The current session is still valid; the other device's cookie cache lapses within five minutes
     // and its next request against the database is refused.
-    expect((await getSessionViaApi(page))?.user.email).toBe(member.user.email)
+    expect((await getSessionViaApi(page))?.user.email).toBe(account.user.email)
     const otherSessions = await otherPage.request.get(`${BASE}/api/auth/list-sessions`, { headers: { origin: BASE } })
     expect([401, 200]).toContain(otherSessions.status())
     await other.close()
   })
 
-  test('creates an API key and shows it once', async ({ page, member }) => {
-    expect(member.org.id).toBeTruthy()
+  test('creates an API key and shows it once', async ({ page, account }) => {
+    expect(account.user.id).toBeTruthy()
     await page.goto(`${BASE}/dashboard/settings/security`)
     await page.getByRole('button', { name: /create api key|new api key|create key/i }).first().click()
     const dialog = page.getByRole('dialog')
@@ -113,9 +113,9 @@ test.describe('security', () => {
     await expect(page.getByText('ci', { exact: true })).toBeVisible()
   })
 
-  test('two-factor enrolment asks for the password and shows the QR code', async ({ page, member }) => {
+  test('two-factor enrolment asks for the password and shows the QR code', async ({ page, account }) => {
     test.skip(!stack.features.twoFactor, 'two-factor is disabled in stack.config.ts')
-    expect(member.org.id).toBeTruthy()
+    expect(account.user.id).toBeTruthy()
     await page.goto(`${BASE}/dashboard/settings/security`)
     await page.getByRole('button', { name: /enable two-factor|enable/i }).first().click()
     const dialog = page.getByRole('dialog')

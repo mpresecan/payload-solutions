@@ -8,6 +8,7 @@ import {
   BASE,
   PASSWORD,
   createOrgViaApi,
+  dashboardReadyViaApi,
   expect,
   getSessionViaApi,
   inviteViaApi,
@@ -18,7 +19,7 @@ import {
 } from './fixtures'
 
 test.describe('sign-up', () => {
-  test('creates an account from the form and lands in onboarding', async ({ page }) => {
+  test('creates an account from the form and lands in onboarding (or, without organizations, on the dashboard)', async ({ page }) => {
     const email = uniqueEmail('signup')
     await page.goto(`${BASE}/auth/sign-up`)
     await page.locator('input[name="name"]').fill('Form Tester')
@@ -26,7 +27,7 @@ test.describe('sign-up', () => {
     await page.locator('input[name="password"]').first().fill(PASSWORD)
     await page.locator('input[name="confirmPassword"]').fill(PASSWORD)
     await page.getByRole('button', { name: /sign up/i }).click()
-    await page.waitForURL(/\/onboarding/, { timeout: 60_000 })
+    await page.waitForURL(stack.features.organizations ? /\/onboarding/ : /\/dashboard/, { timeout: 60_000 })
     const session = await getSessionViaApi(page)
     expect(session?.user.email).toBe(email)
     expect(session?.user.name).toBe('Form Tester')
@@ -54,7 +55,7 @@ test.describe('sign-up', () => {
 test.describe('sign-in', () => {
   test('signs in with email and password and reaches the dashboard', async ({ page, context }) => {
     const user = await signUpViaApi(page)
-    await createOrgViaApi(page)
+    await dashboardReadyViaApi(page)
     await context.clearCookies()
 
     await page.goto(`${BASE}/auth/sign-in`)
@@ -99,7 +100,7 @@ test.describe('sign-in', () => {
 
   test('honours redirectTo after sign-in', async ({ page, context }) => {
     const user = await signUpViaApi(page)
-    await createOrgViaApi(page)
+    await dashboardReadyViaApi(page)
     await context.clearCookies()
     await page.goto(`${BASE}/auth/sign-in?redirectTo=${encodeURIComponent('/dashboard/projects')}`)
     await page.locator('input[name="email"]').fill(user.email)
@@ -121,7 +122,7 @@ test.describe('protected routes', () => {
 
   test('keeps regular users out of the Payload admin and the in-app admin', async ({ page }) => {
     await signUpViaApi(page)
-    await createOrgViaApi(page)
+    await dashboardReadyViaApi(page)
     await page.goto(`${BASE}/admin`)
     await expect(page).toHaveURL(/\/admin\/(login|unauthorized)/)
     const response = await page.goto(`${BASE}/dashboard/admin/users`)
@@ -132,7 +133,7 @@ test.describe('protected routes', () => {
 test.describe('sign-out', () => {
   test('from the user menu ends the session', async ({ page }) => {
     const user = await signUpViaApi(page)
-    await createOrgViaApi(page)
+    await dashboardReadyViaApi(page)
     await page.goto(`${BASE}/dashboard`)
     await page.getByRole('button', { name: new RegExp(user.email) }).click()
     await page.getByRole('menuitem', { name: /sign out/i }).click()
@@ -176,6 +177,8 @@ test.describe('forgot password', () => {
 })
 
 test.describe('invitations', () => {
+  test.skip(!stack.features.organizations, 'organizations are disabled in stack.config.ts')
+
   test('the accept-invitation screen shows the organization and role, then joins on accept', async ({ browser, page }) => {
     // Owner invites through the API (the emailed link is /auth/accept-invitation?invitationId=...).
     await signUpViaApi(page, { name: 'Owner' })
