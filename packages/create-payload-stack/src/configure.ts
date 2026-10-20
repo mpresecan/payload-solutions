@@ -269,6 +269,33 @@ function sortKeys<T extends Record<string, unknown>>(obj: T): T {
   return Object.fromEntries(Object.entries(obj).sort(([a], [b]) => a.localeCompare(b))) as T
 }
 
+/**
+ * test.env for the chosen database. The template's file points both suites at the `postgres-test`
+ * service in docker-compose.yml, which only a PostgreSQL adapter can use: a SQLite project then
+ * fails `pnpm test:int` and `pnpm test:e2e` with URL_SCHEME_NOT_SUPPORTED before a single test runs.
+ * SQLite gets two local files instead (no service needed); MongoDB gets two databases on a local
+ * server. PostgreSQL and Vercel Postgres keep the template's file unchanged.
+ */
+export function renderTestEnv(source: string, db: DbChoice, projectSlug: string) {
+  const urls: Partial<Record<DbChoice['key'], { int: string; e2e: string; note: string }>> = {
+    sqlite: {
+      int: 'file:./test.db',
+      e2e: 'file:./e2e.db',
+      note: '# SQLite: two local files, created on first run. Delete them to start the suites from empty.',
+    },
+    mongodb: {
+      int: `mongodb://127.0.0.1/${projectSlug}-test`,
+      e2e: `mongodb://127.0.0.1/${projectSlug}-e2e`,
+      note: '# MongoDB: two databases on a local server (mongodb://127.0.0.1:27017). docker-compose.yml does not start one.',
+    },
+  }
+  const target = urls[db.key]
+  if (!target) return source
+  return source
+    .replace(/^DATABASE_URL=.*$/m, `${target.note}\nDATABASE_URL=${target.int}`)
+    .replace(/^E2E_DATABASE_URL=.*$/m, `E2E_DATABASE_URL=${target.e2e}`)
+}
+
 function escapeRegExp(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
@@ -309,6 +336,13 @@ export async function configureProject(o: ProjectOptions) {
     'package.json',
     JSON.stringify(renameProject(stripWorkspaceDependencies(configured), o.slug), null, 2) + '\n',
   )
+
+  await write('test.env', renderTestEnv(await read('test.env'), db, o.slug))
+  if (db.key === 'sqlite') {
+    // The development database and the two test databases are files in the project root.
+    const ignore = await read('.gitignore')
+    if (!/^\*\.db$/m.test(ignore)) await write('.gitignore', `${ignore.trimEnd()}\n\n# SQLite databases\n*.db\n*.db-journal\n*.db-wal\n*.db-shm\n`)
+  }
 
   const runner = RUNNER_CHOICES[o.runner]
   const example = await read('.env.example')

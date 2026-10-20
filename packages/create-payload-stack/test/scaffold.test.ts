@@ -380,6 +380,21 @@ describe('scaffolded project', () => {
     }
   })
 
+  it('a SQLite project runs its test suites on local files and keeps them out of git', () => {
+    const { dir } = scaffold('sqlite-tests', ['-d', 'sqlite', '-y'])
+    const env = readFileSync(path.join(dir, 'test.env'), 'utf8')
+    expect(env).toMatch(/^DATABASE_URL=file:\.\/test\.db$/m)
+    expect(env).toMatch(/^E2E_DATABASE_URL=file:\.\/e2e\.db$/m)
+    expect(env).not.toContain('postgres://')
+    expect(readFileSync(path.join(dir, '.gitignore'), 'utf8')).toMatch(/^\*\.db$/m)
+  })
+
+  it('a PostgreSQL project keeps the template test.env and .gitignore', () => {
+    const { dir } = scaffold('postgres-tests', ['-d', 'postgres', '-y'])
+    expect(readFileSync(path.join(dir, 'test.env'), 'utf8')).toBe(readFileSync(path.join(templateDir, 'test.env'), 'utf8'))
+    expect(readFileSync(path.join(dir, '.gitignore'), 'utf8')).toBe(readFileSync(path.join(templateDir, '.gitignore'), 'utf8'))
+  })
+
   it('writes the answers into a stack.config.ts the template accepts', () => {
     const { dir } = scaffold('answers', ['--auth', 'email-password,passkey', '--social', 'github', '--no-organizations', '--billing', 'user', '-y'])
     const stack = evaluateStackConfig(readFileSync(path.join(dir, 'src/stack.config.ts'), 'utf8'))
