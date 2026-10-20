@@ -202,10 +202,24 @@ describe('media', () => {
     png = await sharp({ create: { width: 900, height: 1100, channels: 3, background: '#f26522' } }).png().toBuffer()
   })
 
-  async function upload(user: PayloadUser | undefined, tenant: string) {
+  /** Two signed-up users; with organizations on, each owns one and uploads go into Alice's. */
+  async function uploaders() {
+    if (stack.features.organizations) {
+      const { alice, bob, orgA } = await twoOrganizations()
+      return { alice, bob, tenant: orgA.id as string | undefined }
+    }
+    return { alice: await signUp(payload, { name: 'Alice' }), bob: await signUp(payload, { name: 'Bob' }), tenant: undefined }
+  }
+
+  /** Media is tenant-scoped only when organizations are on; otherwise there is no tenant field. */
+  function tenantData(tenant: string | undefined) {
+    return tenant === undefined ? {} : { tenant: toPayloadId(payload, tenant) }
+  }
+
+  async function upload(user: PayloadUser | undefined, tenant: string | undefined) {
     return payload.create({
       collection: 'media',
-      data: { alt: 'An orange rectangle', tenant: toPayloadId(payload, tenant) } as never,
+      data: { alt: 'An orange rectangle', ...tenantData(tenant) } as never,
       file: { data: png, mimetype: 'image/png', name: `orange-${Date.now()}.png`, size: png.byteLength },
       user,
       overrideAccess: false,
@@ -213,27 +227,27 @@ describe('media', () => {
   }
 
   it('authenticated members upload into their organization with generated sizes; anonymous visitors cannot', async () => {
-    const { alice, orgA } = await twoOrganizations()
-    const doc = await upload(await asUser(alice), orgA.id)
+    const { alice, tenant } = await uploaders()
+    const doc = await upload(await asUser(alice), tenant)
     expect(doc.mimeType).toBe('image/png')
     expect(doc.width).toBe(900)
     expect(doc.sizes?.thumbnail).toMatchObject({ width: 400, height: 300 })
     expect(doc.sizes?.card).toMatchObject({ width: 768, height: 1024 })
     expect(doc.url).toMatch(/\/api\/media\/file\//)
-    await expect(upload(undefined, orgA.id)).rejects.toThrow()
+    await expect(upload(undefined, tenant)).rejects.toThrow()
   })
 
-  it('members cannot upload into another organization', async () => {
+  it.skipIf(!stack.features.organizations)('members cannot upload into another organization', async () => {
     const { bob, orgA } = await twoOrganizations()
     await expect(upload(await asUser(bob), orgA.id)).rejects.toMatchObject({ name: 'ValidationError' })
   })
 
   it('rejects non-image uploads', async () => {
-    const { alice, orgA } = await twoOrganizations()
+    const { alice, tenant } = await uploaders()
     await expect(
       payload.create({
         collection: 'media',
-        data: { alt: 'text', tenant: toPayloadId(payload, orgA.id) } as never,
+        data: { alt: 'text', ...tenantData(tenant) } as never,
         file: { data: Buffer.from('hello'), mimetype: 'text/plain', name: 'hello.txt', size: 5 },
         user: await asUser(alice),
         overrideAccess: false,
@@ -242,8 +256,8 @@ describe('media', () => {
   })
 
   it('is publicly readable but only admins may delete', async () => {
-    const { alice, orgA, bob } = await twoOrganizations()
-    const doc = await upload(await asUser(alice), orgA.id)
+    const { alice, tenant, bob } = await uploaders()
+    const doc = await upload(await asUser(alice), tenant)
     const anon = await payload.findByID({ collection: 'media', id: doc.id, overrideAccess: false })
     expect(anon.id).toBe(doc.id)
     await expect(payload.delete({ collection: 'media', id: doc.id, user: await asUser(alice), overrideAccess: false })).rejects.toThrow()
