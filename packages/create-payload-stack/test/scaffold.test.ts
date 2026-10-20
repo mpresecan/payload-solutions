@@ -9,7 +9,7 @@
  * a few seconds per combination.
  */
 import { execFileSync, spawnSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -389,6 +389,26 @@ describe('scaffolded project', () => {
     expect(stack.features.organizations).toBe(false)
     expect(stack.features.billingAttachedTo).toBe('user')
     expect(stack.features.twoFactor).toBe(true)
+  })
+
+  it('without organizations, the emails and scheduler plugins never name an organization collection or email by literal', () => {
+    // The plugins type their slugs, and Payload types collection slugs, from the generated registry,
+    // which drops the organization collections and emails when organizations are off. A literal
+    // `'members'` or a plain `defineEmail({ slug: 'organization-invitation' })` then fails
+    // `pnpm build` (the B2C case: organizations off, emails on by default). Code that runs only with
+    // organizations on goes through src/lib/org-collections.ts and defineOrganizationEmail.
+    const { dir } = scaffold('b2c', ['--no-organizations', '--billing', 'user', '--emails', '--scheduler', '-y'])
+    const files = (sub: string): string[] =>
+      readdirSync(path.join(dir, sub), { recursive: true, withFileTypes: true })
+        .filter((e) => e.isFile() && /\.tsx?$/.test(e.name))
+        .map((e) => path.join(e.parentPath, e.name))
+    for (const file of [...files('src/emails'), ...files('src/scheduler')]) {
+      const source = readFileSync(file, 'utf8')
+      expect(source, path.relative(dir, file)).not.toMatch(/collection:\s*'(organizations|members|invitations|teams)'/)
+    }
+    const orgEmails = readFileSync(path.join(dir, 'src/emails/definitions/organization.ts'), 'utf8')
+    expect(orgEmails).not.toMatch(/=\s*defineEmail\(/)
+    expect(orgEmails.match(/= defineOrganizationEmail\(/g)).toHaveLength(5)
   })
 
   it('a magic-link-only product without billing', () => {

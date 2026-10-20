@@ -2,6 +2,7 @@ import type { Payload } from 'payload'
 import type Stripe from 'stripe'
 
 import { toPayloadId } from '@/lib/ids'
+import { MEMBERS, ORGANIZATIONS } from '@/lib/org-collections'
 import { formatPrice } from '@/lib/stack'
 import stack from '@/stack.config'
 
@@ -242,9 +243,9 @@ async function billingContact(
       const user = (await payload.findByID({ id, collection: 'users', depth: 0, overrideAccess: true })) as unknown as OrgUser
       return { email: user.email, name: user.name || user.email }
     }
-    const org = (await payload.findByID({ id, collection: 'organizations', depth: 0, overrideAccess: true })) as unknown as Org
+    const org = (await payload.findByID({ id, collection: ORGANIZATIONS, depth: 0, overrideAccess: true })) as unknown as Org
     const { docs } = await payload.find({
-      collection: 'members',
+      collection: MEMBERS,
       depth: 1,
       limit: 1,
       overrideAccess: true,

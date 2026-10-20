@@ -15,6 +15,7 @@ import type { CollectionSlug } from 'payload'
  */
 export const ORGANIZATIONS = 'organizations' as unknown as CollectionSlug
 export const MEMBERS = 'members' as unknown as CollectionSlug
+export const INVITATIONS = 'invitations' as unknown as CollectionSlug
 
 type Ref<T> = string | number | T
 
