@@ -1,4 +1,4 @@
-import { defineEmail } from '@payload-solutions/plugin-emails'
+import { defineEmail, type EmailDefinition } from '@payload-solutions/plugin-emails'
 
 import { as, str } from './shared'
 
@@ -9,6 +9,15 @@ import { as, str } from './shared'
  * Every one of them is triggered by a Better Auth organization hook (src/emails/hooks.ts), which
  * passes the organization and the person it concerns as plain values.
  */
+
+/**
+ * Registered only when organizations are on (./index.ts), and the plugin types `slug`, `resolve`
+ * and `to` against the generated email registry, which lists registered emails only. With
+ * `organizations.enabled: false` every definition below would fail `pnpm build`, so they are typed
+ * against the open registry instead, as billing.ts does. `resolve` narrows its own input with `as<…>()`.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const defineOrganizationEmail = defineEmail as unknown as (definition: EmailDefinition<any>) => EmailDefinition<any>
 
 const orgInput = [
   { name: 'email', type: 'email' as const, required: true, admin: { description: 'Who the message goes to' } },
@@ -27,7 +36,7 @@ function resolveOrg(input: unknown) {
   return { email, name: name || email, 'organization.name': organizationName }
 }
 
-export const organizationInvitation = defineEmail({
+export const organizationInvitation = defineOrganizationEmail({
   slug: 'organization-invitation',
   label: 'Organization invitation',
   description: 'Invites someone to join an organization.',
@@ -91,7 +100,7 @@ The invitation expires in {{expires.hours}} hours. If you do not know {{organiza
   },
 })
 
-export const organizationMemberJoined = defineEmail({
+export const organizationMemberJoined = defineOrganizationEmail({
   slug: 'organization-member-joined',
   label: 'Welcome to the organization',
   description: 'Greets someone who has just become a member.',
@@ -121,7 +130,7 @@ Everything the organization shares is available to you from the dashboard. Your 
   sample: { email: 'ada@example.com', name: 'Ada Lovelace', organizationName: 'Acme Inc', role: 'member' },
 })
 
-export const organizationInvitationAccepted = defineEmail({
+export const organizationInvitationAccepted = defineOrganizationEmail({
   slug: 'organization-invitation-accepted',
   label: 'Invitation accepted (to the inviter)',
   description: 'Tells whoever sent an invitation that it was accepted.',
@@ -177,7 +186,7 @@ export const organizationInvitationAccepted = defineEmail({
   },
 })
 
-export const organizationRoleChanged = defineEmail({
+export const organizationRoleChanged = defineOrganizationEmail({
   slug: 'organization-role-changed',
   label: 'Role changed',
   description: 'Tells a member their permissions in an organization changed.',
@@ -221,7 +230,7 @@ If this looks wrong, speak to an owner of {{organization.name}}.
   },
 })
 
-export const organizationMemberRemoved = defineEmail({
+export const organizationMemberRemoved = defineOrganizationEmail({
   slug: 'organization-member-removed',
   label: 'Removed from organization',
   description: 'Tells someone their membership has ended.',

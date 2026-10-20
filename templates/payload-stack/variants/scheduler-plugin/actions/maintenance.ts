@@ -1,6 +1,8 @@
 import { defineAction, SkipAction } from '@payload-solutions/plugin-action-scheduler'
 import type { Payload, Where } from 'payload'
 
+import { INVITATIONS } from '@/lib/org-collections'
+
 /**
  * Housekeeping actions: the sweeps every long-running SaaS eventually needs, with a ledger row and
  * a log for each run instead of a cron script nobody can see.
@@ -46,7 +48,7 @@ export const expireInvitations = defineAction<Record<string, never>>({
   inputSchema: [],
   handler: async ({ log, payload }) => {
     const { docs } = await payload.find({
-      collection: 'invitations',
+      collection: INVITATIONS,
       depth: 0,
       limit: BATCH,
       overrideAccess: true,
@@ -61,8 +63,8 @@ export const expireInvitations = defineAction<Record<string, never>>({
     for (const invitation of docs) {
       await payload.update({
         id: invitation.id,
-        collection: 'invitations',
-        data: { status: 'expired' },
+        collection: INVITATIONS,
+        data: { status: 'expired' } as never,
         overrideAccess: true,
       })
     }
