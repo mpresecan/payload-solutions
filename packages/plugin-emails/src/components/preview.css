@@ -159,7 +159,10 @@
   display: grid;
   flex-shrink: 0;
   gap: calc(var(--base) * 0.25);
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* The middle group (format, width, colour scheme) is sized to its content. Three equal columns
+     let it overflow into the last one at ~1280px, whose box then sat on top of "Dark" and swallowed
+     the click. */
+  grid-template-columns: 1fr auto 1fr;
   min-height: calc(var(--base) * 1.75);
   padding: calc(var(--base) * 0.25) calc(var(--base) * 0.5);
 }
