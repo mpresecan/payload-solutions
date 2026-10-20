@@ -279,3 +279,23 @@ describe('validateTenantMembership (src/tenancy/validate-tenant.ts)', () => {
     expect(await run(12, null)).toBe(true)
   })
 })
+
+describe('tenantPickerOptions (src/tenancy/validate-tenant.ts)', () => {
+  const run = async (user: unknown) => {
+    const { tenantPickerOptions } = await import('@/tenancy/validate-tenant')
+    return tenantPickerOptions({ req: { user } } as never)
+  }
+
+  it('offers a site admin every organization, even one with memberships of their own', async () => {
+    expect(await run({ id: 3, role: ['admin'], tenants: [{ tenant: 3 }] })).toBe(true)
+  })
+
+  it('offers everyone else only the organizations they belong to', async () => {
+    expect(await run({ id: 1, role: ['user'], tenants: [{ tenant: 10 }, { tenant: { id: 11 } }] })).toEqual({ id: { in: [10, 11] } })
+  })
+
+  it('falls back to collection access when the user has no memberships or no session', async () => {
+    expect(await run({ id: 2, role: ['user'], tenants: [] })).toBe(true)
+    expect(await run(null)).toBe(true)
+  })
+})

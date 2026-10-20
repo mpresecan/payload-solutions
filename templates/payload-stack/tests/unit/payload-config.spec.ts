@@ -260,6 +260,10 @@ describe('multi-tenant wiring', () => {
       expect(await validate(5, { req: { user: outsider, t: (k: string) => k }, hasMany: false })).toBe('You are not a member of this organization.')
       expect(await validate(5, { req: { user: { id: 1, role: ['user'], tenants: [{ tenant: 5 }] }, t: (k: string) => k }, hasMany: false })).toBe(true)
       expect(validateTenantMembership).toBeTypeOf('function')
+      // The picker offers site admins every organization, not just their own memberships.
+      const filterOptions = tenantField.filterOptions as (args: unknown) => unknown
+      expect(await filterOptions({ req: { user: { id: 3, role: ['admin'], tenants: [{ tenant: 3 }] } } })).toBe(true)
+      expect(await filterOptions({ req: { user: { id: 1, role: ['user'], tenants: [{ tenant: 5 }] } } })).toEqual({ id: { in: [5] } })
     }
     // Global content is left alone.
     expect(collection(config, 'legal-pages').admin.baseFilter).toBeUndefined()
