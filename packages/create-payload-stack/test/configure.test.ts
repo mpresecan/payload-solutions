@@ -157,6 +157,20 @@ describe('renderStackConfig', () => {
   })
 })
 
+describe('renderStackConfig description', () => {
+  const description = (organizations: boolean, billing: BillingMode) =>
+    evaluateStackConfig(renderStackConfig({ name: 'acme', authMethods: ['email-password'], social: [], organizations, billing, consent: false })).description
+
+  it('names only the features the product has', () => {
+    expect(description(true, 'organization')).toBe(
+      'Authentication, organizations, subscriptions and an admin panel, wired together on Payload CMS and Next.js.',
+    )
+    expect(description(false, 'user')).toBe('Authentication, subscriptions and an admin panel, wired together on Payload CMS and Next.js.')
+    expect(description(true, 'none')).toBe('Authentication, organizations and an admin panel, wired together on Payload CMS and Next.js.')
+    expect(description(false, 'none')).toBe('Authentication and an admin panel, wired together on Payload CMS and Next.js.')
+  })
+})
+
 describe('swapDatabaseAdapter', () => {
   it.each(Object.values(DB_CHOICES))('swaps to $label', (db) => {
     const out = swapDatabaseAdapter(payloadConfig, db)

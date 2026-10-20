@@ -25,6 +25,9 @@ import { removeVariants } from './variants'
 
 export function renderStackConfig(o: Pick<ProjectOptions, 'name' | 'authMethods' | 'social' | 'organizations' | 'billing' | 'consent'>) {
   const list = (items: readonly string[]) => `[${items.map((i) => `'${i}'`).join(', ')}]`
+  // The homepage prints `description`; name only what this product has.
+  const parts = ['Authentication', ...(o.organizations ? ['organizations'] : []), ...(o.billing === 'none' ? [] : ['subscriptions']), 'an admin panel']
+  const description = `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}, wired together on Payload CMS and Next.js.`
   const billingBlock =
     o.billing === 'none'
       ? `  billing: { provider: 'none' },`
@@ -93,7 +96,7 @@ export default defineStack({
   name: '${o.name.replace(/'/g, "\\'")}',
   tagline: 'A new SaaS, built on Payload CMS.',
   description:
-    'Authentication, organizations, subscriptions and an admin panel, wired together on Payload CMS and Next.js.',
+    '${description}',
   url: process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
   support: { email: 'support@example.com' },
 
