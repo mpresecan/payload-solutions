@@ -9,11 +9,12 @@ type FilterOptionsFunc = Extract<FilterOptions, (...args: never[]) => unknown>
 /**
  * Server-side check that a document's `tenant` is an organization the acting user belongs to.
  *
- * The multi-tenant plugin narrows the admin UI's tenant picker with `filterOptions`, but it
- * replaces the field's validator with a plain "required" check, so nothing stops an API caller
- * from posting `tenant: <someone else's organization>` with their own session. This validator is
- * passed to the plugin as `tenantField.validate` and therefore guards every tenant-enabled
- * collection (see TENANT_SCOPED_COLLECTIONS in ./cleanup.ts). Site admins may assign any tenant.
+ * Since Payload 3.91 the multi-tenant plugin enforces this itself in a collection `beforeValidate`
+ * hook (which also covers draft, autosave and restore writes) and rejects with its generic
+ * "invalid selection" error before this validator runs. This stays as a second layer: it is
+ * passed to the plugin as `tenantField.validate`, so it guards every tenant-enabled collection
+ * (see TENANT_SCOPED_COLLECTIONS in ./cleanup.ts) should that hook ever change. Site admins may
+ * assign any tenant.
  */
 export const validateTenantMembership: RelationshipFieldSingleValidation = (value, { req }) => {
   if (value === null || value === undefined) return true // required-ness is the plugin's job
