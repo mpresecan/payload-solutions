@@ -67,6 +67,24 @@ test.describe('Preview & test', () => {
     await expect(text).not.toContainText('{{')
   })
 
+  test('every toolbar toggle is clickable at a 1280px viewport', async ({ page }) => {
+    // Regression: three equal grid columns let the middle group (Desktop · Mobile · Light · Dark)
+    // overflow into the last column at this width, whose box sat on top of "Dark" and swallowed
+    // the click. Playwright's actionability check fails a click on an obscured element.
+    await page.setViewportSize({ width: 1280, height: 720 })
+    await openPreview(page, 'Welcome')
+    const frame = page.locator('iframe[title="Email preview"]')
+    await expect(frame).toBeVisible()
+
+    for (const name of ['Plain text', 'HTML', 'Mobile', 'Desktop']) {
+      await page.getByRole('button', { exact: true, name }).click({ timeout: 5_000 })
+    }
+    await page.getByRole('button', { name: 'Preview as a dark-mode mail client' }).click({ timeout: 5_000 })
+    await expect(page.locator('.emails-preview__frame--dark')).toBeVisible()
+    await page.getByRole('button', { name: 'Preview as a light-mode mail client' }).click({ timeout: 5_000 })
+    await expect(page.locator('.emails-preview__frame--dark')).toHaveCount(0)
+  })
+
   test('re-renders when the sample data changes', async ({ page }) => {
     await openPreview(page, 'Password reset')
 
