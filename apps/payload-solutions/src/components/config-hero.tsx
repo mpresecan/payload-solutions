@@ -132,6 +132,14 @@ const LINE_LENGTHS = LINES.map((line) => line.tokens.reduce((n, [, text]) => n +
 
 /** Scene coordinates are px in an 800 x 580 stage that is scaled to fit the element. */
 const SCENE = { w: 800, h: 580 }
+/**
+ * Phones get a compact scene: the editor full width with one card slot under it that swaps
+ * to each feature as its line lands. The full 3D spread at phone width scales to ~40% and the
+ * card text stops being readable. Chosen by the host's own width, not a media query.
+ */
+const COMPACT_SCENE = { w: 360, h: 520 }
+const COMPACT_BELOW = 560
+const COMPACT_SLOT = { x: 20, y: 312, w: 320 }
 const CARDS: Record<
   CardId,
   { x: number; y: number; z: number; w: number; color: string; body: ReactNode }
@@ -310,12 +318,19 @@ const ALL_CARDS: ReadonlySet<CardId> = new Set(CARD_IDS)
 const lineOfCard = (id: CardId) => LINES.findIndex((line) => line.cards?.includes(id))
 
 const REST_TILT = { x: 14, y: -18 }
+const COMPACT_TILT = { x: 6, y: -6 }
 
 export function ConfigHero({ className }: { className?: string }) {
   const hostRef = useRef<HTMLDivElement>(null)
-  const [scale, setScale] = useState<{ s: number; left: number; top: number } | null>(null)
+  const [scale, setScale] = useState<{
+    s: number
+    left: number
+    top: number
+    compact: boolean
+  } | null>(null)
   const [typed, setTyped] = useState<number[]>(() => LINES.map(() => 0))
   const [shown, setShown] = useState<Set<CardId>>(() => new Set())
+  const [latest, setLatest] = useState<CardId | null>(null)
   const [shipped, setShipped] = useState(false)
   const [cursorLine, setCursorLine] = useState(-1)
   const [hotLine, setHotLine] = useState(-1)
@@ -325,6 +340,10 @@ export function ConfigHero({ className }: { className?: string }) {
   const typedView = reduceMotion ? LINE_LENGTHS : typed
   const shownView = reduceMotion ? ALL_CARDS : shown
   const shippedView = reduceMotion || shipped
+  const latestView: CardId | null = reduceMotion ? 'vercel' : latest
+  const compact = scale?.compact ?? false
+  const scene = compact ? COMPACT_SCENE : SCENE
+  const restTilt = compact ? COMPACT_TILT : REST_TILT
 
   // Fit the fixed-size scene into whatever box the hero gives us.
   useEffect(() => {
@@ -332,8 +351,18 @@ export function ConfigHero({ className }: { className?: string }) {
     if (!host) return
     const fit = () => {
       const { width, height } = host.getBoundingClientRect()
-      const k = Math.min(width / (SCENE.w + 20), height / (SCENE.h + 40))
-      setScale({ s: k, left: (width - SCENE.w * k) / 2, top: (height - SCENE.h * k) / 2 })
+      const isCompact = width < COMPACT_BELOW
+      const frame = isCompact ? COMPACT_SCENE : SCENE
+      // The tilt (rotateY) swings the right of the full scene towards the viewer, so it
+      // projects wider than its box; reserve room for that and lean the scene left to match.
+      const spare = isCompact ? 20 : 110
+      const k = Math.min(width / (frame.w + spare), height / (frame.h + 40))
+      setScale({
+        s: k,
+        left: (width - frame.w * k) / 2 - (isCompact ? 0 : 30 * k),
+        top: (height - frame.h * k) / 2,
+        compact: isCompact,
+      })
     }
     fit()
     const ro = new ResizeObserver(fit)
@@ -366,6 +395,7 @@ export function ConfigHero({ className }: { className?: string }) {
       while (!cancelled) {
         setTyped(LINES.map(() => 0))
         setShown(new Set())
+        setLatest(null)
         setShipped(false)
         await sleep(700)
         for (let i = 0; i < LINES.length && !cancelled; i++) {
@@ -380,6 +410,7 @@ export function ConfigHero({ className }: { className?: string }) {
           for (const id of cards) {
             if (cancelled) return
             setShown((prev) => new Set(prev).add(id))
+            setLatest(id)
             await sleep(170)
           }
           await sleep(cards.length ? 420 : 120)
@@ -413,7 +444,7 @@ export function ConfigHero({ className }: { className?: string }) {
     const r = e.currentTarget.getBoundingClientRect()
     const nx = (e.clientX - r.left) / r.width - 0.5
     const ny = (e.clientY - r.top) / r.height - 0.5
-    setTilt({ x: REST_TILT.x - ny * 10, y: REST_TILT.y + nx * 14 })
+    setTilt({ x: restTilt.x - ny * 10, y: restTilt.y + nx * 14 })
   }
 
   return (
@@ -423,15 +454,15 @@ export function ConfigHero({ className }: { className?: string }) {
       className={`relative ${s.host} ${className ?? ''}`}
       onPointerMove={onPointerMove}
       onPointerLeave={() => {
-        setTilt(REST_TILT)
+        setTilt(restTilt)
         setHotLine(-1)
       }}
     >
       <div
         className={s.scene}
         style={{
-          width: SCENE.w,
-          height: SCENE.h,
+          width: scene.w,
+          height: scene.h,
           transform: scale
             ? `translate(${scale.left}px, ${scale.top}px) scale(${scale.s})`
             : undefined,
@@ -440,11 +471,19 @@ export function ConfigHero({ className }: { className?: string }) {
       >
         <div
           className={s.tilt}
-          style={{ transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) rotateZ(1deg)` }}
+          style={{
+            transform: `rotateX(${(compact ? restTilt : tilt).x}deg) rotateY(${(compact ? restTilt : tilt).y}deg) rotateZ(1deg)`,
+          }}
         >
           <div
             className={`${s.card} ${s.on} ${s.editor}`}
-            style={{ '--z': '70px', '--c': A.solutions } as CSSProperties}
+            style={
+              {
+                '--z': compact ? '20px' : '70px',
+                '--c': A.solutions,
+                ...(compact ? { left: 0, top: 0, width: COMPACT_SCENE.w } : null),
+              } as CSSProperties
+            }
           >
             <div className={s.tabbar}>
               <span className={s.current}>payload.config.ts</span>
@@ -469,16 +508,20 @@ export function ConfigHero({ className }: { className?: string }) {
           {CARD_IDS.map((id) => {
             const card = CARDS[id]
             const line = lineOfCard(id)
+            const isOn = compact ? latestView === id : shownView.has(id)
+            const box = compact
+              ? { left: COMPACT_SLOT.x, top: COMPACT_SLOT.y, width: COMPACT_SLOT.w, z: 0 }
+              : { left: card.x, top: card.y, width: card.w, z: card.z }
             return (
               <div
                 key={id}
-                className={`${s.card} ${shownView.has(id) ? s.on : ''} ${hotLine === line ? s.hot : ''}`}
+                className={`${s.card} ${isOn ? s.on : ''} ${hotLine === line ? s.hot : ''}`}
                 style={
                   {
-                    left: card.x,
-                    top: card.y,
-                    width: card.w,
-                    '--z': `${card.z}px`,
+                    left: box.left,
+                    top: box.top,
+                    width: box.width,
+                    '--z': `${box.z}px`,
                     '--c': card.color,
                   } as CSSProperties
                 }
@@ -494,7 +537,11 @@ export function ConfigHero({ className }: { className?: string }) {
       <div
         className={`${s.ship} ${shippedView ? s.shipOn : ''}`}
         style={
-          scale ? { left: scale.left + 40 * scale.s, top: scale.top + 452 * scale.s } : undefined
+          scale
+            ? compact
+              ? { left: scale.left + 20 * scale.s, top: scale.top + 286 * scale.s }
+              : { left: scale.left + 40 * scale.s, top: scale.top + 452 * scale.s }
+            : undefined
         }
       >
         ✓ Deployed to production · 41s
