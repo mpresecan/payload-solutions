@@ -31,7 +31,11 @@ async function getPage(slug: string) {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params
   const page = await getPage(slug)
-  return { title: page?.title ?? 'Legal', robots: { index: Boolean(page) } }
+  return {
+    title: page?.title ?? 'Legal',
+    robots: { index: Boolean(page) },
+    ...(page && { alternates: { canonical: `/legal/${page.slug}` } }),
+  }
 }
 
 export default async function LegalPage({ params }: Params) {

@@ -51,6 +51,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title,
     description,
+    alternates: { canonical: page.url },
     openGraph: {
       type: 'article',
       siteName: brands.solutions.name,

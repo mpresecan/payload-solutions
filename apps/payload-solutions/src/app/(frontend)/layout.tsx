@@ -10,7 +10,9 @@ import './globals.css'
 const brand = brands.solutions
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? brand.url),
+  // Always the apex host, never NEXT_PUBLIC_SITE_URL: canonicals, og:url and OG images must name
+  // the one host Google should index (www.payload.solutions redirects to it), on every deploy.
+  metadataBase: new URL(brand.url),
   title: {
     default: `${brand.name}: ${brand.tagline}`,
     template: `%s | ${brand.name}`,

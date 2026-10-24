@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { AmbientBackdrop } from '@payload-solutions/brand/ambient-backdrop'
 import { CrtGrain } from '@payload-solutions/brand/crt-grain'
 import { GridColumns } from '@payload-solutions/brand/grid-columns'
@@ -13,6 +14,9 @@ import { Roadmap } from '@/sections/roadmap'
 import { Statement } from '@/sections/statement'
 
 export const revalidate = 300
+
+// Set per page, not in the root layout: a layout canonical is inherited by every child route.
+export const metadata: Metadata = { alternates: { canonical: '/' } }
 
 export default async function HomePage() {
   const payload = await getPayloadClient()
