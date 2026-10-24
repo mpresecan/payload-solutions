@@ -2,8 +2,12 @@
   ConfigHero. Always rendered inside the dark hero band, so the card surfaces are fixed
   near-black glass rather than theme tokens; text and hairlines still read the band's tokens.
 */
+/*
+  No `position` here on purpose: the call site positions the host with Tailwind (`relative`,
+  `lg:absolute`), and a module rule loads after Tailwind, so a position declared here would win
+  and collapse the host to zero height on desktop.
+*/
 .host {
-  position: relative;
   overflow: hidden;
   perspective: 1500px;
   perspective-origin: 60% 45%;

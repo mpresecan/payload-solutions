@@ -420,7 +420,7 @@ export function ConfigHero({ className }: { className?: string }) {
     <div
       ref={hostRef}
       aria-hidden="true"
-      className={`${s.host} ${className ?? ''}`}
+      className={`relative ${s.host} ${className ?? ''}`}
       onPointerMove={onPointerMove}
       onPointerLeave={() => {
         setTilt(REST_TILT)
