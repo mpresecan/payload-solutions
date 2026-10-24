@@ -19,7 +19,7 @@ import { variantPath, VARIANT_DIR } from './variants'
 
 export const EMAILS_PACKAGE = '@payload-solutions/plugin-emails'
 /** Pinned, like every other dependency the CLI writes. Bump with the plugin. */
-export const EMAILS_VERSION = '0.1.0'
+export const EMAILS_VERSION = '0.1.1'
 /** React Email primitives, used directly by src/emails/template.tsx once the plugin is in. */
 export const REACT_EMAIL_COMPONENTS = ['@react-email/components', '^1.0.12'] as const
 /**

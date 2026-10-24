@@ -1,6 +1,6 @@
 {
   "name": "@payload-solutions/plugin-vercel",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Vercel Integration for Payload CMS: trigger deploy hooks from the admin or automatically after content changes, see what is waiting to go live, follow every deployment, cancel and roll back.",
   "license": "MIT",
   "type": "module",

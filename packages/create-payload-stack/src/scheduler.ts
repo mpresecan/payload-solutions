@@ -23,7 +23,7 @@ import { variantPath } from './variants'
 
 export const SCHEDULER_PACKAGE = '@payload-solutions/plugin-action-scheduler'
 /** Pinned, like every other dependency the CLI writes. Bump with the plugin. */
-export const SCHEDULER_VERSION = '0.2.0'
+export const SCHEDULER_VERSION = '0.3.0'
 
 const VARIANT_SCHEDULER = variantPath('scheduler-plugin')
 

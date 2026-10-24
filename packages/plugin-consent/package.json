@@ -1,6 +1,6 @@
 {
   "name": "@payload-solutions/plugin-consent",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Payload Consent: cookie categories, trackers, legal pages and consent records managed in the Payload admin; one endpoint drives the banner, script gating and the generated cookie table.",
   "keywords": [
     "payload",

@@ -1,6 +1,6 @@
 {
   "name": "@payload-solutions/plugin-emails",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Code-defined transactional emails for Payload CMS with admin-editable copy, typed send API, preview and test-send.",
   "license": "MIT",
   "type": "module",
