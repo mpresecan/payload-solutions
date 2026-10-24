@@ -10,6 +10,7 @@ import { Hero } from '@/sections/hero'
 import { Inside } from '@/sections/inside'
 import { OneCommand } from '@/sections/one-command'
 import { OpenSource } from '@/sections/open-source'
+import { SeeItRun } from '@/sections/see-it-run'
 import { Showcase } from '@/sections/showcase'
 import { WhyPayload } from '@/sections/why-payload'
 
@@ -34,6 +35,7 @@ export default function HomePage() {
           <CrtGrain />
           <GridColumns />
           <Inside />
+          <SeeItRun />
           <OneCommand />
           <Config />
           <WhyPayload />

@@ -30,6 +30,8 @@
     "./themed-image": "./src/themed-image.tsx",
     "./use-header-theme": "./src/use-header-theme.ts",
     "./screens": "./src/screens.ts",
+    "./clips": "./src/clips.ts",
+    "./clip": "./src/clip.tsx",
     "./reduced-motion": "./src/reduced-motion.ts",
     "./lattice": "./src/lattice.tsx"
   },

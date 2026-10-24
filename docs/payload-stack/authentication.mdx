@@ -5,6 +5,8 @@ description: Better Auth for the app and the Payload admin, through payload-auth
 
 Payload Stack does not use Payload's built-in authentication. [payload-auth](https://payloadauth.com) replaces it with [Better Auth](https://better-auth.com): Better Auth gets a database adapter backed by Payload's local API, Payload gets collections for users, sessions, accounts and verifications, and the admin panel trusts the same session as your app.
 
+<Clip id="one-session" caption="One Better Auth session signs the user into the dashboard and the Payload admin." />
+
 ## What is configured
 
 `src/lib/auth/options.ts` builds the Better Auth server options from `stack.config.ts`:

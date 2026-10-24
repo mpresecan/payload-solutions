@@ -5,6 +5,8 @@ description: Better Auth organizations as Payload tenants.
 
 With `organizations.enabled`, users work inside organizations: they create one during onboarding, invite members, switch between them, and every tenant-scoped document belongs to the active organization.
 
+<Clip id="multi-tenancy" caption="Switch organization in the app; filter by tenant in the admin." />
+
 ## Two systems, one source of truth
 
 Better Auth's [organization plugin](https://better-auth.com/docs/plugins/organization) owns organizations, members and invitations. payload-auth turns those into real Payload collections (`organizations`, `members`, `invitations`), so they show up in the admin and can be queried with the local API.

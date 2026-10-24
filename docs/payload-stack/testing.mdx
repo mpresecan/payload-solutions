@@ -14,6 +14,8 @@ Payload Stack ships with three suites in `tests/`, plus a suite for the CLI in t
 
 `pnpm verify` runs typecheck, lint and the unit suite: the loop to run after every change, and the command [coding agents](/docs/payload-stack/agents) are told to finish with. `pnpm test` runs the three template suites in order. The monorepo's GitHub Actions workflow (`.github/workflows/ci.yml`) runs typecheck, lint, unit and CLI tests on every push and pull request, and the integration and end-to-end suites against a PostgreSQL service container.
 
+<Clip id="playwright-journeys" caption="The Playwright journeys for a B2B and a B2C configuration." />
+
 ## Unit tests: every option, without a database
 
 Most of the template reads `stack.features.*` at import time. To test a module under a different configuration, the unit suite replaces `src/stack.config.ts` and re-imports the module:

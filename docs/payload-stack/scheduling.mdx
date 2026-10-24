@@ -14,6 +14,8 @@ npx create-payload-stack@latest ridgeline --no-scheduler   # nothing scheduled; 
 
 Both answers use the same call sites. `src/scheduler` exports the same names either way, so `payload.config.ts` and `src/lib/auth/options.ts` are identical in both projects — without the plugin the plugin array is empty, the jobs config is undefined, and the two Better Auth wrappers return what they are given.
 
+<Clip id="scheduler-cron" caption="Scheduled actions wait until something calls the queue; one call runs them." />
+
 ## With `--scheduler`
 
 The [Payload Action Scheduler](/docs/plugins/payload-action-scheduler) is registered and the project gets:

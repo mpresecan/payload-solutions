@@ -11,6 +11,7 @@ const brand = brands.stack
 /** Section anchors are absolute so they also work from /when-to-choose. */
 const NAV = [
   { href: '/#inside', label: 'Inside' },
+  { href: '/#demo', label: 'Demo' },
   { href: '/#how', label: 'How it works' },
   { href: '/#config', label: 'Config' },
   { href: '/#why', label: 'Why Payload' },
