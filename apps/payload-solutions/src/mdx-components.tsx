@@ -1,11 +1,13 @@
 import defaultMdxComponents from 'fumadocs-ui/mdx'
 import type { MDXComponents } from 'mdx/types'
 
+import { DocsClip } from '@/components/docs-clip'
 import { Screenshot } from '@/components/screenshot'
 
 export function getMDXComponents(components?: MDXComponents) {
   return {
     ...defaultMdxComponents,
+    Clip: DocsClip,
     Screenshot,
     ...components,
   } satisfies MDXComponents
