@@ -317,18 +317,14 @@
 }
 
 /*
-  Sides, below lg. The face is glass (see below), so it blurs the two content-edge
-  hairlines GridColumns draws behind it — and below lg those edges are the only vertical
-  lines on the page, which left a stack of rows reading as underlined labels floating on
-  black. So the row draws its own sides on a phone. From lg the lattice has its quarter and
-  centre lines back and the button is two columns of it again, where a side of its own would
-  double the line it sits on.
+  Sides, at every width. The button is glass (tint + backdrop blur, see --glass-tint), and the
+  blur smears the lattice hairlines GridColumns draws behind it, so without sides of its own a
+  stack of rows reads as underlined labels with no left edge. The row therefore draws both
+  sides itself; the blurred grid line underneath is too soft to read as a double line.
 */
-@media (max-width: 1023.98px) {
-  .slide-btn:not(.slide-btn-sm) {
-    border-left: 1px solid var(--border);
-    border-right: 1px solid var(--border);
-  }
+.slide-btn:not(.slide-btn-sm) {
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
 }
 
 .slide-btn__face {
