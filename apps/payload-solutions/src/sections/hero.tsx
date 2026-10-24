@@ -8,9 +8,10 @@ const HERO_VIDEO_ORIGIN = 'https://cdn.payload.solutions'
 const HERO_POSTER = '/hero-poster.webp'
 
 /**
- * The pinned video behind the hero and the statement (see VideoBackdrop). A seamless 6.5s loop,
- * 1080p H.264 without audio, ~1.8MB. Further encodes (AV1, VP9, a 720p phone cut) go in front of
- * the MP4 in this list once they are on the CDN; the browser takes the first one it can play.
+ * The pinned video behind the hero and the statement (see VideoBackdrop). A seamless 6.5s loop
+ * played at half speed (~13s per loop), 1080p H.264 without audio, ~1.8MB. Further encodes (AV1,
+ * VP9, a 720p phone cut) go in front of the MP4 in this list once they are on the CDN; the
+ * browser takes the first one it can play.
  * The poster is the loop's first frame, so the hand-off from still to motion is invisible.
  */
 export function HeroBackdrop() {
@@ -19,6 +20,7 @@ export function HeroBackdrop() {
   return (
     <VideoBackdrop
       poster={HERO_POSTER}
+      playbackRate={0.5}
       sources={[{ src: `${HERO_VIDEO_ORIGIN}/hero-1080.mp4`, type: 'video/mp4' }]}
     />
   )

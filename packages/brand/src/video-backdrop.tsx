@@ -40,11 +40,14 @@ export type VideoBackdropSource = {
 export function VideoBackdrop({
   sources,
   poster,
+  playbackRate = 1,
   className,
 }: {
   sources: VideoBackdropSource[]
   /** First frame of the loop, shown until the video plays and as the reduced-motion still. */
   poster: string
+  /** Playback speed for the background video. */
+  playbackRate?: number
   className?: string
 }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -52,6 +55,11 @@ export function VideoBackdrop({
   const reduce = useReducedMotionSafe()
   const { scrollY } = useScroll()
   const [fade, setFade] = useState<[number, number]>([0, 640])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (video) video.playbackRate = playbackRate
+  }, [playbackRate])
 
   useEffect(() => {
     const band = ref.current?.parentElement
@@ -97,6 +105,9 @@ export function VideoBackdrop({
       ) : (
         <video
           ref={videoRef}
+          onLoadedMetadata={(event) => {
+            event.currentTarget.playbackRate = playbackRate
+          }}
           className="video-backdrop__media"
           autoPlay
           loop
