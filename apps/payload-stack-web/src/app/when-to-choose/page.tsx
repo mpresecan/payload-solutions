@@ -47,6 +47,10 @@ const FIT: Point[] = [
     body: 'Next.js, Tailwind and shadcn/ui. The components are copied into your repository, so you own them and change them, rather than configuring around a component library you cannot open.',
   },
   {
+    title: 'You build with coding agents.',
+    body: 'An agent dropped into an unfamiliar boilerplate writes plausible code that skips the tenant scope, edits vendored components and stops before the tests. Payload Stack writes its rules down: AGENTS.md states what must not break, task skills walk Claude Code, Codex and Cursor through the common jobs, MCP servers let them see the running app and drive a browser, and pnpm verify tells them whether the change holds.',
+  },
+  {
     title: 'You want to own the code.',
     body: 'MIT licensed and in your repository from the first commit. No licence fee for the boilerplate, no upgrade path that depends on someone else’s business, and a scaffold you can read end to end before you commit to it.',
   },
@@ -103,7 +107,10 @@ function Points({ items, columns }: { items: Point[]; columns: 2 | 3 }) {
           index={i}
           /* Three items across four columns: the first takes two, so the row still closes
              on the far grid line. */
-          className={`list-cell ${columns === 3 && i === 0 ? 'md:col-span-2' : ''}`}
+          className={`list-cell ${columns === 3 && i === 0 ? 'md:col-span-2' : ''} ${
+            /* An odd count across two columns: the last item closes the row on its own. */
+            columns === 2 && items.length % 2 === 1 && i === items.length - 1 ? 'sm:col-span-2' : ''
+          }`}
         >
           <dt className="display-sm">{p.title}</dt>
           <dd className="mt-4 max-w-[48ch] text-pretty text-[0.9375rem] leading-relaxed text-fg-muted">

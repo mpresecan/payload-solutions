@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
   images: {
     // Media from the CMS, and the admin screenshots the docs embed (public/images/docs).
     localPatterns: [{ pathname: '/api/media/file/**' }, { pathname: '/images/**' }],
+    // Media served straight from R2 when R2_PUBLIC_URL is set (see payload.config.ts).
+    remotePatterns: process.env.R2_PUBLIC_URL ? [new URL(`${process.env.R2_PUBLIC_URL.replace(/\/+$/, '')}/**`)] : [],
   },
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {

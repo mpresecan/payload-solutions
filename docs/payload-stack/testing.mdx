@@ -12,7 +12,7 @@ Payload Stack ships with three suites in `tests/`, plus a suite for the CLI in t
 | End-to-end | `pnpm test:e2e` | PostgreSQL + Chromium | Browser journeys through the real app: marketing pages, sign-up, onboarding, dashboard, projects, organizations and invitations, settings, site admin |
 | CLI | `pnpm --filter create-payload-stack test` | nothing | Every flag, prompt path, database and storage adapter; scaffolds real projects from the local template and checks them with the template's own `defineStack` |
 
-`pnpm test` runs the three template suites in order. The monorepo's GitHub Actions workflow (`.github/workflows/ci.yml`) runs typecheck, lint, unit and CLI tests on every push and pull request, and the integration and end-to-end suites against a PostgreSQL service container.
+`pnpm verify` runs typecheck, lint and the unit suite: the loop to run after every change, and the command [coding agents](/docs/payload-stack/agents) are told to finish with. `pnpm test` runs the three template suites in order. The monorepo's GitHub Actions workflow (`.github/workflows/ci.yml`) runs typecheck, lint, unit and CLI tests on every push and pull request, and the integration and end-to-end suites against a PostgreSQL service container.
 
 ## Unit tests: every option, without a database
 

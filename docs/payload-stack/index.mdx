@@ -11,6 +11,7 @@ Payload Stack is an open-source SaaS boilerplate on [Payload CMS](https://payloa
 - **UI** with Tailwind v4, shadcn/ui and [Better Auth UI](https://better-auth-ui.com) for auth screens, account and security settings, organization management and billing. The dashboard shell is shadcn's `sidebar-08`.
 - **Back office**: Payload's admin at `/admin` for users, organizations, subscriptions, content and support, with a tenant selector.
 - **Email** with React Email templates sent through Payload's email adapter.
+- **Agent-ready**: an `AGENTS.md` that states the project's rules, task skills for Claude Code, Codex and Cursor, MCP servers for the running app, the browser and shadcn, and one `pnpm verify` command that tells an agent whether its change holds. See [Agentic development](/docs/payload-stack/agents).
 - **Content**: legal pages as a collection (seeded), media with a storage adapter of your choice (Vercel Blob, S3, R2, Azure, GCS, Uploadthing), rich text.
 
 Everything product-specific is declared once in `src/stack.config.ts` and validated with zod. Turn organizations or billing off and the related UI, plugins and collections disappear.
@@ -21,6 +22,7 @@ npx create-payload-stack@latest
 
 <Cards>
   <Card title="Getting started" href="/docs/payload-stack/getting-started" description="Scaffold, run, create your admin, sign up." />
+  <Card title="Agentic development" href="/docs/payload-stack/agents" description="AGENTS.md, skills, MCP servers and pnpm verify." />
   <Card title="Configuration" href="/docs/payload-stack/configuration" description="Every option in stack.config.ts." />
   <Card title="Organizations" href="/docs/payload-stack/organizations" description="How Better Auth organizations become Payload tenants." />
   <Card title="Billing" href="/docs/payload-stack/billing" description="Plans, Stripe keys, webhooks, seats and trials." />

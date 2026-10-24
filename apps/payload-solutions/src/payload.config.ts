@@ -2,8 +2,9 @@ import { consentPlugin } from "@payload-solutions/plugin-consent";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { resendAdapter } from "@payloadcms/email-resend";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import { s3Storage } from "@payloadcms/storage-s3";
 import path from "path";
-import { buildConfig } from "payload";
+import { buildConfig, type Plugin } from "payload";
 import sharp from "sharp";
 import { fileURLToPath } from "url";
 
@@ -21,6 +22,45 @@ const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3200";
+
+/** Reads a variable the active storage adapter cannot run without. */
+function requireEnv(name: string): string {
+	const value = process.env[name];
+	if (!value) throw new Error(`${name} is required for Cloudflare R2 media storage`);
+	return value;
+}
+
+// Media storage: Cloudflare R2 through its S3-compatible API (@payloadcms/storage-r2 needs a
+// Workers bucket binding; this site runs Next.js on Node). Without R2_BUCKET uploads stay on
+// local disk (./media), which is fine in development and lost on every Vercel deploy.
+const r2PublicUrl = process.env.R2_PUBLIC_URL?.replace(/\/+$/, "");
+const storagePlugins: Plugin[] = process.env.R2_BUCKET
+	? [
+			s3Storage({
+				collections: {
+					media: r2PublicUrl
+						? {
+								// Serve files from the bucket's public URL or custom domain instead of through Payload.
+								disablePayloadAccessControl: true,
+								generateFileURL: ({ filename, prefix }) =>
+									`${r2PublicUrl}/${prefix ? `${prefix}/${filename}` : filename}`,
+							}
+						: true,
+				},
+				bucket: process.env.R2_BUCKET,
+				config: {
+					credentials: {
+						accessKeyId: requireEnv("R2_ACCESS_KEY_ID"),
+						secretAccessKey: requireEnv("R2_SECRET_ACCESS_KEY"),
+					},
+					// R2 requires region "auto" and path-style addressing.
+					region: "auto",
+					endpoint: requireEnv("R2_ENDPOINT"),
+					forcePathStyle: true,
+				},
+			}),
+		]
+	: [];
 
 export default buildConfig({
 	admin: {
@@ -94,5 +134,6 @@ export default buildConfig({
 				processors: ["vercel", "resend", "posthog-eu"],
 			},
 		}),
+		...storagePlugins,
 	],
 });

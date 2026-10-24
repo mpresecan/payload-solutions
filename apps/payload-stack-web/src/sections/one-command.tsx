@@ -20,6 +20,10 @@ const STEPS: Array<{ title: string; body: string }> = [
     body: 'Skip for local disk, or Vercel Blob, S3, Cloudflare R2, Azure, Google Cloud Storage or Uploadthing, wired into payload.config.ts and switched on by environment variables.',
   },
   {
+    title: 'Name your coding agents',
+    body: 'Claude Code, Codex, Cursor or all three. Each gets the project rules in AGENTS.md, task skills where it looks for them, and MCP servers for the running app, a real browser and the shadcn registry.',
+  },
+  {
     title: 'Sign in at /admin',
     body: 'The first visit creates your admin account. From there, everything is a normal Payload project.',
   },
@@ -39,7 +43,7 @@ export function OneCommand() {
             <SectionHead
               id="how-heading"
               eyebrow="One command"
-              title="From zero to a running product in seven prompts."
+              title="From zero to a running product, ready for your agents."
             />
           </Reveal>
           <ol className="mt-10 space-y-6">

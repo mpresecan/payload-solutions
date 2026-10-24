@@ -1,0 +1,89 @@
+---
+title: Agentic development
+description: AGENTS.md, task skills, MCP servers and one verify command, so Claude Code, Codex and Cursor build on Payload Stack the way the template is meant to be built on.
+---
+
+A coding agent is only as good as what the project tells it. A boilerplate that leaves the agent to guess gets plausible code that skips tenant scoping, edits the vendored auth components, hard-codes a route and calls the change done without running a test. Payload Stack ships the context that prevents those mistakes, so you describe the feature and the agent builds it the way the template expects.
+
+Every scaffolded project gets four things:
+
+| | What | Read by |
+| --- | --- | --- |
+| `AGENTS.md` | Where things are, the commands, a definition of done, and the rules that are easy to break | Codex, Cursor, Claude Code (through `CLAUDE.md`), most other agents |
+| Skills | Step-by-step recipes for the jobs you do most in a SaaS | Claude Code, Codex, Cursor |
+| MCP servers | The running Next.js app, a real browser, the shadcn registry, and the Payload Consent audit | Claude Code, Cursor |
+| `pnpm verify` | Typecheck, lint and the unit suite in one command | everyone |
+
+Pick your agents when you scaffold:
+
+```bash
+npx create-payload-stack@latest my-saas --agents claude,cursor
+```
+
+The prompt defaults to all three. `--agents none` keeps only `AGENTS.md`, which stays in every project because it is the project's own map and Next.js keeps its agent rules there too.
+
+## AGENTS.md
+
+`AGENTS.md` is written for an agent that has never seen the project. Beyond a map of the code, it gives the agent:
+
+- **Commands**: when to run `generate:types`, `generate:importmap`, a migration, or the integration and end-to-end suites.
+- **A definition of done**: generated files current, tests extended, `pnpm verify` green, UI changes looked at in a browser, and anything unverified said plainly.
+- **The rules that are easy to break**: a tenant scope on every privileged query, two registrations for every tenant-scoped collection, `req` in nested hook calls, organization collections that may not exist, seams instead of direct plugin imports, plugin order, routes from `paths.ts`, vendored code left alone, and tests never loosened to make a change pass.
+
+Edit it as your product grows. It is the cheapest way to stop an agent repeating a mistake: write the rule down once.
+
+## Skills
+
+Skills are folders with a `SKILL.md` that an agent loads when a task matches its description. Payload Stack ships six:
+
+| Skill | Use it to |
+| --- | --- |
+| `stack-collection` | Add a collection, especially one owned by an organization or a user: access, tenancy registration, cleanup on organization delete, scoped reads and writes, and the isolation test |
+| `stack-dashboard-page` | Add a dashboard page, server action or sidebar link, following the Projects example |
+| `stack-email` | Add or send a transactional email, in either [email branch](/docs/payload-stack/emails) |
+| `stack-scheduled-action` | Run something later or on a schedule with the [Action Scheduler](/docs/payload-stack/scheduling) |
+| `stack-tests` | Pick the suite, use the helpers, and cover every `stack.config.ts` option |
+| `payload` | Payload CMS 3 itself: fields, hooks, access control, queries. Payload's own skill from the `3.x` branch of its repository |
+
+Where they land depends on your agents:
+
+| Agents | Skills directory |
+| --- | --- |
+| Claude Code (with or without Cursor) | `.claude/skills` (Cursor reads it too) |
+| Codex | `.agents/skills` |
+| Cursor without Claude Code | `.agents/skills` |
+
+A project for Claude Code and Codex gets both directories, with the same content. Change a skill in one, copy it to the other.
+
+Add your own skills next to them as your product picks up its own recipes: an `invoice-line-items` skill is worth more to your agent than any generic advice.
+
+## MCP servers
+
+`.mcp.json` (Claude Code) and `.cursor/mcp.json` (Cursor) list the servers an agent can start. All of them run through `npx`, so nothing is added to `package.json`.
+
+| Server | Gives the agent |
+| --- | --- |
+| `next-devtools` | Routes, build and runtime errors, and logs from the running `pnpm dev` server. Needs Next.js 16 and the dev server running |
+| `playwright` | A real browser to open the page it just changed and check it |
+| `shadcn` | The shadcn registry, to find and add components instead of writing them |
+| `payload-consent` | With [Payload Consent](/docs/plugins/payload-consent): audits the legal pages against the cookies, scripts and processors the app actually uses |
+
+Codex reads MCP servers from your own Codex configuration rather than from the project; add the same entries there if you use them.
+
+## pnpm verify
+
+```bash
+pnpm verify   # typecheck, lint, unit tests
+```
+
+The skills and `AGENTS.md` tell the agent to finish every change with it. It needs no database or running server, so an agent can run it after every step. Run the integration suite as well when access control, tenancy, auth or hooks change, and the end-to-end suite when a page or a flow changes; see [Testing](/docs/payload-stack/testing).
+
+Claude Code projects also get `.claude/settings.json`, which allows `pnpm verify`, `typecheck`, `lint`, `test:unit` and the two generate commands without asking each time. Your personal settings go in `.claude/settings.local.json`, which is git-ignored.
+
+## A first task
+
+With the dev server running, ask your agent for something real:
+
+> Add an Invoices collection owned by the organization, with a dashboard page that lists the organization's invoices and a form to create one.
+
+The agent should pick up `stack-collection` and `stack-dashboard-page`, register the collection in both places, scope every query, add the sidebar item, extend the unit and integration tests, regenerate the types, run `pnpm verify`, and open the page in the browser before it reports back. If it skips a step, the rule for that step belongs in `AGENTS.md`.

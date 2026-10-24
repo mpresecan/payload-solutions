@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
+import { applyAgentsChoice } from './agents'
 import { applyConsentChoice, swapConsentPackages } from './consent'
 import { DB_CHOICES, type DbChoice } from './databases'
 import { addEmailsPlugin, applyEmailsChoice, swapEmailsPackages } from './emails'
@@ -20,6 +21,7 @@ import { removeVariants } from './variants'
  *   6. scheduled actions wired to the Payload Action Scheduler, and a runner for the job queue
  *   7. .env generated from .env.example
  *   8. package.json renamed
+ *   9. skills and MCP servers arranged for the chosen coding agents
  * Every function is pure over file contents so it can be unit-tested without a filesystem.
  */
 
@@ -320,6 +322,7 @@ export async function configureProject(o: ProjectOptions) {
   await applyConsentChoice(o.directory, o.consent)
   await applySchedulerChoice(o.directory, o.scheduler)
   await removeVariants(o.directory)
+  await applyAgentsChoice(o.directory, o.agents, { consent: o.consent })
 
   // Vercel is the one runner that needs a file in the project; the rest are a variable or a
   // service. Written only when it was asked for, so no other host inherits a stray cron.

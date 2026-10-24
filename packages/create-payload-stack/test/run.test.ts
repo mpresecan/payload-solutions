@@ -19,10 +19,14 @@ const promptsShown: string[] = []
 
 vi.mock('@clack/prompts', () => {
   const CANCEL = Symbol('cancel')
+  // The last prompt is answered with its own default unless a test scripts it, so the scripts
+  // written for earlier steps need not repeat it. It is still recorded in promptsShown.
+  const fallbacks: Record<string, unknown> = { 'Coding agents': ['claude', 'codex', 'cursor'] }
   const answer = (opts: { message: string }) => {
     promptsShown.push(opts.message)
-    if (!(opts.message in answers)) throw new Error(`unexpected prompt: ${opts.message}`)
-    return answers[opts.message]
+    if (opts.message in answers) return answers[opts.message]
+    if (opts.message in fallbacks) return fallbacks[opts.message]
+    throw new Error(`unexpected prompt: ${opts.message}`)
   }
   return {
     intro: vi.fn(),
@@ -119,6 +123,7 @@ describe('--defaults', () => {
       scheduler: true,
       // The recommendation, and the only runner that needs no host-specific setup.
       runner: 'clock',
+      agents: ['claude', 'codex', 'cursor'],
       packageManager: 'pnpm',
       install: true,
       git: true,
@@ -242,7 +247,7 @@ describe('prompts', () => {
       'What runs the queue': 'clock',
     }
     const options = await run(baseFlags())
-    expect(promptsShown).toEqual(['Project name', 'Database', 'Connection string', 'Sign-in methods', 'Organizations (teams)', 'Billing', 'Media storage', 'Transactional emails', 'Cookie consent and legal pages', 'Scheduled and recurring actions', 'What runs the queue'])
+    expect(promptsShown).toEqual(['Project name', 'Database', 'Connection string', 'Sign-in methods', 'Organizations (teams)', 'Billing', 'Media storage', 'Transactional emails', 'Cookie consent and legal pages', 'Scheduled and recurring actions', 'What runs the queue', 'Coding agents'])
     expect(options).toMatchObject({
       name: 'Prompted App',
       slug: 'prompted-app',
@@ -259,7 +264,7 @@ describe('prompts', () => {
   it('skips the prompts whose flags were given', async () => {
     answers = { 'Sign-in methods': ['passkey'], 'Media storage': 'none', 'Transactional emails': true, 'Cookie consent and legal pages': true, 'Scheduled and recurring actions': true, 'What runs the queue': 'clock' }
     const options = await run(baseFlags({ db: 'postgres', connectionString: 'postgres://x', organizations: false, billing: 'user' }), 'flagged')
-    expect(promptsShown).toEqual(['Sign-in methods', 'Media storage', 'Transactional emails', 'Cookie consent and legal pages', 'Scheduled and recurring actions', 'What runs the queue'])
+    expect(promptsShown).toEqual(['Sign-in methods', 'Media storage', 'Transactional emails', 'Cookie consent and legal pages', 'Scheduled and recurring actions', 'What runs the queue', 'Coding agents'])
     expect(options.authMethods).toEqual(['passkey'])
     expect(options.billing).toBe('user')
   })
@@ -386,5 +391,48 @@ describe('the scheduler step', () => {
 
     await expectBail(baseFlags({ ...flags, scheduler: true, runner: 'cronjob' }), /Unknown value "cronjob" for --runner/, 'bad-runner')
     await expectBail(baseFlags({ ...flags, scheduler: false, runner: 'clock' }), /--runner needs --scheduler/, 'runner-without-scheduler')
+  })
+})
+
+describe('coding agents', () => {
+  const flags = { defaults: true } as const
+
+  it('sets up every agent with --defaults', async () => {
+    const options = await run(baseFlags(flags))
+    expect(options.agents).toEqual(['claude', 'codex', 'cursor'])
+  })
+
+  it('takes --agents without asking, in canonical order and without repeats', async () => {
+    const options = await run(baseFlags({ ...flags, agents: 'cursor, claude,cursor' }))
+    expect(options.agents).toEqual(['claude', 'cursor'])
+    expect(promptsShown).not.toContain('Coding agents')
+  })
+
+  it('takes --agents none as no agent-specific files', async () => {
+    const options = await run(baseFlags({ ...flags, agents: 'none' }))
+    expect(options.agents).toEqual([])
+  })
+
+  it('asks when there is no flag, and accepts an empty answer', async () => {
+    answers = {
+      'Project name': 'Agentless',
+      Database: 'sqlite',
+      'Connection string': 'file:./agentless.db',
+      'Sign-in methods': ['email-password'],
+      'Organizations (teams)': false,
+      Billing: 'none',
+      'Media storage': 'none',
+      'Transactional emails': false,
+      'Cookie consent and legal pages': false,
+      'Scheduled and recurring actions': false,
+      'Coding agents': [],
+    }
+    const options = await run(baseFlags())
+    expect(promptsShown.at(-1)).toBe('Coding agents')
+    expect(options.agents).toEqual([])
+  })
+
+  it('stops on an unknown agent', async () => {
+    await expectBail(baseFlags({ ...flags, agents: 'claude,copilot' }), /Unknown value "copilot" for --agents/)
   })
 })

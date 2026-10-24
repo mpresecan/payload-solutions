@@ -22,7 +22,8 @@
     "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts --project int",
     "test:unit": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts --project unit",
     "test:watch": "cross-env NODE_OPTIONS=--no-deprecation vitest --config ./vitest.config.mts --project unit",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify": "pnpm run typecheck && pnpm run lint && pnpm run test:unit"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

@@ -52,9 +52,9 @@ export const brands: Record<BrandId, Brand> = {
     word: 'Stack',
     domain: 'payloadstack.com',
     url: 'https://www.payloadstack.com',
-    tagline: 'The SaaS boilerplate built on Payload CMS.',
+    tagline: 'The agentic SaaS boilerplate for Payload CMS.',
     description:
-      'Payload Stack is an open-source SaaS boilerplate on Payload CMS and Next.js: Better Auth, organizations, Stripe subscriptions, a shadcn dashboard and a Payload admin, scaffolded with one command.',
+      'Payload Stack is an open-source, agent-ready SaaS boilerplate on Payload CMS and Next.js: Better Auth, organizations, Stripe subscriptions, a shadcn dashboard and a Payload admin, with the rules, skills and MCP servers Claude Code, Codex and Cursor need to build on it. Scaffolded with one command.',
     docsUrl: `${DOCS_BASE_URL}/payload-stack`,
     github: GITHUB_REPO_URL,
     githubSource: STACK_TEMPLATE_URL,

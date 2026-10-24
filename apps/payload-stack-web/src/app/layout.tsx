@@ -24,6 +24,13 @@ export const metadata: Metadata = {
     'multi-tenant',
     'shadcn/ui',
     'create-payload-stack',
+    'agentic development',
+    'AI coding agents',
+    'AGENTS.md',
+    'Claude Code',
+    'Codex',
+    'Cursor',
+    'MCP',
   ],
   openGraph: {
     type: 'website',

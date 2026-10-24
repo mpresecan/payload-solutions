@@ -1,4 +1,4 @@
-import { cp, mkdir, rm } from 'node:fs/promises'
+import { cp, mkdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { Readable } from 'node:stream'
@@ -54,9 +54,9 @@ export async function copyLocalTemplate({ from, dest }: { from: string; dest: st
     filter: (src) => {
       const rel = path.relative(source, src)
       const top = rel.split(path.sep)[0]
-      return !['node_modules', '.next', '.turbo', '.env', 'test-results', 'playwright-report', 'next-env.d.ts', 'tsconfig.tsbuildinfo', 'CLAUDE.md'].includes(top ?? '')
+      // A developer's personal Claude Code settings never ship; the project's own .claude does.
+      if (rel === path.join('.claude', 'settings.local.json')) return false
+      return !['node_modules', '.next', '.turbo', '.env', 'test-results', 'playwright-report', 'next-env.d.ts', 'tsconfig.tsbuildinfo'].includes(top ?? '')
     },
   })
-  // A local checkout may carry generated artifacts that should not ship.
-  await rm(path.join(dest, 'CLAUDE.md'), { force: true })
 }

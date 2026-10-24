@@ -4,6 +4,7 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import pc from 'picocolors'
 
+import { AGENT_CHOICES, AGENT_KEYS, parseAgents, type AgentKey } from './agents'
 import { configureProject } from './configure'
 import { DB_CHOICES, DB_KEYS, defaultConnectionString, type DbKey } from './databases'
 import {
@@ -233,6 +234,23 @@ export async function run(flags: CliFlags, positionalName?: string) {
             }),
           )))
 
+  // 12. Coding agents. AGENTS.md ships in every project; this picks the skills and MCP servers on
+  // top of it. Nothing to install: the MCP servers run through npx when the agent starts them.
+  const agentsFlag = parseAgents(flags.agents)
+  if (agentsFlag.error) bail(agentsFlag.error)
+  const agents: AgentKey[] =
+    agentsFlag.agents ??
+    (flags.defaults
+      ? [...AGENT_KEYS]
+      : guard(
+          await p.multiselect<AgentKey>({
+            message: 'Coding agents',
+            required: false,
+            initialValues: [...AGENT_KEYS],
+            options: AGENT_KEYS.map((key) => ({ value: key, label: AGENT_CHOICES[key].label, hint: AGENT_CHOICES[key].hint })),
+          }),
+        ))
+
   const packageManager = flags.packageManager ?? (await detectPackageManager())
 
   const options: ProjectOptions = {
@@ -250,6 +268,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
     consent,
     scheduler,
     runner,
+    agents,
     packageManager,
     install: flags.install,
     git: flags.git,
@@ -320,6 +339,12 @@ export async function run(flags: CliFlags, positionalName?: string) {
       : []),
     ...(scheduler
       ? ['# scheduled actions are under System -> Scheduled Actions in the admin', ...RUNNER_CHOICES[runner].next()]
+      : []),
+    ...(agents.length
+      ? [
+          `# agents: AGENTS.md and the stack-* skills are set up for ${listWords(agents.map((key) => AGENT_CHOICES[key].label))}`,
+          `# agents finish with ${runCommand(packageManager, 'verify')} (typecheck, lint, unit tests)`,
+        ]
       : []),
   ]
   p.note(steps.join('\n'), 'Done. Next steps:')

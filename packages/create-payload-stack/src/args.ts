@@ -1,6 +1,7 @@
 import { parseArgs } from 'node:util'
 import pc from 'picocolors'
 
+import { AGENT_KEYS } from './agents'
 import { DB_KEYS } from './databases'
 import type { CliFlags, PackageManager } from './options'
 import { RUNNER_KEYS } from './scheduler'
@@ -32,6 +33,7 @@ export function helpText(version: string): string {
         --scheduler               Scheduled and recurring actions (Payload Action Scheduler)
         --no-scheduler            No scheduler
         --runner <kind>           ${RUNNER_KEYS.join(' | ')} (what runs the queue; default: clock)
+        --agents <list>           Comma-separated: ${AGENT_KEYS.join(', ')}, or none (skills and MCP servers)
         --use-pnpm | --use-npm | --use-yarn | --use-bun
         --no-install              Skip dependency installation
         --no-git                  Skip git init
@@ -46,6 +48,7 @@ export function helpText(version: string): string {
     $ npx create-payload-stack@latest ridgeline
     $ npx create-payload-stack@latest ridgeline -d sqlite --auth email-password,passkey --billing none -y
     $ npx create-payload-stack@latest ridgeline --storage vercel-blob -y
+    $ npx create-payload-stack@latest ridgeline --agents claude,cursor -y
 
   Docs: https://payload.solutions/docs/payload-stack
 `
@@ -75,6 +78,7 @@ export function parse(argv: string[]): { flags: CliFlags; positional?: string } 
       consent: { type: 'boolean' },
       scheduler: { type: 'boolean' },
       runner: { type: 'string' },
+      agents: { type: 'string' },
       'use-pnpm': { type: 'boolean' },
       'use-npm': { type: 'boolean' },
       'use-yarn': { type: 'boolean' },
@@ -114,6 +118,7 @@ export function parse(argv: string[]): { flags: CliFlags; positional?: string } 
       consent: values.consent,
       scheduler: values.scheduler,
       runner: values.runner,
+      agents: values.agents,
       packageManager,
       install: values.install ?? true,
       git: values.git ?? true,

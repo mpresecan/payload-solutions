@@ -24,6 +24,7 @@ describe('parse', () => {
         consent: undefined,
         scheduler: undefined,
         runner: undefined,
+        agents: undefined,
         packageManager: undefined,
         install: true,
         git: true,
@@ -83,6 +84,7 @@ describe('parse', () => {
     expect(parse(['--consent']).flags.consent).toBe(true)
     expect(parse(['--no-consent']).flags.consent).toBe(false)
     expect(parse(['--scheduler']).flags.scheduler).toBe(true)
+    expect(parse(['--agents', 'claude,cursor']).flags.agents).toBe('claude,cursor')
     expect(parse(['--no-scheduler']).flags.scheduler).toBe(false)
     expect(parse(['--defaults']).flags.defaults).toBe(true)
     expect(parse(['-y']).flags.defaults).toBe(true)
@@ -135,6 +137,7 @@ describe('helpText', () => {
       '--scheduler',
       '--no-scheduler',
       '--runner',
+      '--agents',
       '--use-pnpm',
       '--use-npm',
       '--use-yarn',

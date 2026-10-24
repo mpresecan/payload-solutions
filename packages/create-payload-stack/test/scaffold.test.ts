@@ -3,7 +3,7 @@
  * temp directory for every database and storage choice, and the result is a project the template's
  * own code accepts: stack.config.ts parses with `defineStack`, payload.config.ts carries the
  * chosen adapters, package.json lists them, .env has fresh secrets, nothing that must not ship
- * (node_modules, .env from the checkout, CLAUDE.md) came along.
+ * (node_modules, .env from the checkout, personal agent settings) came along.
  *
  * Dependencies are not installed (`--no-install`) and git is skipped (`--no-git`), so a run takes
  * a few seconds per combination.
@@ -74,17 +74,65 @@ describe('scaffolded project', () => {
     expect(output).toContain('cd baseline')
     expect(output).toContain('pnpm install')
 
-    for (const file of ['package.json', 'src/stack.config.ts', 'src/payload.config.ts', '.env', '.env.example', 'AGENTS.md', 'README.md', 'tsconfig.json', 'src/lib/stack.ts', 'tests/unit/setup.ts']) {
+    for (const file of ['package.json', 'src/stack.config.ts', 'src/payload.config.ts', '.env', '.env.example', 'AGENTS.md', 'CLAUDE.md', 'README.md', 'tsconfig.json', 'src/lib/stack.ts', 'tests/unit/setup.ts']) {
       expect(existsSync(path.join(dir, file)), file).toBe(true)
     }
     // `variants/` holds the branch that was not chosen; a scaffolded project keeps neither copy.
-    for (const file of ['node_modules', '.next', 'CLAUDE.md', '.git', 'test-results', 'tsconfig.tsbuildinfo', 'variants']) {
+    for (const file of ['node_modules', '.next', '.claude/settings.local.json', '.git', 'test-results', 'tsconfig.tsbuildinfo', 'variants']) {
       expect(existsSync(path.join(dir, file)), file).toBe(false)
     }
     // Untouched files are byte-identical to the template.
     for (const file of ['src/lib/stack.ts', 'src/collections/Projects.ts', 'tsconfig.json', 'README.md']) {
       expect(readFileSync(path.join(dir, file), 'utf8')).toBe(readFileSync(path.join(templateDir, file), 'utf8'))
     }
+  })
+
+  describe('coding agents', () => {
+    const skills = ['payload', 'stack-collection', 'stack-dashboard-page', 'stack-email', 'stack-scheduled-action', 'stack-tests']
+    const servers = (dir: string, file: string) =>
+      Object.keys((JSON.parse(readFileSync(path.join(dir, file), 'utf8')) as { mcpServers: Record<string, unknown> }).mcpServers)
+
+    it('sets up Claude Code, Codex and Cursor by default, with the consent server when consent is on', () => {
+      const { dir, output } = scaffold('agents-default', ['-d', 'sqlite', '--consent', '-y'])
+      for (const skill of skills) {
+        expect(existsSync(path.join(dir, '.claude/skills', skill, 'SKILL.md')), `.claude ${skill}`).toBe(true)
+        expect(existsSync(path.join(dir, '.agents/skills', skill, 'SKILL.md')), `.agents ${skill}`).toBe(true)
+      }
+      expect(readFileSync(path.join(dir, 'CLAUDE.md'), 'utf8').trim()).toBe('@AGENTS.md')
+      expect(existsSync(path.join(dir, '.claude/settings.json'))).toBe(true)
+      for (const file of ['.mcp.json', '.cursor/mcp.json']) {
+        expect(servers(dir, file)).toEqual(['next-devtools', 'playwright', 'shadcn', 'payload-consent'])
+      }
+      expect(output).toContain('set up for Claude Code, Codex and Cursor')
+      expect(output).toContain('pnpm verify')
+    })
+
+    it('leaves the consent server out of a project without the plugin', () => {
+      const { dir } = scaffold('agents-no-consent', ['-d', 'sqlite', '--no-consent', '--agents', 'claude', '-y'])
+      expect(servers(dir, '.mcp.json')).toEqual(['next-devtools', 'playwright', 'shadcn'])
+      for (const file of ['.agents', '.cursor']) expect(existsSync(path.join(dir, file)), file).toBe(false)
+    })
+
+    it('gives Codex its own skills directory and nothing Claude-specific', () => {
+      const { dir } = scaffold('agents-codex', ['-d', 'sqlite', '--agents', 'codex', '-y'])
+      for (const skill of skills) expect(existsSync(path.join(dir, '.agents/skills', skill, 'SKILL.md')), skill).toBe(true)
+      for (const file of ['CLAUDE.md', '.claude', '.mcp.json', '.cursor']) expect(existsSync(path.join(dir, file)), file).toBe(false)
+      expect(existsSync(path.join(dir, 'AGENTS.md'))).toBe(true)
+    })
+
+    it('keeps one copy of the skills for Claude Code and Cursor together', () => {
+      const { dir } = scaffold('agents-claude-cursor', ['-d', 'sqlite', '--agents', 'claude,cursor', '-y'])
+      expect(existsSync(path.join(dir, '.claude/skills/stack-tests/SKILL.md'))).toBe(true)
+      expect(existsSync(path.join(dir, '.agents'))).toBe(false)
+      expect(existsSync(path.join(dir, '.cursor/mcp.json'))).toBe(true)
+    })
+
+    it('keeps only AGENTS.md with --agents none', () => {
+      const { dir, output } = scaffold('agents-none', ['-d', 'sqlite', '--agents', 'none', '-y'])
+      expect(existsSync(path.join(dir, 'AGENTS.md'))).toBe(true)
+      for (const file of ['CLAUDE.md', '.claude', '.agents', '.mcp.json', '.cursor']) expect(existsSync(path.join(dir, file)), file).toBe(false)
+      expect(output).not.toContain('stack-* skills')
+    })
   })
 
   describe('transactional emails', () => {

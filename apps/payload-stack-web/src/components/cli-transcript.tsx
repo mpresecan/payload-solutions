@@ -38,6 +38,7 @@ const Q = {
   organizations: { t: 'q', k: '◇  Organizations (teams)', v: '│  Yes' },
   billing: { t: 'q', k: '◇  Billing', v: '│  Stripe subscriptions, per organization' },
   storage: { t: 'q', k: '◇  Media storage', v: '│  Vercel Blob' },
+  agents: { t: 'q', k: '◇  Coding agents', v: '│  Claude Code, Codex, Cursor' },
   install: { t: 'q', k: '◇  Installed dependencies with pnpm', v: null },
 } satisfies Record<string, Line>
 
@@ -60,6 +61,10 @@ const FULL: Line[] = [
   RAIL,
   Q.storage,
   RAIL,
+  { t: 'dim', v: '│  … emails, consent, scheduled actions' },
+  RAIL,
+  Q.agents,
+  RAIL,
   Q.install,
   RAIL,
   { t: 'ui', v: '└  Done. Next steps:' },
@@ -67,6 +72,7 @@ const FULL: Line[] = [
   { t: 'next', v: '   cd ridgeline' },
   { t: 'next', v: '   pnpm dev' },
   { t: 'next', v: '   open http://localhost:3000/admin' },
+  { t: 'next', v: '   # agents finish with pnpm verify' },
 ]
 
 const DECISIONS: Line[] = [
@@ -80,7 +86,7 @@ const DECISIONS: Line[] = [
   RAIL,
   Q.billing,
   RAIL,
-  { t: 'dim', v: '│  … project name, sign-in, media storage' },
+  { t: 'dim', v: '│  … project name, sign-in, storage, agents' },
   RAIL,
   { t: 'ui', v: '└  Done. Next steps:' },
   { t: 'blank' },

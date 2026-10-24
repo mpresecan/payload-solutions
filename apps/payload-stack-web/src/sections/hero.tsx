@@ -24,16 +24,20 @@ export function Hero() {
             fill the cell, so they start on the left grid line and end on the centre one. */}
         <div className="lg:col-span-2">
           <h1 id="hero-heading" className="display-xl max-w-[15ch]">
-            Turn <ProseLink href={PAYLOAD_URL}>Payload CMS</ProseLink> into a SaaS.
+            Turn <ProseLink href={PAYLOAD_URL}>Payload CMS</ProseLink> into an{' '}
+            <span className="whitespace-nowrap">agent-ready</span> SaaS.
           </h1>
           <p className="lead mt-7 max-w-[30rem]">
-            An open-source SaaS boilerplate: Better Auth, organizations, Stripe subscriptions and a
-            shadcn dashboard, wired into Payload and Next.js. One command.
+            An open-source SaaS boilerplate your coding agents already understand: Better Auth,
+            organizations, Stripe subscriptions and a shadcn dashboard, wired into Payload and
+            Next.js, with the rules, skills and MCP servers Claude Code, Codex and Cursor build on.
+            One command.
           </p>
 
           <div className="mt-11 border-t border-border">
             <CopyCommand variant="row" />
             <ActionRow href={brand.docsUrl}>Documentation</ActionRow>
+            <ActionRow href={`${brand.docsUrl}/agents`}>Agentic development</ActionRow>
             <ActionRow href="/when-to-choose" meta="2 min read">
               When to choose Payload Stack
             </ActionRow>

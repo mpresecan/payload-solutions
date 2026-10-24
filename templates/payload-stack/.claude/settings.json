@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm verify)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm test:unit)",
+      "Bash(pnpm test:unit:*)",
+      "Bash(pnpm generate:types)",
+      "Bash(pnpm generate:importmap)"
+    ]
+  }
+}

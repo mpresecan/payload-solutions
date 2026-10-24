@@ -170,7 +170,7 @@ describe('copyLocalTemplate', () => {
   })
   afterEach(() => rmSync(root, { recursive: true, force: true }))
 
-  it('copies the checkout without build output, secrets, test results or agent files', async () => {
+  it('copies the checkout without build output, secrets, test results or personal agent settings', async () => {
     const source = path.join(root, 'source')
     for (const rel of [
       'package.json',
@@ -188,6 +188,9 @@ describe('copyLocalTemplate', () => {
       'tsconfig.tsbuildinfo',
       'CLAUDE.md',
       'AGENTS.md',
+      '.claude/skills/stack-tests/SKILL.md',
+      '.claude/settings.json',
+      '.claude/settings.local.json',
     ]) {
       mkdirSync(path.dirname(path.join(source, rel)), { recursive: true })
       writeFileSync(path.join(source, rel), rel)
@@ -195,10 +198,10 @@ describe('copyLocalTemplate', () => {
     const dest = path.join(root, 'dest')
     await copyLocalTemplate({ from: source, dest })
 
-    for (const kept of ['package.json', 'src/stack.config.ts', 'src/app/(frontend)/page.tsx', 'tests/e2e/a.spec.ts', '.env.example', 'AGENTS.md']) {
+    for (const kept of ['package.json', 'src/stack.config.ts', 'src/app/(frontend)/page.tsx', 'tests/e2e/a.spec.ts', '.env.example', 'AGENTS.md', 'CLAUDE.md', '.claude/skills/stack-tests/SKILL.md', '.claude/settings.json']) {
       expect(existsSync(path.join(dest, kept)), kept).toBe(true)
     }
-    for (const dropped of ['node_modules', '.next', '.turbo', '.env', 'test-results', 'playwright-report', 'next-env.d.ts', 'tsconfig.tsbuildinfo', 'CLAUDE.md']) {
+    for (const dropped of ['node_modules', '.next', '.turbo', '.env', 'test-results', 'playwright-report', 'next-env.d.ts', 'tsconfig.tsbuildinfo', '.claude/settings.local.json']) {
       expect(existsSync(path.join(dest, dropped)), dropped).toBe(false)
     }
   })

@@ -48,3 +48,6 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Coding agents: personal settings stay local
+.claude/settings.local.json

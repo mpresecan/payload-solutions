@@ -4,6 +4,7 @@ import {
   CreditCard,
   EnvelopeSimple,
   Fingerprint,
+  Robot,
   ShieldCheck,
   SlidersHorizontal,
   SquaresFour,
@@ -43,6 +44,46 @@ function Chips({ items }: { items: string[] }) {
 }
 
 const CELLS: Cell[] = [
+  {
+    id: 'agents',
+    icon: <Robot size={24} />,
+    title: 'Built for the agents that will build on it',
+    body: 'Every project ships the context a coding agent needs to work the way the template expects: AGENTS.md with the rules that are easy to break, task skills for collections, dashboard pages, emails, scheduled actions and tests, MCP servers for the running app, a real browser and the shadcn registry, and one pnpm verify that tells the agent whether its change holds.',
+    span: 4,
+    tint: true,
+    extra: (
+      <Chips
+        items={['AGENTS.md', 'Claude Code', 'Codex', 'Cursor', 'Skills', 'MCP servers', 'pnpm verify']}
+      />
+    ),
+    media: (
+      <div className="flex h-full min-h-[16rem] items-center border-l border-t border-border bg-surface p-8">
+        <pre className="code-block whitespace-pre text-[0.8125rem]">
+          <code>
+            <span className="tok-c">.claude/skills/</span>
+            {'\n'}
+            <span className="tok-c">├─ </span>
+            <span className="tok-k">stack-collection</span>
+            {'\n'}
+            <span className="tok-c">├─ </span>
+            <span className="tok-k">stack-dashboard-page</span>
+            {'\n'}
+            <span className="tok-c">├─ </span>
+            <span className="tok-k">stack-email</span>
+            {'\n'}
+            <span className="tok-c">├─ </span>
+            <span className="tok-k">stack-scheduled-action</span>
+            {'\n'}
+            <span className="tok-c">├─ </span>
+            <span className="tok-k">stack-tests</span>
+            {'\n'}
+            <span className="tok-c">└─ </span>
+            <span className="tok-k">payload</span>
+          </code>
+        </pre>
+      </div>
+    ),
+  },
   {
     id: 'auth',
     icon: <Fingerprint size={24} />,
@@ -182,8 +223,9 @@ export function Inside() {
             title="Everything a SaaS needs on day one."
             lead={
               <>
-                Not a demo app. The pieces every product ships, already connected, with nothing
-                about anyone&apos;s particular business baked in.
+                Not a demo app. The pieces every product ships, already connected and written down
+                for the agents that extend them, with nothing about anyone&apos;s particular
+                business baked in.
               </>
             }
           />

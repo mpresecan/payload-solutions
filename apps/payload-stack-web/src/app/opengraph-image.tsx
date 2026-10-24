@@ -41,11 +41,11 @@ export default async function OpenGraphImage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
           <div style={{ fontSize: 76, fontWeight: 500, letterSpacing: '-0.04em', lineHeight: 1.02, maxWidth: 900 }}>
-            Turn Payload CMS into a SaaS.
+            Turn Payload CMS into an agent-ready SaaS.
           </div>
           <div style={{ fontSize: 28, color: 'rgba(242,242,242,0.64)', maxWidth: 900, lineHeight: 1.35 }}>
-            An open-source SaaS boilerplate: Better Auth, organizations, Stripe subscriptions and
-            a shadcn dashboard, wired into Payload and Next.js.
+            An open-source SaaS boilerplate: Better Auth, organizations, Stripe and a shadcn
+            dashboard, with the rules, skills and MCP servers your coding agents build on.
           </div>
         </div>
 

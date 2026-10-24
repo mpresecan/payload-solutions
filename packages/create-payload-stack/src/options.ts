@@ -1,3 +1,4 @@
+import type { AgentKey } from './agents'
 import type { DbKey } from './databases'
 import type { RunnerKey } from './scheduler'
 import type { StorageKey } from './storage'
@@ -33,6 +34,8 @@ export interface ProjectOptions {
   scheduler: boolean
   /** What runs the job queue. Only meaningful with `scheduler`. */
   runner: RunnerKey
+  /** Coding agents to set up skills and MCP servers for. AGENTS.md ships either way. */
+  agents: AgentKey[]
   packageManager: PackageManager
   install: boolean
   git: boolean
@@ -52,6 +55,7 @@ export interface CliFlags {
   consent?: boolean
   scheduler?: boolean
   runner?: string
+  agents?: string
   packageManager?: PackageManager
   install: boolean
   git: boolean
