@@ -152,21 +152,32 @@ export function tenantIds(doc: { tenants?: Array<{ tenant: string | number }> })
   return (doc.tenants ?? []).map((t) => String(t.tenant)).sort()
 }
 
-/** Records every email Payload would send; returns the captured list and a restore function. */
+/**
+ * Records every email Payload would send; returns the captured list and a restore function.
+ * `to` is flattened to one string: the plain branch passes an address, the emails plugin a list.
+ */
 export function captureEmails(payload: Payload) {
   const sent: Array<{ to: string; subject: string; html: string; text: string }> = []
   const spy = vi.spyOn(payload, 'sendEmail').mockImplementation(async (message) => {
-    sent.push(message as never)
+    const m = message as { to?: string | string[] } & Record<string, unknown>
+    sent.push({ ...m, to: Array.isArray(m.to) ? m.to.join(', ') : m.to } as never)
     return undefined as never
   })
   return { sent, restore: () => spy.mockRestore() }
 }
 
-/** Extracts the first http(s) URL from an email body. */
+/**
+ * Extracts the first http(s) URL from an email body that points somewhere: the emails plugin's
+ * layout links the bare site address from its header, which is never the link under test.
+ */
 export function firstUrl(text: string): string {
-  const match = /https?:\/\/[^\s"<>]+/.exec(text)
-  if (!match) throw new Error(`no url in: ${text.slice(0, 200)}`)
-  return match[0]
+  const urls = text.match(/https?:\/\/[^\s"<>)\]]+/g) ?? []
+  const link = urls.find((u) => {
+    const parsed = new URL(u)
+    return parsed.pathname.replace(/\/$/, '') !== '' || parsed.search !== ''
+  })
+  if (!link) throw new Error(`no url in: ${text.slice(0, 200)}`)
+  return link
 }
 
 export async function expectApiError(promise: Promise<unknown>, pattern: RegExp | number) {

@@ -7,6 +7,8 @@
  */
 import { expect, test as base, type Page } from '@playwright/test'
 
+import stack from '@/stack.config'
+
 export { expect }
 
 export const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
@@ -64,6 +66,14 @@ export async function createOrgViaApi(page: Page, name = 'E2E Org'): Promise<E2E
   return { id: String(org.id), name: org.name, slug: org.slug }
 }
 
+/**
+ * Gets a freshly signed-up user past onboarding: with organizations on, the dashboard needs an
+ * active one; without, there is nothing to do.
+ */
+export async function dashboardReadyViaApi(page: Page, name?: string): Promise<E2EOrg | null> {
+  return stack.features.organizations ? createOrgViaApi(page, name) : null
+}
+
 export async function setActiveOrgViaApi(page: Page, organizationId: string | null): Promise<void> {
   await authPost(page, 'organization/set-active', { organizationId })
 }
@@ -94,10 +104,32 @@ export async function createProjectViaUi(page: Page, name: string, description?:
 }
 
 /**
- * A signed-in member with one organization, ready for the dashboard. Most journeys start here.
+ * Two starting points for journeys:
+ * - `account`: a signed-in user ready for the dashboard, with an active organization when
+ *   `stack.features.organizations` is on (and `org: null` when it is off). Journeys every product
+ *   has (dashboard, projects, settings) start here and assert what the config implies.
+ * - `member`: a signed-in member of one organization, for journeys about organizations. Asking for
+ *   it skips the journey when organizations are off: there is nothing to test.
  */
-export const test = base.extend<{ member: { user: E2EUser; org: E2EOrg } }>({
-  member: async ({ page }, use) => {
+export const test = base.extend<{ account: { user: E2EUser; org: E2EOrg | null }; member: { user: E2EUser; org: E2EOrg } }>({
+  page: async ({ page }, use) => {
+    // With Payload Consent the cookie banner opens bottom-left, over the sidebar's user menu. A
+    // visitor answers it once; the journeys answer it whenever it shows up in their way. Without the
+    // consent plugin there is no banner and the handler never runs.
+    await page.addLocatorHandler(page.getByRole('region', { name: 'Your privacy choices' }), async (banner) => {
+      await banner.getByRole('button', { name: 'Reject all' }).click()
+    })
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- Playwright's fixture `use`, not a React hook
+    await use(page)
+  },
+  account: async ({ page }, use) => {
+    const user = await signUpViaApi(page)
+    const org = stack.features.organizations ? await createOrgViaApi(page) : null
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- Playwright's fixture `use`, not a React hook
+    await use({ user, org })
+  },
+  member: async ({ page }, use, testInfo) => {
+    testInfo.skip(!stack.features.organizations, 'organizations are disabled in stack.config.ts')
     const user = await signUpViaApi(page)
     const org = await createOrgViaApi(page)
     // eslint-disable-next-line react-hooks/rules-of-hooks -- Playwright's fixture `use`, not a React hook

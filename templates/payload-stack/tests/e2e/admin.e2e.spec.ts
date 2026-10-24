@@ -3,6 +3,8 @@
  * the in-app user administration at /dashboard/admin/users, and the Payload admin panel that
  * trusts the same session.
  */
+import stack from '@/stack.config'
+
 import { BASE, adminCredentials, createOrgViaApi, expect, getSessionViaApi, signInViaApi, signUpViaApi, test } from './fixtures'
 
 test.describe('site admin', () => {
@@ -11,7 +13,8 @@ test.describe('site admin', () => {
     await signInViaApi(page, email, password)
     const session = await getSessionViaApi(page)
     expect(session?.user.email).toBe(email)
-    // The admin needs an organization like everyone else to enter the dashboard.
+    // With organizations on, the admin needs one like everyone else to enter the dashboard.
+    if (!stack.features.organizations) return
     const orgs = await page.request.get(`${BASE}/api/auth/organization/list`, { headers: { origin: BASE } }).then((r) => r.json() as Promise<Array<{ id: string }>>)
     if (orgs.length === 0) await createOrgViaApi(page, 'Admin org')
     else await page.request.post(`${BASE}/api/auth/organization/set-active`, { data: { organizationId: orgs[0]!.id }, headers: { origin: BASE } })
@@ -74,12 +77,13 @@ test.describe('site admin', () => {
     // The plugin hides its selector unless there is something to choose between: TenantSelectorClient
     // returns null for `options.length <= 1`. beforeEach leaves the admin with a single organization,
     // so on a fresh database this needs a second one before the selector is expected.
-    await createOrgViaApi(page, 'Second admin org')
+    if (stack.features.organizations) await createOrgViaApi(page, 'Second admin org')
 
     await page.goto(`${BASE}/admin`)
     await expect(page).not.toHaveURL(/\/admin\/(login|unauthorized)/)
     await expect(page.getByRole('link', { name: /projects/i }).first()).toBeVisible({ timeout: 90_000 })
-    // The tenant selector the multi-tenant plugin adds is present for admins.
-    await expect(page.getByText('Filter by Tenant').first()).toBeVisible()
+    // The tenant selector the multi-tenant plugin adds is present for admins, and only with organizations.
+    if (stack.features.organizations) await expect(page.getByText('Filter by Tenant').first()).toBeVisible()
+    else await expect(page.getByText('Filter by Tenant')).toHaveCount(0)
   })
 })

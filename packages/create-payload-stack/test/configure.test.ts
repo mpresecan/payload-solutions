@@ -13,6 +13,7 @@ import { describe, expect, it } from 'vitest'
 import {
   renameProject,
   renderEnv,
+  renderTestEnv,
   renderStackConfig,
   storageChoice,
   swapDatabaseAdapter,
@@ -29,6 +30,7 @@ const templateDir = path.resolve(__dirname, '../../../templates/payload-stack')
 const payloadConfig = readFileSync(path.join(templateDir, 'src/payload.config.ts'), 'utf8')
 const packageJson = JSON.parse(readFileSync(path.join(templateDir, 'package.json'), 'utf8')) as Record<string, unknown>
 const envExample = readFileSync(path.join(templateDir, '.env.example'), 'utf8')
+const testEnv = readFileSync(path.join(templateDir, 'test.env'), 'utf8')
 
 /**
  * Evaluates a rendered stack.config.ts the way the app would: strips the import and the
@@ -152,6 +154,20 @@ describe('renderStackConfig', () => {
     const keys = (s: string) => [...s.matchAll(/^  ([a-zA-Z]+):/gm)].map((m) => m[1])
     expect(keys(source)).toEqual(keys(template))
     expect(source).toContain('Your whole product, described in one file.')
+  })
+})
+
+describe('renderStackConfig description', () => {
+  const description = (organizations: boolean, billing: BillingMode) =>
+    evaluateStackConfig(renderStackConfig({ name: 'acme', authMethods: ['email-password'], social: [], organizations, billing, consent: false })).description
+
+  it('names only the features the product has', () => {
+    expect(description(true, 'organization')).toBe(
+      'Authentication, organizations, subscriptions and an admin panel, wired together on Payload CMS and Next.js.',
+    )
+    expect(description(false, 'user')).toBe('Authentication, subscriptions and an admin panel, wired together on Payload CMS and Next.js.')
+    expect(description(true, 'none')).toBe('Authentication, organizations and an admin panel, wired together on Payload CMS and Next.js.')
+    expect(description(false, 'none')).toBe('Authentication and an admin panel, wired together on Payload CMS and Next.js.')
   })
 })
 
@@ -399,5 +415,36 @@ describe('choice tables', () => {
     // R2 goes through the S3 package on purpose.
     expect(STORAGE_CHOICES.r2.packageName).toBe(STORAGE_CHOICES.s3.packageName)
     expect(STORAGE_PACKAGES).toHaveLength(5)
+  })
+})
+
+describe('renderTestEnv', () => {
+  const urls = (source: string) => ({
+    int: /^DATABASE_URL=(.*)$/m.exec(source)?.[1],
+    e2e: /^E2E_DATABASE_URL=(.*)$/m.exec(source)?.[1],
+  })
+
+  it.each([DB_CHOICES.postgres, DB_CHOICES['vercel-postgres']])('keeps the docker-compose test database for $label', (db) => {
+    expect(renderTestEnv(testEnv, db, 'acme')).toBe(testEnv)
+  })
+
+  it('points both suites at local files for SQLite', () => {
+    const out = renderTestEnv(testEnv, DB_CHOICES.sqlite, 'acme')
+    expect(urls(out)).toEqual({ int: 'file:./test.db', e2e: 'file:./e2e.db' })
+    // Everything else in the file is kept (E2E_PORT and the comments the user reads).
+    expect(out).toContain(/^E2E_PORT=.*$/m.exec(testEnv)?.[0])
+  })
+
+  it('points both suites at two databases on a local server for MongoDB', () => {
+    const out = renderTestEnv(testEnv, DB_CHOICES.mongodb, 'acme')
+    expect(urls(out)).toEqual({ int: 'mongodb://127.0.0.1/acme-test', e2e: 'mongodb://127.0.0.1/acme-e2e' })
+  })
+
+  it.each(Object.values(DB_CHOICES))('gives $label URLs its own adapter accepts', (db) => {
+    const { int, e2e } = urls(renderTestEnv(testEnv, db, 'acme'))
+    const scheme = (url = '') => url.split(':')[0]
+    expect(scheme(int)).toBe(scheme(defaultConnectionString(db, 'acme')))
+    expect(scheme(e2e)).toBe(scheme(defaultConnectionString(db, 'acme')))
+    expect(int).not.toBe(e2e)
   })
 })

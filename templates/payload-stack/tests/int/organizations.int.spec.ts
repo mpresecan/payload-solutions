@@ -144,7 +144,8 @@ describe.skipIf(!stack.features.organizations)('invitations', () => {
     expect(message?.subject).toBe(`Mira Lindqvist invited you to ${org.name} on ${stack.name}`)
     const url = firstUrl(message!.text)
     expect(url).toBe(`${stack.url}/auth/accept-invitation?invitationId=${invitation.id}`)
-    expect(message!.html).toContain('48 hours')
+    // React separates adjacent text nodes with <!-- --> when the copy interpolates the number.
+    expect(message!.html.replaceAll('<!-- -->', '')).toContain('48 hours')
   })
 
   it('accepting adds the invitee as a member with the invited role and syncs their tenants', async () => {

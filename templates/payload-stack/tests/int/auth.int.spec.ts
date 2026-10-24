@@ -6,6 +6,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 
 import stack from '@/stack.config'
+import { emailsEnabled } from '@/emails/hooks'
 import {
   PASSWORD,
   api,
@@ -301,7 +302,10 @@ describe('account deletion', () => {
     try {
       await auth.deleteUser({ body: { password: PASSWORD, callbackURL: '/' }, headers: actor.headers })
       expect(sent).toHaveLength(1)
-      expect(sent[0]!.subject).toBe(`Confirm deleting your ${stack.name} account`)
+      // The emails plugin ships its own default copy (editable under Emails in the admin).
+      expect(sent[0]!.subject).toBe(
+        emailsEnabled ? `Confirm you want to delete your ${stack.name} account` : `Confirm deleting your ${stack.name} account`,
+      )
       const token = tokenFromUrl(firstUrl(sent[0]!.text))
       await auth.deleteUserCallback({ query: { token }, headers: actor.headers })
       const users = await payload.find({ collection: 'users', where: { email: { equals: actor.email } }, overrideAccess: true })
