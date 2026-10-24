@@ -103,7 +103,7 @@ describe.skipIf(!stack.features.organizations)('projects are isolated per organi
         user,
         overrideAccess: false,
       }),
-    ).rejects.toMatchObject({ name: 'ValidationError', data: { errors: [expect.objectContaining({ message: 'You are not a member of this organization.' })] } })
+    ).rejects.toMatchObject({ name: 'ValidationError', data: { errors: [expect.objectContaining({ path: 'tenant' })] } })
     const ok = await payload.create({
       collection: 'projects',
       data: { name: 'Legit', owner: toPayloadId(payload, bob.id), tenant: toPayloadId(payload, orgB.id) } as never,

@@ -3,6 +3,7 @@ import * as migration_20260908_083000_emails_shipped from './20260908_083000_ema
 import * as migration_20260912_090000_plugins_shipped from './20260912_090000_plugins_shipped';
 import * as migration_20260929_184546_consent_plugin from './20260929_184546_consent_plugin';
 import * as migration_20260929_191625_contact_consent from './20260929_191625_contact_consent';
+import * as migration_20261020_080228_payload_3_91 from './20261020_080228_payload_3_91';
 
 export const migrations = [
   {
@@ -28,6 +29,11 @@ export const migrations = [
   {
     up: migration_20260929_191625_contact_consent.up,
     down: migration_20260929_191625_contact_consent.down,
-    name: '20260929_191625_contact_consent'
+    name: '20260929_191625_contact_consent',
+  },
+  {
+    up: migration_20261020_080228_payload_3_91.up,
+    down: migration_20261020_080228_payload_3_91.down,
+    name: '20261020_080228_payload_3_91'
   },
 ];
