@@ -135,6 +135,14 @@
   --crt-opacity: 0.02;
 
   /*
+    How bright the hero video burns under its layers (VideoBackdrop). 1 is the file as encoded.
+    0.85 keeps the brightest streak of the loop from out-shouting the copy and the glass cards in
+    front of it; the scrim, not this, is what holds the copy at AA. One value: the video only
+    ever plays inside a dark band.
+  */
+  --video-backdrop-opacity: 0.85;
+
+  /*
     Glass, for the slide buttons: a translucent tint of the page plus a backdrop blur, so a
     button floats over whatever sits behind it (the hero field, the grid lines) instead of
     punching an opaque hole in it. The blur is what keeps a grid line behind a two-column

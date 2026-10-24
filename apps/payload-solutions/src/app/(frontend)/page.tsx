@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { AmbientBackdrop } from '@payload-solutions/brand/ambient-backdrop'
 import { CrtGrain } from '@payload-solutions/brand/crt-grain'
 import { GridColumns } from '@payload-solutions/brand/grid-columns'
 import { ThemeBand } from '@payload-solutions/brand/theme-band'
@@ -7,7 +6,7 @@ import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
 import { getPayloadClient } from '@/lib/payload'
 import { Contact } from '@/sections/contact'
-import { Hero } from '@/sections/hero'
+import { Hero, HeroBackdrop } from '@/sections/hero'
 import { Plugins } from '@/sections/plugins'
 import { Products } from '@/sections/products'
 import { Roadmap } from '@/sections/roadmap'
@@ -31,9 +30,11 @@ export default async function HomePage() {
       <SiteHeader />
       <main id="main" className="flex-1">
         {/* One dark band for the hero and the statement, pulled under the header so the header
-            takes its colour; the rest follows the visitor's theme and slides over the backdrop. */}
+            takes its colour. Both sections are transparent, so the pinned hero video runs behind
+            them; the rest follows the visitor's theme and slides over it like a curtain, the
+            way payloadcms.com runs its own background video. */}
         <ThemeBand theme="dark" as="div" className="-mt-header pt-header">
-          <AmbientBackdrop />
+          <HeroBackdrop />
           <GridColumns />
           <Hero />
           <Statement />

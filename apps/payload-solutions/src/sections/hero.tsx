@@ -1,6 +1,28 @@
 import { PAYLOAD_URL } from '@payload-solutions/brand'
 import { ActionRow, Eyebrow, IndependenceNote, ProseLink } from '@payload-solutions/brand/lattice'
+import { VideoBackdrop } from '@payload-solutions/brand/video-backdrop'
+import { preconnect, preload } from 'react-dom'
 import { ConfigHero } from '@/components/config-hero'
+
+const HERO_VIDEO_ORIGIN = 'https://cdn.payload.solutions'
+const HERO_POSTER = '/hero-poster.webp'
+
+/**
+ * The pinned video behind the hero and the statement (see VideoBackdrop). A seamless 6.5s loop,
+ * 1080p H.264 without audio, ~1.8MB. Further encodes (AV1, VP9, a 720p phone cut) go in front of
+ * the MP4 in this list once they are on the CDN; the browser takes the first one it can play.
+ * The poster is the loop's first frame, so the hand-off from still to motion is invisible.
+ */
+export function HeroBackdrop() {
+  preconnect(HERO_VIDEO_ORIGIN)
+  preload(HERO_POSTER, { as: 'image', fetchPriority: 'high' })
+  return (
+    <VideoBackdrop
+      poster={HERO_POSTER}
+      sources={[{ src: `${HERO_VIDEO_ORIGIN}/hero-1080.mp4`, type: 'video/mp4' }]}
+    />
+  )
+}
 
 /**
  * The umbrella hero. The visual is the product, not the mark: a payload.config.ts writes
