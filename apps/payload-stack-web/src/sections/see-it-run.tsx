@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { SectionHead } from '@payload-solutions/brand/lattice'
 import { Clip } from '@payload-solutions/brand/clip'
 import type { ClipId } from '@payload-solutions/brand/clips'
+import { useReducedMotionSafe } from '@payload-solutions/brand/reduced-motion'
 import { Reveal } from '@/components/reveal'
 import { cn } from '@/lib/cn'
 
@@ -71,6 +73,7 @@ const HASH_PREFIX = '#demo-'
 export function SeeItRun() {
   const [active, setActive] = useState<ClipId>('first-run')
   const playerRef = useRef<HTMLDivElement>(null)
+  const reduceMotion = useReducedMotionSafe()
 
   // Deep links: /#demo-multi-tenancy opens that tab. The campaign's first replies point here.
   useEffect(() => {
@@ -123,7 +126,23 @@ export function SeeItRun() {
             className="min-w-0 lg:sticky lg:top-[calc(var(--header-height)+2rem)] lg:order-2 lg:col-span-2 lg:self-start lg:pl-8"
           >
             <div ref={playerRef} className="scroll-mt-header">
-              <Clip id={active} />
+              <div className="relative aspect-video">
+                <AnimatePresence initial={false} mode="sync">
+                  <motion.div
+                    key={active}
+                    className="absolute inset-0"
+                    initial={reduceMotion ? false : { opacity: 0, y: 8, scale: 0.99 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -5, scale: 1.005 }}
+                    transition={{
+                      duration: reduceMotion ? 0 : 0.32,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                  >
+                    <Clip id={active} />
+                  </motion.div>
+                </AnimatePresence>
+              </div>
             </div>
           </Reveal>
 
@@ -137,7 +156,7 @@ export function SeeItRun() {
               {DEMOS.map((demo, i) => {
                 const isActive = demo.id === active
                 return (
-                  <button
+                  <motion.button
                     key={demo.id}
                     type="button"
                     role="tab"
@@ -148,6 +167,8 @@ export function SeeItRun() {
                       'group flex w-full gap-5 border-b border-border py-5 text-left transition-colors duration-150',
                       isActive ? 'text-fg' : 'text-fg-muted hover:text-fg',
                     )}
+                    layout
+                    transition={{ layout: { duration: reduceMotion ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] } }}
                   >
                     <span
                       className={cn(
@@ -159,13 +180,25 @@ export function SeeItRun() {
                     </span>
                     <span className="min-w-0">
                       <span className="display-sm block">{demo.title}</span>
-                      {isActive ? (
-                        <span className="mt-2 block max-w-[46ch] text-pretty text-[0.9375rem] leading-relaxed text-fg-muted">
-                          {demo.body}
-                        </span>
-                      ) : null}
+                      <AnimatePresence initial={false}>
+                        {isActive ? (
+                          <motion.span
+                            key="description"
+                            initial={reduceMotion ? false : { opacity: 0, height: 0, y: -5 }}
+                            animate={{ opacity: 1, height: 'auto', y: 0 }}
+                            exit={{ opacity: 0, height: 0, y: -3 }}
+                            transition={{
+                              duration: reduceMotion ? 0 : 0.24,
+                              ease: [0.22, 1, 0.36, 1],
+                            }}
+                            className="mt-2 block max-w-[46ch] overflow-hidden text-pretty text-[0.9375rem] leading-relaxed text-fg-muted"
+                          >
+                            {demo.body}
+                          </motion.span>
+                        ) : null}
+                      </AnimatePresence>
                     </span>
-                  </button>
+                  </motion.button>
                 )
               })}
             </div>
