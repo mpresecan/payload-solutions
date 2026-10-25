@@ -53,6 +53,8 @@ export function Clip({ id, className, autoPlay = true, playOnMount = false }: Cl
   /** False until the first play, and again after a film ends; the big button owns the frame. */
   const [hasStarted, setHasStarted] = useState(false)
   const [hasFailed, setHasFailed] = useState(false)
+  /** The first frame is decoded. Without a poster the video fades in from here. */
+  const [hasFrame, setHasFrame] = useState(false)
   /** A film played to the end; the big button offers a replay. */
   const [hasEnded, setHasEnded] = useState(false)
   const [isMuted, setIsMuted] = useState(!isFilm)
@@ -131,6 +133,7 @@ export function Clip({ id, className, autoPlay = true, playOnMount = false }: Cl
     wantsPlay.current = wasPlaying || (inView.current && canAutoPlay)
     setHasFailed(false)
     setHasStarted(false)
+    setHasFrame(false)
     setDuration(null)
     setTime(clipEntry(id).start ?? 0)
     setSrc(clipUrl(id))
@@ -233,10 +236,13 @@ export function Clip({ id, className, autoPlay = true, playOnMount = false }: Cl
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={onTimeUpdate}
         onLoadedMetadata={onLoadedMetadata}
+        onLoadedData={() => setHasFrame(true)}
         onEnded={onEnded}
         onError={() => setHasFailed(Boolean(src))}
         // A film is shown whole whatever its aspect; a screen recording fills the frame.
-        className={`absolute inset-0 block size-full cursor-pointer ${isFilm ? 'bg-black object-contain' : 'object-cover [:fullscreen_&]:object-contain'}`}
+        className={`absolute inset-0 block size-full cursor-pointer transition-opacity duration-500 ease-out ${
+          isFilm ? 'bg-black object-contain' : 'object-cover [:fullscreen_&]:object-contain'
+        } ${clip.poster || hasFrame ? 'opacity-100' : 'opacity-0'}`}
       />
 
       {/* Big play button until the first play (and after a film ends): the whole frame is the
