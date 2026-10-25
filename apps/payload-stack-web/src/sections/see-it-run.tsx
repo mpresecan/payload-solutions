@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { SectionHead } from '@payload-solutions/brand/lattice'
 import { Clip } from '@payload-solutions/brand/clip'
@@ -78,25 +78,85 @@ const EASE_IN: [number, number, number, number] = [0.55, 0, 0.75, 0.2]
 /**
  * One upward push per tab click. The leaving clip is quicker than the arriving one, the same
  * out-of-step timing the slide buttons use, so the two never read as one block moving.
+ * `waiting` is the arriving clip parked below the frame, invisible, while it loads.
  */
-const SWAP = {
-  enter: { opacity: 0, y: '38%', scale: 1.04, zIndex: 1 },
-  rest: { opacity: 1, y: '0%', scale: 1, zIndex: 1 },
-  leave: {
-    opacity: 0,
-    y: '-30%',
-    scale: 0.96,
-    zIndex: 0,
-    pointerEvents: 'none' as const,
-    transition: { duration: 0.5, ease: EASE_IN },
+const SWAP_VARIANTS = {
+  waiting: { opacity: 0, y: '38%', scale: 1.04, zIndex: 1, transition: { duration: 0 } },
+  shown: {
+    opacity: 1,
+    y: '0%',
+    scale: 1,
+    zIndex: 1,
+    transition: { duration: 0.85, ease: EASE_OUT, delay: 0.06 },
   },
-  enterTransition: { duration: 0.85, ease: EASE_OUT, delay: 0.06 },
+  leaving: { opacity: 0, y: '-30%', scale: 0.96, zIndex: 0, transition: { duration: 0.5, ease: EASE_IN } },
+}
+
+const REDUCED_VARIANTS = {
+  waiting: { opacity: 0, zIndex: 1, transition: { duration: 0 } },
+  shown: { opacity: 1, zIndex: 1, transition: { duration: 0 } },
+  leaving: { opacity: 0, zIndex: 0, transition: { duration: 0 } },
+}
+
+/**
+ * How long a click waits for the next clip to be playing before swapping anyway. Past this the
+ * visitor would read the delay as a dead click; the clip then arrives on its poster as before.
+ */
+const MAX_WAIT_MS = 1000
+
+type Phase = keyof typeof SWAP_VARIANTS
+
+interface Layer {
+  id: ClipId
+  key: number
+  phase: Phase
 }
 
 export function SeeItRun() {
   const [active, setActive] = useState<ClipId>('first-run')
   const playerRef = useRef<HTMLDivElement>(null)
   const reduceMotion = useReducedMotionSafe()
+
+  // The player is a stack of layers rather than one keyed child: the clip a click asks for is
+  // mounted straight away but parked out of sight, and only rises into the frame once its video
+  // is actually moving. Swapping on the click itself showed the poster first and then a jump to
+  // the first frame.
+  const [layers, setLayers] = useState<Layer[]>([{ id: 'first-run', key: 0, phase: 'shown' }])
+  const nextKey = useRef(1)
+
+  useEffect(() => {
+    setLayers((current) => {
+      const settled = current.filter((layer) => layer.phase !== 'waiting')
+      const shown = settled.find((layer) => layer.phase === 'shown')
+      if (shown?.id === active) return settled.length === current.length ? current : settled
+      return [...settled, { id: active, key: nextKey.current++, phase: 'waiting' }]
+    })
+  }, [active])
+
+  const reveal = useCallback((key: number) => {
+    setLayers((current) => {
+      if (!current.some((layer) => layer.key === key && layer.phase === 'waiting')) return current
+      return current.map((layer) =>
+        layer.key === key
+          ? { ...layer, phase: 'shown' }
+          : layer.phase === 'shown'
+            ? { ...layer, phase: 'leaving' }
+            : layer,
+      )
+    })
+  }, [])
+
+  const waitingKey = layers.find((layer) => layer.phase === 'waiting')?.key
+  useEffect(() => {
+    if (waitingKey === undefined) return
+    const timer = window.setTimeout(() => reveal(waitingKey), MAX_WAIT_MS)
+    return () => window.clearTimeout(timer)
+  }, [waitingKey, reveal])
+
+  const removeLayer = (key: number) =>
+    setLayers((current) => current.filter((layer) => layer.key !== key))
+
+  const variants = reduceMotion ? REDUCED_VARIANTS : SWAP_VARIANTS
 
   // Deep links: /#demo-multi-tenancy opens that tab. The campaign's first replies point here.
   useEffect(() => {
@@ -155,17 +215,50 @@ export function SeeItRun() {
                   up and fades out while the next one rises in from below, both at once, so a
                   tab click reads as the reel advancing rather than a flash between two videos. */}
               <div className="relative aspect-video overflow-hidden border border-border bg-surface">
-                <AnimatePresence initial={false} mode="sync">
+                {layers.map((layer) => (
                   <motion.div
-                    key={active}
-                    className="absolute inset-0"
-                    initial={reduceMotion ? false : SWAP.enter}
-                    animate={SWAP.rest}
-                    exit={reduceMotion ? { opacity: 0, transition: { duration: 0 } } : SWAP.leave}
-                    transition={reduceMotion ? { duration: 0 } : SWAP.enterTransition}
+                    key={layer.key}
+                    className={cn(
+                      'absolute inset-0',
+                      layer.phase !== 'shown' && 'pointer-events-none',
+                    )}
+                    aria-hidden={layer.phase !== 'shown'}
+                    inert={layer.phase !== 'shown'}
+                    variants={variants}
+                    initial={false}
+                    animate={layer.phase}
+                    onAnimationComplete={(definition) => {
+                      if (definition === 'leaving') removeLayer(layer.key)
+                    }}
                   >
-                    <Clip id={active} framed={false} />
+                    <Clip
+                      id={layer.id}
+                      framed={false}
+                      preload={layer.phase === 'waiting'}
+                      onReady={() => reveal(layer.key)}
+                    />
                   </motion.div>
+                ))}
+                {/* A hairline at the top edge if the next clip is slow to arrive, so the click
+                    visibly registered. Held back a beat so a fast load never flashes it. */}
+                <AnimatePresence>
+                  {waitingKey !== undefined && !reduceMotion ? (
+                    <motion.span
+                      key={waitingKey}
+                      aria-hidden
+                      className="absolute inset-x-0 top-0 z-10 h-px origin-left bg-accent"
+                      initial={{ opacity: 0, scaleX: 0 }}
+                      animate={{
+                        opacity: 1,
+                        scaleX: 0.9,
+                        transition: {
+                          opacity: { delay: 0.2, duration: 0.15 },
+                          scaleX: { delay: 0.2, duration: MAX_WAIT_MS / 1000, ease: EASE_OUT },
+                        },
+                      }}
+                      exit={{ opacity: 0, scaleX: 1, transition: { duration: 0.2 } }}
+                    />
+                  ) : null}
                 </AnimatePresence>
               </div>
             </div>

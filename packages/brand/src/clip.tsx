@@ -24,6 +24,18 @@ export interface ClipProps {
    * and slides clips through it, so two borders do not travel past each other.
    */
   framed?: boolean
+  /**
+   * Fetch and start the clip at once instead of waiting for the viewport, so it can be
+   * playing before it is shown. For a gallery that holds the next clip off stage until
+   * `onReady`. Read on mount only; ignored where the clip would not autoplay anyway.
+   */
+  preload?: boolean
+  /**
+   * Called once when the clip is worth showing: its first frame is on screen and moving. Where
+   * it will not autoplay (films, reduced motion, Save-Data) the poster is the intended state,
+   * so it fires on mount. Also fires on a load error, so a caller never waits on a dead file.
+   */
+  onReady?: () => void
 }
 
 /**
@@ -45,6 +57,8 @@ export function Clip({
   autoPlay = true,
   playOnMount = false,
   framed = true,
+  preload = false,
+  onReady,
 }: ClipProps) {
   const clip = clipEntry(id)
   const isFilm = Boolean(clip.hasAudio)
@@ -55,8 +69,12 @@ export function Clip({
   const inView = useRef(false)
   const reducedMotion = useReducedMotionSafe()
 
+  const canAutoPlay = autoPlay && !isFilm && !reducedMotion && !prefersSaveData()
+  // Read once: flipping `preload` off after the reveal must not reset anything.
+  const [isPreloading] = useState(preload && canAutoPlay)
+
   // A film without a poster needs its source up front so the browser can paint a frame.
-  const eagerSrc = playOnMount || (isFilm && !clip.poster)
+  const eagerSrc = playOnMount || isPreloading || (isFilm && !clip.poster)
   const [src, setSrc] = useState<string | null>(eagerSrc ? clipUrl(id) : null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [time, setTime] = useState(start)
@@ -72,10 +90,36 @@ export function Clip({
   /** The browser refused sound; the mute button asks for a click. */
   const [needsSoundClick, setNeedsSoundClick] = useState(false)
   /** Play as soon as the current source is attached. */
-  const wantsPlay = useRef(playOnMount)
+  const wantsPlay = useRef(playOnMount || isPreloading)
 
   const end = clip.end ?? duration ?? 0
-  const canAutoPlay = autoPlay && !isFilm && !reducedMotion && !prefersSaveData()
+
+  const onReadyRef = useRef(onReady)
+  useEffect(() => {
+    onReadyRef.current = onReady
+  })
+  const hasSignalledReady = useRef(false)
+  const signalReady = useCallback(() => {
+    if (hasSignalledReady.current) return
+    hasSignalledReady.current = true
+    onReadyRef.current?.()
+  }, [])
+
+  useEffect(() => {
+    if (!canAutoPlay) signalReady()
+  }, [canAutoPlay, signalReady])
+
+  // 'playing' fires before the frame is composited; wait for the frame itself where the
+  // browser can say so, else one animation frame.
+  const onPlaying = () => {
+    const video = videoRef.current
+    if (!video || hasSignalledReady.current) return
+    if (typeof video.requestVideoFrameCallback === 'function') {
+      video.requestVideoFrameCallback(() => signalReady())
+    } else {
+      requestAnimationFrame(() => signalReady())
+    }
+  }
 
   const startPlayback = useCallback((video: HTMLVideoElement) => {
     video.play().catch((error: unknown) => {
@@ -238,7 +282,7 @@ export function Clip({
         poster={clip.poster?.src}
         muted={isMuted}
         playsInline
-        preload={eagerSrc ? 'metadata' : 'none'}
+        preload={isPreloading ? 'auto' : eagerSrc ? 'metadata' : 'none'}
         aria-label={clip.alt}
         onClick={toggle}
         onPlay={() => {
@@ -246,12 +290,16 @@ export function Clip({
           setHasStarted(true)
           setHasEnded(false)
         }}
+        onPlaying={onPlaying}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={onTimeUpdate}
         onLoadedMetadata={onLoadedMetadata}
         onLoadedData={() => setHasFrame(true)}
         onEnded={onEnded}
-        onError={() => setHasFailed(Boolean(src))}
+        onError={() => {
+          setHasFailed(Boolean(src))
+          if (src) signalReady()
+        }}
         // A film is shown whole whatever its aspect; a screen recording fills the frame.
         className={`absolute inset-0 block size-full cursor-pointer transition-opacity duration-500 ease-out ${
           isFilm ? 'bg-black object-contain' : 'object-cover [:fullscreen_&]:object-contain'
