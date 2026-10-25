@@ -297,6 +297,18 @@
   backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
 }
 
+/* Inside a band that carries the pinned hero video the glass is solid tint instead of a live
+   blur. A backdrop blur is re-rendered whenever anything behind it changes, and the video
+   changes every frame, so each button would be re-blurred 60 times a second for a frosting
+   the copy scrim already hides: behind the copy column the video sits under 80-90% --bg.
+   The heavier tint does the blur's other job too, keeping a grid line from cutting a
+   two-column button in half. */
+[data-band-theme]:has(> .video-backdrop) .slide-btn {
+  background-color: color-mix(in oklab, var(--bg) 80%, transparent);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 /*
   Compact chrome: the same behaviour at header scale, as a hairline box rather than a row of
   the lattice. The label stops stretching so the box hugs its text.
