@@ -68,13 +68,13 @@ const SWAP_MIDPOINT_S = SWAP_CYCLE_S * 0.46
  */
 export function BuiltWith() {
   return (
-    <section aria-labelledby="built-with-heading" className="relative py-20 lg:pt-28 lg:pb-24">
+    <section aria-labelledby="built-with-heading" className="relative py-14 lg:py-16">
       <div className="container-content">
         <div className="col-grid">
           <Reveal className="lg:col-span-2 lg:col-start-2">
             <p
               id="built-with-heading"
-              className="text-xl leading-snug tracking-[-0.01em] text-fg lg:text-[1.375rem] xl:text-2xl"
+              className="text-base leading-snug tracking-[-0.01em] text-fg lg:text-lg"
             >
               Built on the tools SaaS teams already run in production.
             </p>
@@ -82,7 +82,7 @@ export function BuiltWith() {
         </div>
 
         {/* Spans exactly the four columns, so the crosses can sit on grid lines 1 and 3. */}
-        <Reveal variant="media" index={1} className="relative mt-10 lg:mt-14">
+        <Reveal variant="media" index={1} className="relative mt-6 lg:mt-8">
           <GridCross line={1} contained />
           <GridCross line={3} edge="bottom" contained />
 
@@ -104,7 +104,7 @@ export function BuiltWith() {
                 return (
                   <li
                     key={pair[0].icon.slug}
-                    className="relative aspect-square bg-bg/50 max-lg:border-r max-lg:border-border max-md:[&:nth-child(-n+3)]:border-b"
+                    className="relative aspect-square bg-bg/50 lg:aspect-[3/2] max-lg:border-r max-lg:border-border max-md:[&:nth-child(-n+3)]:border-b"
                   >
                     {pair.map((logo, i) => (
                       <a
@@ -123,8 +123,8 @@ export function BuiltWith() {
                           } as CSSProperties
                         }
                       >
-                        <BrandIcon icon={logo.icon} size={24} className="shrink-0" />
-                        <span className="hidden text-[0.9375rem] font-medium tracking-[-0.01em] whitespace-nowrap lg:inline">
+                        <BrandIcon icon={logo.icon} size={20} className="shrink-0" />
+                        <span className="hidden text-sm font-medium tracking-[-0.01em] whitespace-nowrap lg:inline">
                           {logo.name}
                         </span>
                       </a>
