@@ -14,7 +14,8 @@ export function LegalPage({ title, children }: { title: string; children: ReactN
       <SiteHeader />
       <main id="main" className="flex-1">
         <article className="container-content py-16 lg:py-24">
-          <div className="mx-auto max-w-3xl">
+          {/* Loads in like the heroes: title, date, then the body, one after another. */}
+          <div className="reveal-load-group mx-auto max-w-3xl">
             <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">{title}</h1>
             <p className="mt-3 text-sm text-fg-muted">Effective {formatLegalDate(LEGAL_EFFECTIVE_DATE)}</p>
             <div className="legal mt-10">{children}</div>

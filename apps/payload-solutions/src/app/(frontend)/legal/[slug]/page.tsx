@@ -52,7 +52,8 @@ export default async function LegalPage({ params }: Params) {
       <SiteHeader />
       <main id="main" className="flex-1">
         <article className="container-content py-16 lg:py-24">
-          <div className="mx-auto max-w-3xl">
+          {/* Loads in like the heroes: title, date, then the body, one after another. */}
+          <div className="reveal-load-group mx-auto max-w-3xl">
             <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">{page.title}</h1>
             <p className="mt-3 text-sm text-fg-muted">Effective {effective}</p>
             <div className="prose mt-10 max-w-none">
