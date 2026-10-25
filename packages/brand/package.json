@@ -36,6 +36,7 @@
     "./clip": "./src/clip.tsx",
     "./reduced-motion": "./src/reduced-motion.ts",
     "./lattice": "./src/lattice.tsx",
+    "./family-bar": "./src/family-bar.tsx",
     "./reveal": "./src/reveal.tsx",
     "./og-card": "./src/og-card.tsx"
   },

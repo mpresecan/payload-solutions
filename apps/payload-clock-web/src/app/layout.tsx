@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { brands } from '@payload-solutions/brand'
+import { FamilyBar } from '@payload-solutions/brand/family-bar'
 import './globals.css'
 
 const brand = brands.clock
@@ -69,7 +70,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="min-h-dvh bg-bg text-fg antialiased">{children}</body>
+      <body className="min-h-dvh bg-bg text-fg antialiased">
+        {/* Family strip above the header; opens only on overscroll past the top. */}
+        <FamilyBar current="clock" />
+        {children}
+      </body>
     </html>
   )
 }

@@ -5,6 +5,7 @@ import { GeistSans } from 'geist/font/sans'
 import type { ReactNode } from 'react'
 import { brands } from '@payload-solutions/brand'
 import { CLIP_CDN } from '@payload-solutions/brand/clips'
+import { FamilyBar } from '@payload-solutions/brand/family-bar'
 import { ConsentRoot } from '@/components/consent/consent-root'
 import './globals.css'
 
@@ -47,6 +48,8 @@ export default function FrontendLayout({ children }: { children: ReactNode }) {
       <body className="flex min-h-dvh flex-col bg-bg text-fg antialiased">
         {/* Docs videos stream from here; React hoists this into <head>. */}
         <link rel="preconnect" href={CLIP_CDN} />
+        {/* Family strip above the header; opens only on overscroll past the top. */}
+        <FamilyBar current="solutions" />
         <RootProvider
           theme={{
             // Brand tokens read data-theme; Fumadocs reads the .dark class. Set both.

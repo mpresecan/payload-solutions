@@ -758,6 +758,131 @@ body:has(.video-backdrop) .site-header[data-theme='dark'] {
 }
 
 /* ---------------------------------------------------------------------------------------------
+   The family bar (src/family-bar.tsx): a hairline-thin strip above every site's header that
+   links the three family sites and, set apart, Payload CMS. Collapsed by default; it opens when
+   the visitor overshoots the top of the page. In normal flow, so opening it pushes the page down
+   instead of covering the header. The height animates through grid rows (0fr -> 1fr) so the
+   row inside keeps its natural height and is only clipped. The collapsed links stay focusable;
+   focusing one opens the bar.
+
+   The family links are solid with their own mark; Payload CMS is outlined with a DASHED
+   hairline, carries an external arrow, has no mark, and sits behind a divider with
+   "Built on ... not affiliated" around it, so it never reads as one of ours.
+*/
+.family-bar {
+  --family-bar-height: 1.75rem; /* 28px */
+  /* Positioned and layered like the header (z-40): otherwise the fixed hero backdrops (video,
+     CRT grain) paint over it while it sits at the top of the page. */
+  position: relative;
+  z-index: 40;
+  flex: none;
+  display: grid;
+  grid-template-rows: 0fr;
+  background-color: var(--surface);
+  transition: grid-template-rows var(--dur) var(--ease-out);
+  overflow-anchor: none;
+}
+.family-bar[data-state='open'] {
+  grid-template-rows: 1fr;
+}
+.family-bar--instant,
+.family-bar--instant .family-bar__row {
+  transition: none;
+}
+.family-bar__clip {
+  min-height: 0;
+  overflow: hidden;
+}
+.family-bar__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: var(--family-bar-height);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.6875rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease-standard);
+}
+.family-bar[data-state='open'] .family-bar__row {
+  opacity: 1;
+}
+.family-bar__family {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  min-width: 0;
+}
+.family-bar__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--fg-muted);
+  transition: color var(--dur-fast) var(--ease-standard);
+}
+.family-bar__link:hover,
+.family-bar__link:focus-visible,
+.family-bar__link[aria-current] {
+  color: var(--fg);
+}
+.family-bar__prefix {
+  display: none;
+}
+.family-bar__external {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-left: 1rem;
+  border-left: 1px solid var(--border);
+  height: 100%;
+}
+.family-bar__note {
+  display: none;
+  color: var(--fg-subtle);
+}
+.family-bar__payload {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  height: 1.125rem;
+  padding-inline: 0.375rem;
+  border: 1px dashed var(--border-strong);
+  color: var(--fg-muted);
+  transition:
+    color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+.family-bar__payload:hover,
+.family-bar__payload:focus-visible {
+  color: var(--fg);
+  border-color: var(--fg-muted);
+}
+.family-bar :focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: 2px;
+}
+@media (min-width: 640px) {
+  .family-bar__prefix {
+    display: inline;
+  }
+  .family-bar__family {
+    gap: 1.25rem;
+  }
+  .family-bar__note {
+    display: inline;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .family-bar,
+  .family-bar__row {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------
    Load-in for the heroes. The CSS twin of <Reveal> (src/reveal.tsx): same curve, same 75ms
    stagger, same blur clearing as it lands, but it runs on first paint with no JavaScript, so
    the headline — the page's largest paint — never waits on hydration. payloadcms.com's own

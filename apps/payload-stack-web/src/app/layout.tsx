@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { brands } from '@payload-solutions/brand'
+import { FamilyBar } from '@payload-solutions/brand/family-bar'
 import { ConsentRoot } from '@/components/consent/consent-root'
 import './globals.css'
 import { CLIP_CDN } from '@payload-solutions/brand/clips'
@@ -80,6 +81,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href={CLIP_CDN} />
       </head>
       <body className="min-h-dvh bg-bg text-fg antialiased">
+        {/* Family strip above the header; opens only on overscroll past the top. */}
+        <FamilyBar current="stack" />
         <ConsentRoot>{children}</ConsentRoot>
       </body>
     </html>
