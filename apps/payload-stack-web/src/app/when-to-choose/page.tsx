@@ -258,7 +258,7 @@ function Decide() {
           </div>
         </Reveal>
 
-        <Reveal className="lg:col-span-4">
+        <Reveal variant="media" className="lg:col-span-4">
           <MediaStack
             back={
               <ThemedImage
@@ -288,7 +288,7 @@ export default function WhenToChoosePage() {
       <SiteHeader />
       <main id="main">
         <ThemeBand theme="dark" as="div" className="-mt-header pt-header">
-          <GridColumns />
+          <GridColumns fadeTop />
           <Opener />
         </ThemeBand>
         <div className="relative z-10 bg-bg">

@@ -59,7 +59,7 @@ export function Inside() {
           ))}
         </dl>
 
-        <Reveal className="mt-16">
+        <Reveal variant="media" className="mt-16">
           <RunLedger />
           <p className="mt-5 max-w-[62ch] text-pretty text-[0.8125rem] leading-relaxed text-fg-subtle">
             One monitor, one week. The middle row is eleven thousand runs in which nothing

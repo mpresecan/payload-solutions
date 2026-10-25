@@ -217,7 +217,7 @@ export function Config() {
 
         <div className="col-grid mt-14 gap-y-8 lg:mt-20 lg:items-start">
           {/* Three columns for the file, one for what it produces. */}
-          <Reveal className="min-w-0 lg:col-span-3 lg:pr-10">
+          <Reveal variant="media" className="min-w-0 lg:col-span-3 lg:pr-10">
             <div className="border border-border bg-surface">
               <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
                 <span className="font-mono text-xs text-fg-muted">src/stack.config.ts</span>
@@ -241,7 +241,7 @@ export function Config() {
           </Reveal>
 
           {/* What the plans above turn into: the real pricing page, leading slightly on scroll. */}
-          <Reveal className="min-w-0 lg:col-span-1 lg:sticky lg:top-[calc(var(--header-height)+2rem)]">
+          <Reveal variant="media" className="min-w-0 lg:col-span-1 lg:sticky lg:top-[calc(var(--header-height)+2rem)]">
             <Parallax speed={-0.05} as="figure" className="relative m-0">
               <div className="scanline relative border border-border p-[6%]">
                 <Crosshairs />

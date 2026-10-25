@@ -36,7 +36,7 @@ export default async function HomePage() {
             way payloadcms.com runs its own background video. */}
         <ThemeBand theme="dark" as="div" className="-mt-header pt-header">
           <HeroVideoBackdrop video="solutions" />
-          <GridColumns />
+          <GridColumns fadeTop />
           <Hero />
           <Statement />
         </ThemeBand>

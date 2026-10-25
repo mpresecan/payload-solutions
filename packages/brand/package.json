@@ -35,7 +35,8 @@
     "./clips": "./src/clips.ts",
     "./clip": "./src/clip.tsx",
     "./reduced-motion": "./src/reduced-motion.ts",
-    "./lattice": "./src/lattice.tsx"
+    "./lattice": "./src/lattice.tsx",
+    "./reveal": "./src/reveal.tsx"
   },
   "files": [
     "src",

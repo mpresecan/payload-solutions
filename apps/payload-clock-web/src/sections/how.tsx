@@ -52,7 +52,7 @@ export function How() {
           </ol>
         </div>
 
-        <Reveal className="min-w-0 lg:col-span-2 lg:pt-6">
+        <Reveal variant="media" className="min-w-0 lg:col-span-2 lg:pt-6">
           <PingBeams className="mx-auto max-w-[22rem] lg:max-w-[27rem]" />
           <p className="mt-8 max-w-[38ch] text-pretty text-[0.8125rem] leading-relaxed text-fg-subtle">
             The minute&#8217;s work leaves as one batch rather than as one request per project.

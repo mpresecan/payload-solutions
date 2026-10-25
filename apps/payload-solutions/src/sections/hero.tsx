@@ -20,7 +20,7 @@ export function Hero() {
           of the four lattice columns, and the visual takes the other three. The headline steps
           down a size there so it sets in one column on four lines instead of spilling.
         */}
-        <div className="lg:w-1/4">
+        <div className="reveal-load-group lg:w-1/4">
           <Eyebrow className="mb-7">Open source · MIT</Eyebrow>
           <h1
             id="hero-heading"

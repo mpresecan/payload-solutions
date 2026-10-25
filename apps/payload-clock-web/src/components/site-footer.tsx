@@ -8,6 +8,7 @@ import { FooterWordmark } from '@payload-solutions/brand/footer-wordmark'
 import { GridColumns } from '@payload-solutions/brand/grid-columns'
 import { GridCross } from '@payload-solutions/brand/crosshairs'
 
+import { Reveal } from '@/components/reveal'
 import { ThemeToggle } from '@/components/theme-toggle'
 
 const clock = brands.clock
@@ -75,8 +76,8 @@ export function SiteFooter() {
 
       <div className="container-content">
         <div className="grid grid-cols-1 gap-y-14 sm:grid-cols-2 lg:grid-cols-4">
-          {COLUMNS.map((col) => (
-            <div key={col.title} className="lg:pr-8">
+          {COLUMNS.map((col, i) => (
+            <Reveal key={col.title} index={i} className="lg:pr-8">
               <h2 className="footer-heading">{col.title}</h2>
               {/* 72px from heading to first link at desktop, measured off payloadcms.com;
                   tightened on phones, where four stacked columns would otherwise sprawl. */}
@@ -105,7 +106,7 @@ export function SiteFooter() {
                   </li>
                 ) : null}
               </ul>
-            </div>
+            </Reveal>
           ))}
         </div>
 

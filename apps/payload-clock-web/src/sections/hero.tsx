@@ -19,7 +19,7 @@ export function Hero() {
   return (
     <section className="relative" aria-labelledby="hero-heading">
       <div className="container-content col-grid relative min-h-[calc(100dvh-var(--header-height))] items-center gap-y-14 py-20 lg:py-24">
-        <div className="lg:col-span-2">
+        <div className="reveal-load-group lg:col-span-2">
           <ShimmerNote href={SOLUTIONS_URL} className="mb-8">
             From the makers of Payload Stack
           </ShimmerNote>

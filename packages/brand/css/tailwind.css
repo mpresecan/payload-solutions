@@ -730,9 +730,55 @@
 }
 
 /* Header colour follows the band underneath it (see useHeaderTheme). */
+/* Over the pinned hero video the header sits on the top vignette, which is solid --bg, so its
+   backdrop blur shows nothing, yet the browser would still re-blur the full-width strip on
+   every video frame. Drop it while the header is over the video band; it comes back over
+   the opaque sections that slide over the video. */
+body:has(.video-backdrop) .site-header[data-theme='dark'] {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
 .site-header {
   transition:
     background-color var(--dur) var(--ease-standard),
     border-color var(--dur) var(--ease-standard),
     color var(--dur) var(--ease-standard);
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Load-in for the heroes. The CSS twin of <Reveal> (src/reveal.tsx): same curve, same 75ms
+   stagger, same blur clearing as it lands, but it runs on first paint with no JavaScript, so
+   the headline — the page's largest paint — never waits on hydration. payloadcms.com's own
+   hero does the same with a keyframe rather than an observer. It travels 1.5rem rather than
+   Reveal's 3rem: above the fold the page is arriving, not being scrolled into.
+
+   Put `.reveal-load-group` on the copy column: its direct children enter one after another.
+   `.reveal-load` does a single element. Fill is `backwards`, not `both`: it holds the hidden
+   state through the delay, then hands back the element's own styles, because a held
+   `blur(0px)` or identity transform would still create a stacking context and a containing
+   block. Dialogs are skipped; they open in the top layer and have no business moving. The global
+   reduced-motion rule collapses the duration and delay, so it simply appears.
+*/
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--reveal-distance, 1.5rem));
+    filter: blur(var(--reveal-blur, 6px));
+  }
+}
+.reveal-load,
+.reveal-load-group > :not(dialog) {
+  animation: reveal-rise 1s cubic-bezier(0.4, 0, 0, 1) backwards;
+  animation-delay: calc(0.1s + var(--reveal-i, 0) * 75ms);
+}
+.reveal-load-group > :nth-child(2) { --reveal-i: 1; }
+.reveal-load-group > :nth-child(3) { --reveal-i: 2; }
+.reveal-load-group > :nth-child(4) { --reveal-i: 3; }
+.reveal-load-group > :nth-child(5) { --reveal-i: 4; }
+.reveal-load-group > :nth-child(n + 6) { --reveal-i: 5; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal-load,
+  .reveal-load-group > * {
+    animation: none;
+  }
 }

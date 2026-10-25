@@ -17,10 +17,28 @@
  * isolate`, or `relative z-10`). The lines carry a negative z-index, so they paint above the
  * wrapper's background and below everything in flow: panels cover them, text never crosses
  * them. Server component, no JS.
+ *
+ * `fadeTop` is for the opening band of a page, the one pulled under the header with
+ * `-mt-header pt-header`. payloadcms.com does not run its hero lines up into the header at
+ * full strength: they are invisible at the header's bottom border and come up to full
+ * strength over the first stretch of the hero, so the header's own hairline is the only
+ * hard line at the top of the page and the grid rises out of the black beneath it. The fade
+ * is a mask on the whole lattice (not a gradient per line), so all five lines fade on exactly
+ * the same curve, and it is eased rather than linear — a straight ramp shows where it starts.
  */
-export function GridColumns({ className }: { className?: string }) {
+export function GridColumns({
+  className,
+  fadeTop = false,
+}: {
+  className?: string
+  fadeTop?: boolean
+}) {
   return (
-    <div aria-hidden className={`pointer-events-none absolute inset-0 z-[-1] ${className ?? ''}`}>
+    <div
+      aria-hidden
+      className={`pointer-events-none absolute inset-0 z-[-1] ${className ?? ''}`}
+      style={fadeTop ? { maskImage: TOP_FADE, WebkitMaskImage: TOP_FADE } : undefined}
+    >
       <div className="container-content relative h-full">
         {[0, 1, 2, 3, 4].map((i) => {
           const edge = i === 0 || i === 4
@@ -44,3 +62,13 @@ export function GridColumns({ className }: { className?: string }) {
     </div>
   )
 }
+
+// Measured off payloadcms.com's hero at 1440: nothing at the header's bottom edge, a faint
+// trace ~6rem below it, full strength by ~24rem. The intermediate stops approximate an
+// ease-in so the lines do not appear to switch on at a visible point.
+const TOP_FADE = `linear-gradient(to bottom,
+  transparent var(--header-height),
+  rgba(0, 0, 0, 0.12) calc(var(--header-height) + 6rem),
+  rgba(0, 0, 0, 0.4) calc(var(--header-height) + 12rem),
+  rgba(0, 0, 0, 0.75) calc(var(--header-height) + 18rem),
+  #000 calc(var(--header-height) + 24rem))`

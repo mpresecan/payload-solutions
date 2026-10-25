@@ -32,7 +32,7 @@ export default function HomePage() {
         <ThemeBand theme="dark" as="div" className="-mt-header pt-header">
           <HeroVideoBackdrop video="clock" copyColumns={2} />
           <Particles />
-          <GridColumns />
+          <GridColumns fadeTop />
           <Hero />
         </ThemeBand>
         <div className="relative z-10 bg-bg">
