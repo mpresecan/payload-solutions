@@ -51,11 +51,12 @@
    first grid line continues the sidebar's border and its last closes one gutter inside the
    shell's end. Everything in the footer (columns, lattice, GridCross, wordmark) measures off
    .container-content and assumes a --gutter inset, so only that box moves: the margins put
-   its lines where the docs' are. From md, where Fumadocs shows the sidebar; below that the
+   its lines where the docs' are (100% resolves against the footer-wide box each sits in,
+   so a scrollbar never shifts them). From md, where Fumadocs shows the sidebar; below that the
    docs run full width and the stock footer already matches. */
 @media (min-width: 768px) {
   .docs-footer {
-    --docs-shell-start: max(0px, (100vw - var(--fd-layout-width, 97rem)) / 2);
+    --docs-shell-start: max(0px, (100% - var(--fd-layout-width, 97rem)) / 2);
   }
   .docs-footer .container-content {
     width: auto;
