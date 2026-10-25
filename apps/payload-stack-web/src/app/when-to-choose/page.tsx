@@ -25,8 +25,17 @@ export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: '/when-to-choose' },
-  openGraph: { title: TITLE, description: DESCRIPTION, url: `${brand.url}/when-to-choose` },
-  twitter: { title: TITLE, description: DESCRIPTION },
+  // `openGraph` and `twitter` REPLACE the layout's objects rather than merging, so everything
+  // they carry is restated — `card` above all: without it X falls back to `summary` and the
+  // share renders as a small square. The image comes from ./opengraph-image.tsx.
+  openGraph: {
+    type: 'article',
+    siteName: brand.name,
+    title: TITLE,
+    description: DESCRIPTION,
+    url: `${brand.url}/when-to-choose`,
+  },
+  twitter: { card: 'summary_large_image', title: TITLE, description: DESCRIPTION },
 }
 
 interface Point {
@@ -69,9 +78,9 @@ const NOT_FIT: Point[] = [
         Turning teams off is one prompt —{' '}
         <code className="text-fg">organizations.enabled: false</code> in{' '}
         <code className="text-fg">stack.config.ts</code>, with scoping falling back to per-user
-        ownership — but the scaffold underneath does not shrink. A landing page with a waiting
-        list, or a single-purpose tool with no accounts to speak of, carries a CMS, an admin and
-        a billing layer it never uses.
+        ownership — but the scaffold underneath does not shrink. A landing page with a waiting list,
+        or a single-purpose tool with no accounts to speak of, carries a CMS, an admin and a billing
+        layer it never uses.
       </>
     ),
   },
@@ -207,7 +216,12 @@ function Verdict() {
             <ul className="mt-6 space-y-4" role="list">
               {CHOOSE.map((item) => (
                 <li key={item} className="flex gap-3 text-[0.9375rem] leading-relaxed">
-                  <Check size={18} weight="bold" className="mt-1 shrink-0 text-accent" aria-hidden />
+                  <Check
+                    size={18}
+                    weight="bold"
+                    className="mt-1 shrink-0 text-accent"
+                    aria-hidden
+                  />
                   <span className="text-pretty">{item}</span>
                 </li>
               ))}
@@ -217,7 +231,10 @@ function Verdict() {
             <h3 className="display-sm">Choose something else if</h3>
             <ul className="mt-6 space-y-4" role="list">
               {ELSEWHERE.map((item) => (
-                <li key={item} className="flex gap-3 text-[0.9375rem] leading-relaxed text-fg-muted">
+                <li
+                  key={item}
+                  className="flex gap-3 text-[0.9375rem] leading-relaxed text-fg-muted"
+                >
                   <X size={18} weight="bold" className="mt-1 shrink-0 text-fg-subtle" aria-hidden />
                   <span className="text-pretty">{item}</span>
                 </li>

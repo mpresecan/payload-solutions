@@ -41,7 +41,9 @@ function findSection(nodes: Node[], url: string, current?: string): { label?: st
 }
 
 export function generateStaticParams() {
-  return source.generateParams().map((params) => ({ ...params, slug: [...params.slug, 'image.png'] }))
+  return source
+    .generateParams()
+    .map((params) => ({ ...params, slug: [...params.slug, 'image.png'] }))
 }
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string[] }> }) {
@@ -50,13 +52,17 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   const page = source.getPage(slug.slice(0, -1))
   if (!page) return new Response('Not found', { status: 404 })
 
+  // The same function DocsBrandSync uses for the live page, so the card cannot drift from
+  // the accent a visitor sees when they follow the link.
+  const accent = accentForSlug(page.url)
+
   return renderOgCard({
     eyebrow: findSection(source.pageTree.children, page.url)?.label ?? 'Documentation',
     title: page.data.title,
     description: clampOgText(page.data.description),
     footer: `${brand.domain}${page.url}`,
-    // The same function DocsBrandSync uses for the live page, so the card cannot drift from
-    // the accent a visitor sees when they follow the link.
-    accent: accentForSlug(page.url),
+    accent,
+    // The hero film's light, in this entity's colour.
+    backdrop: accent,
   })
 }
