@@ -25,19 +25,27 @@
  * hard line at the top of the page and the grid rises out of the black beneath it. The fade
  * is a mask on the whole lattice (not a gradient per line), so all five lines fade on exactly
  * the same curve, and it is eased rather than linear — a straight ramp shows where it starts.
+ *
+ * `fadeBottom` is the same curve mirrored, for the footer: the lines leave the footer's top
+ * hairline at full strength and dissolve over the last 24rem of the page, behind the
+ * oversized wordmark, so the grid ends in black instead of being cut off by the bottom of
+ * the window. Both props can be combined; they are drawn as one mask.
  */
 export function GridColumns({
   className,
   fadeTop = false,
+  fadeBottom = false,
 }: {
   className?: string
   fadeTop?: boolean
+  fadeBottom?: boolean
 }) {
+  const mask = fadeTop || fadeBottom ? fadeMask({ fadeTop, fadeBottom }) : undefined
   return (
     <div
       aria-hidden
       className={`pointer-events-none absolute inset-0 z-[-1] ${className ?? ''}`}
-      style={fadeTop ? { maskImage: TOP_FADE, WebkitMaskImage: TOP_FADE } : undefined}
+      style={mask ? { maskImage: mask, WebkitMaskImage: mask } : undefined}
     >
       <div className="container-content relative h-full">
         {[0, 1, 2, 3, 4].map((i) => {
@@ -65,10 +73,22 @@ export function GridColumns({
 
 // Measured off payloadcms.com's hero at 1440: nothing at the header's bottom edge, a faint
 // trace ~6rem below it, full strength by ~24rem. The intermediate stops approximate an
-// ease-in so the lines do not appear to switch on at a visible point.
-const TOP_FADE = `linear-gradient(to bottom,
-  transparent var(--header-height),
-  rgba(0, 0, 0, 0.12) calc(var(--header-height) + 6rem),
-  rgba(0, 0, 0, 0.4) calc(var(--header-height) + 12rem),
-  rgba(0, 0, 0, 0.75) calc(var(--header-height) + 18rem),
-  #000 calc(var(--header-height) + 24rem))`
+// ease-in so the lines do not appear to switch on at a visible point. The bottom fade is
+// the same ramp mirrored against the element's bottom edge.
+const FADE_RAMP: ReadonlyArray<[alpha: string, offset: string]> = [
+  ['transparent', '0rem'],
+  ['rgba(0, 0, 0, 0.12)', '6rem'],
+  ['rgba(0, 0, 0, 0.4)', '12rem'],
+  ['rgba(0, 0, 0, 0.75)', '18rem'],
+  ['#000', '24rem'],
+]
+
+function fadeMask({ fadeTop, fadeBottom }: { fadeTop: boolean; fadeBottom: boolean }) {
+  const top = fadeTop
+    ? FADE_RAMP.map(([alpha, offset]) => `${alpha} calc(var(--header-height) + ${offset})`)
+    : ['#000 0%']
+  const bottom = fadeBottom
+    ? [...FADE_RAMP].reverse().map(([alpha, offset]) => `${alpha} calc(100% - ${offset})`)
+    : ['#000 100%']
+  return `linear-gradient(to bottom, ${[...top, ...bottom].join(', ')})`
+}
