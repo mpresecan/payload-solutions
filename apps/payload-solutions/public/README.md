@@ -27,14 +27,14 @@ path of the hero.
 
 ## hero-solutions-poster.webp
 
-Frame 0 of this site's hero video (`https://cdn.payload.solutions/hero-solutions-1080.mp4`),
-1920x1080, ~54KB. `HeroVideoBackdrop video="solutions"` (`@payload-solutions/brand/hero-video`,
+Frame 0 of this site's hero video (`https://cdn.payload.solutions/hero-solutions-1080-60.mp4`,
+plus a 720p `hero-solutions-720-60.mp4` for phones), 1920x1080, ~78KB. `HeroVideoBackdrop video="solutions"` (`@payload-solutions/brand/hero-video`,
 where each site's file and poster are listed in `HERO_VIDEOS`) preloads it and uses it as the
 `<video>` poster, so the hero is never an empty black frame while the MP4 buffers, and as the
 still that replaces the video under `prefers-reduced-motion: reduce`.
 
-payloadstack.com runs a different loop (`hero-1080.mp4`) with its own `hero-poster.webp`.
+payloadstack.com runs a different loop (`hero-stack-1080-60.mp4`) with its own `hero-poster.webp`.
 
 If the video is re-cut, re-export this from frame 0 of the new loop
-(`ffmpeg -i hero-solutions-1080.mp4 -frames:v 1 -c:v libwebp -quality 80 hero-solutions-poster.webp`),
+(`ffmpeg -i hero-solutions-1080-60.mp4 -frames:v 1 -c:v libwebp -quality 82 hero-solutions-poster.webp`),
 or the hand-off from still to motion will jump.

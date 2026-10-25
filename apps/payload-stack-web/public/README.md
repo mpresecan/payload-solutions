@@ -26,8 +26,8 @@ path of the hero.
 
 ## hero-poster.webp
 
-Frame 0 of the shared hero video (`https://cdn.payload.solutions/hero-1080.mp4`), the same file
-as `apps/payload-solutions/public/hero-poster.webp`. `HeroVideoBackdrop`
+Frame 0 of this site's hero video (`https://cdn.payload.solutions/hero-stack-1080-60.mp4`, plus
+a 720p `hero-stack-720-60.mp4` for phones). `HeroVideoBackdrop`
 (`@payload-solutions/brand/hero-video`) preloads it and uses it as the `<video>` poster, and as
 the still that replaces the video under `prefers-reduced-motion: reduce`. If the video is
-re-cut, re-export it from frame 0 of the new loop in both apps.
+re-cut, re-export it from frame 0 of the new loop.
