@@ -1,4 +1,12 @@
-import { DocsBody, DocsDescription, DocsPage, DocsTitle, EditOnGitHub } from 'fumadocs-ui/layouts/docs/page'
+import {
+  DocsBody,
+  DocsDescription,
+  DocsPage,
+  DocsTitle,
+  EditOnGitHub,
+  MarkdownCopyButton,
+  ViewOptionsPopover,
+} from 'fumadocs-ui/layouts/docs/page'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { GITHUB_REPO_URL, brands } from '@payload-solutions/brand'
@@ -15,9 +23,14 @@ export default async function DocPage({ params }: Params) {
 
   const MDX = page.data.body
   const editUrl = `${GITHUB_REPO_URL}/blob/main/docs/${page.path}`
+  const markdownUrl = `${GITHUB_REPO_URL.replace('https://github.com/', 'https://raw.githubusercontent.com/')}/main/docs/${page.path}`
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
+      <div className="flex flex-wrap justify-end gap-2">
+        <MarkdownCopyButton markdownUrl={markdownUrl} />
+        <ViewOptionsPopover markdownUrl={markdownUrl} githubUrl={editUrl} />
+      </div>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>
