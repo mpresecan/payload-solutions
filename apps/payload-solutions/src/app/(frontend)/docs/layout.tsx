@@ -11,6 +11,22 @@ import { source } from '@/lib/source'
 /** Pages that sit outside any product: the docs home and the plugin index. */
 const OVERVIEW_URLS = ['/docs', '/docs/plugins']
 
+/**
+ * Fumadocs' own grid template (fumadocs-ui 16.15, layouts/docs/slots/container) plus one row:
+ * `footer`. The sidebar area runs down through that row, so the sticky sidebar stays beside the
+ * footer the way it stays beside every page, and the footer takes the main and TOC columns
+ * (the TOC stops above it). The footer is a grid item next to `<main>`, never inside it: a
+ * `<footer>` nested in `<main>` loses its `contentinfo` role, and this one is the page's only
+ * one. It comes after the page in the DOM, so reading and tab order match what is seen.
+ *
+ * This replaces the library's inline template wholesale, so re-check it against
+ * `slots/container.js` when bumping fumadocs-ui.
+ */
+const DOCS_GRID_TEMPLATE = `"sidebar sidebar header toc toc"
+"sidebar sidebar toc-popover toc toc"
+"sidebar sidebar main toc toc" 1fr
+"sidebar sidebar footer footer footer" / minmax(min-content, 1fr) var(--fd-sidebar-col) minmax(0, calc(var(--fd-layout-width,97rem) - var(--fd-sidebar-width) - var(--fd-toc-width))) var(--fd-toc-width) minmax(min-content, 1fr)`
+
 export default function Layout({ children }: { children: ReactNode }) {
   const tree = source.getPageTree()
 
@@ -29,15 +45,6 @@ export default function Layout({ children }: { children: ReactNode }) {
     },
   ]
 
-  /*
-    The footer sits outside DocsLayout, not inside it. DocsLayout's container is a CSS grid
-    whose sidebar and TOC columns own the full height, so a footer placed among its children
-    would be boxed into the `main` column. As a sibling it closes the page edge to edge under
-    the whole shell — the same move payloadcms.com makes on its docs pages, where the docs
-    grid stops on a hairline and the site footer runs full width beneath it. `docs-footer`
-    then re-seats the footer's lattice on the docs shell instead of the site's 84rem grid
-    (see globals.css).
-  */
   return (
     <>
       <DocsLayout
@@ -50,11 +57,12 @@ export default function Layout({ children }: { children: ReactNode }) {
           React warns about a keyless child owned by this file without it.
         */
         sidebar={{ footer: <DocsSourceLink key="docs-source" /> }}
+        containerProps={{ style: { gridTemplate: DOCS_GRID_TEMPLATE } }}
       >
         <DocsBrandSync />
         {children}
+        <SiteFooter className="docs-footer" />
       </DocsLayout>
-      <SiteFooter className="docs-footer" />
     </>
   )
 }

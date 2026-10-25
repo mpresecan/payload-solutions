@@ -43,6 +43,7 @@ export function VideoBackdrop({
   sources,
   poster,
   playbackRate = 1,
+  copyColumns = 1,
   className,
 }: {
   sources: VideoBackdropSource[]
@@ -50,6 +51,12 @@ export function VideoBackdrop({
   poster: string
   /** Playback speed for the background video. */
   playbackRate?: number
+  /**
+   * How many lattice columns the hero copy spans from lg, which is how far the copy scrim
+   * reaches: 1 on payload.solutions (copy in the first column), 2 on payloadstack.com (copy up
+   * to the centre line). Below lg the copy spans the width either way.
+   */
+  copyColumns?: 1 | 2
   className?: string
 }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -98,6 +105,7 @@ export function VideoBackdrop({
     <motion.div
       ref={ref}
       aria-hidden
+      data-copy-columns={copyColumns}
       className={`video-backdrop pointer-events-none inset-x-0 top-0 z-[-2] h-dvh overflow-hidden bg-bg ${reduce ? 'absolute' : 'fixed'} ${className ?? ''}`}
       style={reduce ? undefined : { opacity }}
     >

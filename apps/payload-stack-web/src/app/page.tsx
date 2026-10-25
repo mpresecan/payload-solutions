@@ -1,6 +1,6 @@
-import { AmbientBackdrop } from '@payload-solutions/brand/ambient-backdrop'
 import { CrtGrain } from '@payload-solutions/brand/crt-grain'
 import { GridColumns } from '@payload-solutions/brand/grid-columns'
+import { HeroVideoBackdrop } from '@payload-solutions/brand/hero-video'
 import { ThemeBand } from '@payload-solutions/brand/theme-band'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
@@ -15,9 +15,11 @@ import { Showcase } from '@/sections/showcase'
 import { WhyPayload } from '@/sections/why-payload'
 
 /**
- * The opening band is always dark: hero, logo wall and the product showcase sit on the
- * pinned ambient backdrop. Everything after it follows the visitor's theme and slides over
- * the backdrop (relative, z-10, opaque), one deliberate switch per page.
+ * The opening band is always dark: hero, logo wall and the product showcase are transparent
+ * and sit on the pinned hero video, shared with payload.solutions. Everything after it follows
+ * the visitor's theme and slides over the video like a curtain (relative, z-10, opaque), the
+ * way payloadcms.com runs its own background video. The hero copy spans two columns, so the
+ * copy scrim does too.
  */
 export default function HomePage() {
   return (
@@ -25,7 +27,7 @@ export default function HomePage() {
       <SiteHeader />
       <main id="main">
         <ThemeBand theme="dark" as="div" className="-mt-header pt-header">
-          <AmbientBackdrop />
+          <HeroVideoBackdrop copyColumns={2} />
           <GridColumns />
           <Hero />
           <BuiltWith />

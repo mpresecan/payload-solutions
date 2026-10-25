@@ -650,6 +650,20 @@
       transparent 62%
     );
   }
+  /* copyColumns={2} (payloadstack.com): the copy and its action rows run to the centre line,
+     so the scrim holds through the first half and opens across the third column. Measured at
+     1440x900 over every part of the loop: worst case 18:1 for white and 6.7:1 for muted text
+     behind the headline and lead, 15:1 and 5.6:1 behind the action rows before their glass. */
+  .video-backdrop[data-copy-columns='2'] .video-backdrop__scrim {
+    background: linear-gradient(
+      to right,
+      var(--bg) 0%,
+      color-mix(in oklab, var(--bg) 90%, transparent) 34%,
+      color-mix(in oklab, var(--bg) 78%, transparent) 50%,
+      color-mix(in oklab, var(--bg) 40%, transparent) 64%,
+      transparent 82%
+    );
+  }
 }
 /* payloadcms.com's value from lg. On a phone a 100px spread on each side of a ~390px frame
    closes the video down to a sliver, so below lg the sides spread far less; the top keeps

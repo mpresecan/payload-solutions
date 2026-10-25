@@ -1,12 +1,13 @@
 import type { Metadata } from 'next'
 import { CrtGrain } from '@payload-solutions/brand/crt-grain'
 import { GridColumns } from '@payload-solutions/brand/grid-columns'
+import { HeroVideoBackdrop } from '@payload-solutions/brand/hero-video'
 import { ThemeBand } from '@payload-solutions/brand/theme-band'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
 import { getPayloadClient } from '@/lib/payload'
 import { Contact } from '@/sections/contact'
-import { Hero, HeroBackdrop } from '@/sections/hero'
+import { Hero } from '@/sections/hero'
 import { Plugins } from '@/sections/plugins'
 import { Products } from '@/sections/products'
 import { Roadmap } from '@/sections/roadmap'
@@ -34,7 +35,7 @@ export default async function HomePage() {
             them; the rest follows the visitor's theme and slides over it like a curtain, the
             way payloadcms.com runs its own background video. */}
         <ThemeBand theme="dark" as="div" className="-mt-header pt-header">
-          <HeroBackdrop />
+          <HeroVideoBackdrop />
           <GridColumns />
           <Hero />
           <Statement />

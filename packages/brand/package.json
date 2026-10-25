@@ -23,6 +23,7 @@
     "./parallax": "./src/parallax.tsx",
     "./ambient-backdrop": "./src/ambient-backdrop.tsx",
     "./video-backdrop": "./src/video-backdrop.tsx",
+    "./hero-video": "./src/hero-video.tsx",
     "./crt-grain": "./src/crt-grain.tsx",
     "./grid-columns": "./src/grid-columns.tsx",
     "./crosshairs": "./src/crosshairs.tsx",
