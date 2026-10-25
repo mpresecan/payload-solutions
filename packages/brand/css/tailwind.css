@@ -627,8 +627,15 @@
   background-size: 256px auto;
   mix-blend-mode: multiply;
 }
-/* Below lg the copy spans the width, so the scrim runs top to bottom. Measured on a 390x844
-   phone over every part of the loop: worst case 14:1 for white, 5.2:1 for muted body text. */
+/*
+  The copy scrim. Order matters and is load-bearing: the phone rules come first, then ONE lg
+  block, so that at lg the two-column rule (same specificity as the strong phone rule) wins by
+  coming later, and the strong one-column rule wins by specificity. Every value was measured over
+  every quarter second of its loop at 0.85 opacity with the top vignette in place.
+*/
+
+/* Phone, standard (payloadstack.com): the copy spans the width, so the scrim runs top to bottom.
+   14:1 white, 5.2:1 muted. */
 .video-backdrop__scrim {
   background: linear-gradient(
     to bottom,
@@ -637,10 +644,20 @@
     color-mix(in oklab, var(--bg) 15%, transparent) 100%
   );
 }
-/* From lg the copy owns the first lattice column, so the scrim closes that column and opens
-   by the middle of the second. Columns two to four keep the full video. Measured at 1440x900:
-   worst case behind the copy 10.4:1 for white (1.4:1 without the scrim). */
+/* Phone, scrim="strong", for a loop whose brightest light crosses the copy: payload.solutions
+   13.6:1 / 5.1:1, payloadclock.com 13:1 / 4.8:1. */
+.video-backdrop[data-scrim='strong'] .video-backdrop__scrim {
+  background: linear-gradient(
+    to bottom,
+    var(--bg) 0%,
+    color-mix(in oklab, var(--bg) 88%, transparent) 30%,
+    color-mix(in oklab, var(--bg) 80%, transparent) 64%,
+    color-mix(in oklab, var(--bg) 50%, transparent) 100%
+  );
+}
 @media (min-width: 64rem) {
+  /* One copy column, standard: closes the first lattice column and opens by the middle of the
+     second; columns two to four keep the full video. 10.4:1 white (1.4:1 without it). */
   .video-backdrop__scrim {
     background: linear-gradient(
       to right,
@@ -650,10 +667,10 @@
       transparent 62%
     );
   }
-  /* copyColumns={2} (payloadstack.com): the copy and its action rows run to the centre line,
-     so the scrim holds through the first half and opens across the third column. Measured at
-     1440x900 over every part of the loop: worst case 18:1 for white and 6.7:1 for muted text
-     behind the headline and lead, 15:1 and 5.6:1 behind the action rows before their glass. */
+  /* Two copy columns (payloadstack.com, payloadclock.com, either scrim strength): the copy and
+     its action rows run to the centre line, so the scrim holds through the first half and opens
+     across the third column. payloadstack.com 18:1 / 6.7:1 behind the headline and lead, 15:1 /
+     5.6:1 behind the action rows before their glass; payloadclock.com 17:1 / 6.4:1. */
   .video-backdrop[data-copy-columns='2'] .video-backdrop__scrim {
     background: linear-gradient(
       to right,
@@ -662,6 +679,17 @@
       color-mix(in oklab, var(--bg) 78%, transparent) 50%,
       color-mix(in oklab, var(--bg) 40%, transparent) 64%,
       transparent 82%
+    );
+  }
+  /* One copy column, strong (payload.solutions): 17:1 white, 6.3:1 muted. */
+  .video-backdrop[data-scrim='strong'][data-copy-columns='1'] .video-backdrop__scrim {
+    background: linear-gradient(
+      to right,
+      var(--bg) 0%,
+      color-mix(in oklab, var(--bg) 90%, transparent) 24%,
+      color-mix(in oklab, var(--bg) 60%, transparent) 40%,
+      color-mix(in oklab, var(--bg) 20%, transparent) 55%,
+      transparent 68%
     );
   }
 }

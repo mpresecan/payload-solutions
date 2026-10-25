@@ -25,13 +25,16 @@ Wants: a small, seamlessly tiling grayscale loop, tiled at its own pixel size
 (`--crt-size: auto`). Keep it to a few tens of KB — it is decorative and sits on the critical
 path of the hero.
 
-## hero-poster.webp
+## hero-solutions-poster.webp
 
-The first frame of the hero video (`https://cdn.payload.solutions/hero-1080.mp4`), 1920x1080,
-~27KB. `HeroBackdrop` in `src/sections/hero.tsx` preloads it and passes it to `VideoBackdrop`
-as the `<video>` poster, so the hero is never an empty black frame while the MP4 buffers, and
-it is the still that replaces the video entirely under `prefers-reduced-motion: reduce`.
+Frame 0 of this site's hero video (`https://cdn.payload.solutions/hero-solutions-1080.mp4`),
+1920x1080, ~54KB. `HeroVideoBackdrop video="solutions"` (`@payload-solutions/brand/hero-video`,
+where each site's file and poster are listed in `HERO_VIDEOS`) preloads it and uses it as the
+`<video>` poster, so the hero is never an empty black frame while the MP4 buffers, and as the
+still that replaces the video under `prefers-reduced-motion: reduce`.
+
+payloadstack.com runs a different loop (`hero-1080.mp4`) with its own `hero-poster.webp`.
 
 If the video is re-cut, re-export this from frame 0 of the new loop
-(`ffmpeg -i hero-1080.mp4 -frames:v 1 -c:v libwebp -quality 80 hero-poster.webp`), or the
-hand-off from still to motion will jump.
+(`ffmpeg -i hero-solutions-1080.mp4 -frames:v 1 -c:v libwebp -quality 80 hero-solutions-poster.webp`),
+or the hand-off from still to motion will jump.

@@ -35,7 +35,7 @@ export default async function HomePage() {
             them; the rest follows the visitor's theme and slides over it like a curtain, the
             way payloadcms.com runs its own background video. */}
         <ThemeBand theme="dark" as="div" className="-mt-header pt-header">
-          <HeroVideoBackdrop />
+          <HeroVideoBackdrop video="solutions" />
           <GridColumns />
           <Hero />
           <Statement />

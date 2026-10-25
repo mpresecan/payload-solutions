@@ -27,7 +27,7 @@ export default function HomePage() {
       <SiteHeader />
       <main id="main">
         <ThemeBand theme="dark" as="div" className="-mt-header pt-header">
-          <HeroVideoBackdrop copyColumns={2} />
+          <HeroVideoBackdrop video="stack" copyColumns={2} />
           <GridColumns />
           <Hero />
           <BuiltWith />

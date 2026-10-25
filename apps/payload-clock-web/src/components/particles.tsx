@@ -10,7 +10,7 @@ import { cn } from '@/lib/cn'
   What changed: the original drew white dots at a fixed opacity over whatever was behind
   them, which on true black reads as dust on the screen. These drift slowly upward and
   twinkle, they are painted in the brand accent resolved from the live token, and the field
-  fades out towards the edges so it never collides with the vignette in AmbientBackdrop.
+  fades out towards the edges so it never collides with the edge shadow of the hero video.
 
   What stayed: the drift, the parallax nudge towards the pointer, and the fact that it is one
   canvas rather than n DOM nodes.

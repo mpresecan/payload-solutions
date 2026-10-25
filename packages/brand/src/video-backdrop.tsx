@@ -44,6 +44,7 @@ export function VideoBackdrop({
   poster,
   playbackRate = 1,
   copyColumns = 1,
+  scrim = 'standard',
   className,
 }: {
   sources: VideoBackdropSource[]
@@ -57,6 +58,12 @@ export function VideoBackdrop({
    * to the centre line). Below lg the copy spans the width either way.
    */
   copyColumns?: 1 | 2
+  /**
+   * How hard the copy scrim darkens. `standard` was measured on the payloadstack.com loop;
+   * `strong` is for a loop whose brightest streak runs through the copy itself (the
+   * payload.solutions loop). Pick it by measuring, not by eye.
+   */
+  scrim?: 'standard' | 'strong'
   className?: string
 }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -106,6 +113,7 @@ export function VideoBackdrop({
       ref={ref}
       aria-hidden
       data-copy-columns={copyColumns}
+      data-scrim={scrim}
       className={`video-backdrop pointer-events-none inset-x-0 top-0 z-[-2] h-dvh overflow-hidden bg-bg ${reduce ? 'absolute' : 'fixed'} ${className ?? ''}`}
       style={reduce ? undefined : { opacity }}
     >
