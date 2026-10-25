@@ -1,81 +1,18 @@
-import { ImageResponse } from 'next/og'
-import { readFile } from 'node:fs/promises'
-import { MARK_BASE_PATH, MARK_FACET_COLORS, MARK_LID_PATH, ACCENT_COLORS, brands } from '@payload-solutions/brand'
+import { brands } from '@payload-solutions/brand'
+
+import { OG_CONTENT_TYPE, OG_SIZE, renderOgCard } from './og-card'
 
 export const alt = `${brands.clock.name}: ${brands.clock.tagline}`
-export const size = { width: 1200, height: 630 }
-export const contentType = 'image/png'
+export const size = OG_SIZE
+export const contentType = OG_CONTENT_TYPE
 
-/**
- * Satori has no CSS variables and no light-dark(), so the accent is read from ACCENT_COLORS
- * rather than from the token — see the note on that constant in packages/brand/src/brands.ts.
- */
+/** The hero's own headline over the clock film's poster, with the endpoint it calls. */
 export default async function OpenGraphImage() {
-  // Geist is SIL OFL licensed; the three faces used here are vendored next to this file.
-  const [sansMedium, sansRegular, mono] = await Promise.all([
-    readFile(new URL('./og-fonts/Geist-Medium.ttf', import.meta.url)),
-    readFile(new URL('./og-fonts/Geist-Regular.ttf', import.meta.url)),
-    readFile(new URL('./og-fonts/GeistMono-Regular.ttf', import.meta.url)),
-  ])
-
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          padding: 72,
-          background: '#0a0a0a',
-          color: '#f2f2f2',
-          fontFamily: 'Geist',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 30 }}>
-          <svg width="24" height="31" viewBox="0 0 20 26" fill="none">
-            <path d={MARK_BASE_PATH} fill="#f2f2f2" />
-            <path d={MARK_LID_PATH} fill={MARK_FACET_COLORS.clock} />
-          </svg>
-          <span style={{ fontWeight: 400, letterSpacing: '-0.03em' }}>Payload</span>
-          <span style={{ fontWeight: 500, letterSpacing: '-0.03em', marginLeft: -6 }}>Clock</span>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-          <div style={{ fontSize: 76, fontWeight: 500, letterSpacing: '-0.04em', lineHeight: 1.02, maxWidth: 920 }}>
-            Serverless has no cron. Your queue still has to run.
-          </div>
-          <div style={{ fontSize: 28, color: 'rgba(242,242,242,0.64)', maxWidth: 900, lineHeight: 1.35 }}>
-            Payload Clock calls your deployment&apos;s job queue on schedule, drains the backlog,
-            keeps the history and tells you when it stops. Free.
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 16,
-            alignSelf: 'flex-start',
-            border: `1px solid ${ACCENT_COLORS.clock.accent}`,
-            color: ACCENT_COLORS.clock.accent,
-            padding: '18px 26px',
-            fontFamily: 'Geist Mono',
-            fontSize: 26,
-          }}
-        >
-          <span>GET /api/payload-jobs/run</span>
-        </div>
-      </div>
-    ),
-    {
-      ...size,
-      fonts: [
-        { name: 'Geist', data: sansRegular, weight: 400, style: 'normal' },
-        { name: 'Geist', data: sansMedium, weight: 500, style: 'normal' },
-        { name: 'Geist Mono', data: mono, weight: 400, style: 'normal' },
-      ],
-    },
-  )
+  return renderOgCard({
+    eyebrow: 'In development · Free',
+    title: 'The clock your serverless Payload app doesn’t have.',
+    description:
+      'Calls your job queue on schedule, drains the backlog, keeps the history and tells you when it stops.',
+    action: { prompt: 'GET', text: '/api/payload-jobs/run' },
+  })
 }
