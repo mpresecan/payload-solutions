@@ -2,6 +2,7 @@ import { PAYLOAD_URL, brands } from '@payload-solutions/brand'
 import { ActionRow, IndependenceNote, ProseLink } from '@payload-solutions/brand/lattice'
 import { Parallax } from '@payload-solutions/brand/parallax'
 import { CopyCommand } from '@/components/copy-command'
+import { LaunchFilm } from '@/components/launch-film'
 import { StackVisual } from '@/components/stack-visual'
 
 const brand = brands.stack
@@ -31,6 +32,8 @@ export function Hero() {
             and an admin dashboard already wired in—so your coding agents can start building your
             product from day one.
           </p>
+
+          <LaunchFilm className="mt-8" />
 
           <div className="mt-11 border-t border-border">
             <CopyCommand variant="row" />

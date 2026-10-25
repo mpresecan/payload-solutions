@@ -8,6 +8,9 @@
  * trim them at playback, without a re-render: `start` is the composition's HOOK sequence and
  * `end` its TOTAL minus its OUTRO (or URLS) sequence, in seconds at 30 fps.
  *
+ * The films at the top of `clips` are the exception: produced pieces with a soundtrack, played
+ * whole and with sound (`hasAudio`).
+ *
  * Posters are frames pulled from the same renders (assets/clips, 1280w webp). Re-pull them
  * when a video is re-rendered: `ffmpeg -ss <t> -i <file>.mp4 -frames:v 1 -vf scale=1280:-1
  * -c:v libwebp -quality 72 assets/clips/<id>.webp`.
@@ -51,18 +54,46 @@ export const CLIP_CDN = 'https://cdn.payload.solutions'
 export type ClipEntry = {
   /** Object key in the bucket. */
   file: string
-  poster: StaticImageData
+  /**
+   * Still shown before playback. Without one the player preloads the file's metadata and
+   * shows its first frame instead (desktop browsers; iOS shows the frame's background).
+   */
+  poster?: StaticImageData
   /** What the clip shows, for screen readers and as the player's label. */
   alt: string
-  /** Seconds. Playback starts here, after the X hook card (the post's opening line). */
-  start: number
-  /** Seconds. Playback loops back to `start` here, before the X outro card. */
-  end: number
+  /** Seconds. Playback starts here, after the X hook card (the post's opening line). Default 0. */
+  start?: number
+  /** Seconds. Playback loops back to `start` here, before the X outro card. Default: the end. */
+  end?: number
+  /**
+   * A film with a soundtrack rather than a silent screen recording: never autoplays, plays
+   * with sound on the visitor's click, has a mute button, and stops at the end instead of
+   * looping.
+   */
+  hasAudio?: boolean
   /** The campaign post it was made for, to find its source in the campaign repo. */
-  post: number
+  post?: number
 }
 
 export const clips = {
+  // Films: produced pieces with sound, not campaign screen recordings.
+  'stack-launch-film': {
+    file: 'payload-stack-launch-film.mp4',
+    alt: 'The Payload Stack launch film',
+    hasAudio: true,
+  },
+  'stack-launch-film-v2': {
+    file: 'payload-stack-launch-film-v2.mp4',
+    alt: 'Payload Stack: the introduction film',
+    hasAudio: true,
+  },
+  'emails-promo': {
+    file: 'payload-emails-promo.mp4',
+    alt: 'Payload Emails: the introduction film',
+    hasAudio: true,
+  },
+
+  // Campaign screen recordings: silent, trimmed, looping.
   'first-run': {
     file: 'payload-stack-post-89-first-run.mp4',
     start: 3.5,
@@ -317,4 +348,9 @@ export type ClipId = keyof typeof clips
 
 export function clipUrl(id: ClipId): string {
   return `${CLIP_CDN}/${clips[id].file}`
+}
+
+/** One entry, typed as the wide `ClipEntry` so its optional fields can be read. */
+export function clipEntry(id: ClipId): ClipEntry {
+  return clips[id]
 }

@@ -4,6 +4,7 @@ import { GeistMono } from 'geist/font/mono'
 import { brands } from '@payload-solutions/brand'
 import { ConsentRoot } from '@/components/consent/consent-root'
 import './globals.css'
+import { CLIP_CDN } from '@payload-solutions/brand/clips'
 
 const brand = brands.stack
 
@@ -75,6 +76,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        {/* The demo videos and the launch film stream from here; warm the connection early. */}
+        <link rel="preconnect" href={CLIP_CDN} />
       </head>
       <body className="min-h-dvh bg-bg text-fg antialiased">
         <ConsentRoot>{children}</ConsentRoot>
