@@ -19,6 +19,11 @@ export interface ClipProps {
    * pulses so the visitor can turn sound on.
    */
   playOnMount?: boolean
+  /**
+   * Draw the site frame (hairline border and surface fill). Off when a parent owns the frame
+   * and slides clips through it, so two borders do not travel past each other.
+   */
+  framed?: boolean
 }
 
 /**
@@ -34,7 +39,13 @@ export interface ClipProps {
  * Controls: play/pause, a seek bar in the entity accent, the time, mute (films), fullscreen.
  * Changing `id` swaps the source in place, which is how a tabbed gallery drives it.
  */
-export function Clip({ id, className, autoPlay = true, playOnMount = false }: ClipProps) {
+export function Clip({
+  id,
+  className,
+  autoPlay = true,
+  playOnMount = false,
+  framed = true,
+}: ClipProps) {
   const clip = clipEntry(id)
   const isFilm = Boolean(clip.hasAudio)
   const start = clip.start ?? 0
@@ -217,7 +228,9 @@ export function Clip({ id, className, autoPlay = true, playOnMount = false }: Cl
   return (
     <div
       ref={frameRef}
-      className={`group/clip relative aspect-video overflow-hidden border border-border bg-surface [&:fullscreen]:border-0 [&:fullscreen]:bg-black ${className ?? ''}`}
+      className={`group/clip relative aspect-video overflow-hidden ${
+        framed ? 'border border-border bg-surface' : ''
+      } [&:fullscreen]:border-0 [&:fullscreen]:bg-black ${className ?? ''}`}
     >
       <video
         ref={videoRef}

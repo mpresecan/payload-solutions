@@ -71,6 +71,28 @@ const DEMOS: Demo[] = [
 
 const HASH_PREFIX = '#demo-'
 
+/** The slide-btn curve from packages/brand, so the player moves like the buttons around it. */
+const EASE_OUT: [number, number, number, number] = [0.165, 0.84, 0.44, 1]
+const EASE_IN: [number, number, number, number] = [0.55, 0, 0.75, 0.2]
+
+/**
+ * One upward push per tab click. The leaving clip is quicker than the arriving one, the same
+ * out-of-step timing the slide buttons use, so the two never read as one block moving.
+ */
+const SWAP = {
+  enter: { opacity: 0, y: '38%', scale: 1.04, zIndex: 1 },
+  rest: { opacity: 1, y: '0%', scale: 1, zIndex: 1 },
+  leave: {
+    opacity: 0,
+    y: '-30%',
+    scale: 0.96,
+    zIndex: 0,
+    pointerEvents: 'none' as const,
+    transition: { duration: 0.5, ease: EASE_IN },
+  },
+  enterTransition: { duration: 0.85, ease: EASE_OUT, delay: 0.06 },
+}
+
 export function SeeItRun() {
   const [active, setActive] = useState<ClipId>('first-run')
   const playerRef = useRef<HTMLDivElement>(null)
@@ -129,20 +151,20 @@ export function SeeItRun() {
             className="min-w-0 lg:sticky lg:top-[calc(var(--header-height)+2rem)] lg:order-2 lg:col-span-2 lg:self-start lg:pl-8"
           >
             <div ref={playerRef} className="scroll-mt-header">
-              <div className="relative aspect-video">
+              {/* The frame stays put and clips what passes through it: the outgoing clip lifts
+                  up and fades out while the next one rises in from below, both at once, so a
+                  tab click reads as the reel advancing rather than a flash between two videos. */}
+              <div className="relative aspect-video overflow-hidden border border-border bg-surface">
                 <AnimatePresence initial={false} mode="sync">
                   <motion.div
                     key={active}
                     className="absolute inset-0"
-                    initial={reduceMotion ? false : { opacity: 0, y: 8, scale: 0.99 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -5, scale: 1.005 }}
-                    transition={{
-                      duration: reduceMotion ? 0 : 0.32,
-                      ease: [0.22, 1, 0.36, 1],
-                    }}
+                    initial={reduceMotion ? false : SWAP.enter}
+                    animate={SWAP.rest}
+                    exit={reduceMotion ? { opacity: 0, transition: { duration: 0 } } : SWAP.leave}
+                    transition={reduceMotion ? { duration: 0 } : SWAP.enterTransition}
                   >
-                    <Clip id={active} />
+                    <Clip id={active} framed={false} />
                   </motion.div>
                 </AnimatePresence>
               </div>
