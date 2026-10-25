@@ -42,13 +42,7 @@ function resolveAccent(el: HTMLElement): [number, number, number] {
   return [Number(m[0]), Number(m[1]), Number(m[2])]
 }
 
-export function Particles({
-  className,
-  quantity = 44,
-}: {
-  className?: string
-  quantity?: number
-}) {
+export function Particles({ className, quantity = 44 }: { className?: string; quantity?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const reduce = useReducedMotionSafe()
 
@@ -62,6 +56,10 @@ export function Particles({
     let width = 0
     let height = 0
     let raf = 0
+    let last = 0
+    let isVisible = true
+    // The field's position in page coordinates, so a pointer event needs no layout read.
+    const origin = { left: 0, top: 0 }
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     let particles: Particle[] = []
     const pointer = { x: 0, y: 0 }
@@ -89,12 +87,16 @@ export function Particles({
       seed()
     }
 
-    const draw = () => {
+    // Steps are tuned per 60 Hz frame; scale by elapsed time so a 120 Hz screen does not run
+    // the field at double speed, and a long gap (tab switch) does not jump it.
+    const draw = (now: number) => {
+      const step = last ? Math.min((now - last) / (1000 / 60), 3) : 1
+      last = now
       ctx.clearRect(0, 0, width, height)
       for (const p of particles) {
-        p.y -= p.speed
-        p.x += p.drift
-        p.phase += 0.012
+        p.y -= p.speed * step
+        p.x += p.drift * step
+        p.phase += 0.012 * step
         if (p.y < -4) {
           p.y = height + 4
           p.x = Math.random() * width
@@ -121,10 +123,17 @@ export function Particles({
       raf = requestAnimationFrame(draw)
     }
 
-    const onPointer = (e: PointerEvent) => {
+    // Measured on resize and when the field comes back into view, not on every pointermove:
+    // a layout read per move while the canvas and the video are both painting is avoidable.
+    const measureRect = () => {
       const rect = parent.getBoundingClientRect()
-      pointer.x = e.clientX - rect.left
-      pointer.y = e.clientY - rect.top
+      origin.left = rect.left + window.scrollX
+      origin.top = rect.top + window.scrollY
+    }
+
+    const onPointer = (e: PointerEvent) => {
+      pointer.x = e.pageX - origin.left
+      pointer.y = e.pageY - origin.top
     }
 
     // The accent changes with the theme, and the theme is an attribute on <html>.
@@ -136,15 +145,35 @@ export function Particles({
       attributeFilter: ['data-theme'],
     })
 
+    // The field only lives in the hero: stop drawing once it is scrolled away, instead of
+    // clearing and repainting an invisible full-band canvas every frame.
+    const io = new IntersectionObserver(([entry]) => {
+      const next = entry?.isIntersecting ?? false
+      if (next === isVisible) return
+      isVisible = next
+      cancelAnimationFrame(raf)
+      if (isVisible) {
+        last = 0
+        measureRect()
+        raf = requestAnimationFrame(draw)
+      }
+    })
+
     resize()
-    const ro = new ResizeObserver(resize)
+    measureRect()
+    const ro = new ResizeObserver(() => {
+      resize()
+      measureRect()
+    })
     ro.observe(parent)
+    io.observe(parent)
     window.addEventListener('pointermove', onPointer, { passive: true })
     raf = requestAnimationFrame(draw)
 
     return () => {
       cancelAnimationFrame(raf)
       ro.disconnect()
+      io.disconnect()
       themeObserver.disconnect()
       window.removeEventListener('pointermove', onPointer)
     }
