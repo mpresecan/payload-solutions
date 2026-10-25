@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { accentForSlug } from '@payload-solutions/brand'
 import { ActionRow, ArrowGlyph, SectionHead } from '@payload-solutions/brand/lattice'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 
 import { Reveal } from '@/components/reveal'
 import { StatusChip } from '@/components/status-chip'
@@ -43,9 +44,10 @@ export function Plugins({ plugins }: { plugins: Plugin[] }) {
   return (
     <section
       id="plugins"
-      className="scroll-mt-header hairline-t py-section"
+      className="scroll-mt-header relative hairline-t py-section"
       aria-labelledby="plugins-heading"
     >
+      <GridCross line={0} />
       <div className="container-content">
         {/* The claim on the first two columns, the facts that settle it on the other two. */}
         <div className="col-grid">

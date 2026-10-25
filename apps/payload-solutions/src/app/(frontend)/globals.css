@@ -46,6 +46,25 @@
   border-radius: 0;
 }
 
+/* Docs footer: the site footer, re-seated on the docs shell. Fumadocs centres its grid in
+   --fd-layout-width (97rem) and pins a 268px sidebar to the shell's start, so the footer's
+   first grid line continues the sidebar's border and its last closes one gutter inside the
+   shell's end. Everything in the footer (columns, lattice, GridCross, wordmark) measures off
+   .container-content and assumes a --gutter inset, so only that box moves: the margins put
+   its lines where the docs' are. From md, where Fumadocs shows the sidebar; below that the
+   docs run full width and the stock footer already matches. */
+@media (min-width: 768px) {
+  .docs-footer {
+    --docs-shell-start: max(0px, (100vw - var(--fd-layout-width, 97rem)) / 2);
+  }
+  .docs-footer .container-content {
+    width: auto;
+    max-width: none;
+    margin-inline-start: calc(var(--docs-shell-start) + 268px - var(--gutter));
+    margin-inline-end: var(--docs-shell-start);
+  }
+}
+
 /* Docs pages: square corners, brand type, mono code. */
 #nd-docs-layout,
 #nd-page {

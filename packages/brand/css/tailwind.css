@@ -662,6 +662,24 @@
     box-shadow: inset 0 100px 120px 100px var(--bg);
   }
 }
+/* Top vignette: holds pure --bg under the header, then eases out over ~26rem, so the video
+   dissolves into the header instead of meeting its bottom border at full brightness. The edge
+   shadow alone left the bright streaks reaching the header line (measured at 1440x900 on the
+   poster frame: 110-250px band mean 13/255, peak 86 -> 4.6, peak 42 with this layer). Last
+   layer of the stack, so nothing can lift the seam back. Pinned with the video, so it stays
+   under the header while the band scrolls. */
+.video-backdrop__vignette {
+  background: linear-gradient(
+    to bottom,
+    var(--bg) 0,
+    var(--bg) var(--header-height),
+    color-mix(in oklab, var(--bg) 86%, transparent) calc(var(--header-height) + 4rem),
+    color-mix(in oklab, var(--bg) 62%, transparent) calc(var(--header-height) + 9rem),
+    color-mix(in oklab, var(--bg) 32%, transparent) calc(var(--header-height) + 15rem),
+    color-mix(in oklab, var(--bg) 10%, transparent) calc(var(--header-height) + 21rem),
+    transparent calc(var(--header-height) + 26rem)
+  );
+}
 @media (prefers-reduced-motion: reduce) {
   .video-backdrop__media {
     animation: none;

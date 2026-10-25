@@ -1,4 +1,5 @@
 import { SectionHead } from '@payload-solutions/brand/lattice'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { Reveal } from '@/components/reveal'
 import { RunLedger } from '@/components/run-ledger'
 
@@ -33,9 +34,10 @@ export function Inside() {
   return (
     <section
       id="inside"
-      className="scroll-mt-header hairline-t py-section"
+      className="scroll-mt-header relative hairline-t py-section"
       aria-labelledby="inside-heading"
     >
+      <GridCross line={4} />
       <div className="container-content">
         <Reveal>
           <SectionHead

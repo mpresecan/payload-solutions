@@ -1,4 +1,5 @@
 import { SectionHead } from '@payload-solutions/brand/lattice'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { Reveal } from '@/components/reveal'
 
 /*
@@ -20,9 +21,10 @@ export function Free() {
   return (
     <section
       id="free"
-      className="scroll-mt-header hairline-t py-section"
+      className="scroll-mt-header relative hairline-t py-section"
       aria-labelledby="free-heading"
     >
+      <GridCross line={3} />
       <div className="container-content col-grid gap-y-14">
         <Reveal className="lg:col-span-2 lg:pr-12">
           <SectionHead

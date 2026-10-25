@@ -1,6 +1,7 @@
 import { ArrowUpRight } from '@phosphor-icons/react/dist/ssr'
 
 import { SectionHead } from '@payload-solutions/brand/lattice'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { Reveal } from '@/components/reveal'
 import type { RoadmapItem } from '@/payload-types'
 
@@ -64,9 +65,10 @@ export function Roadmap({ items }: { items: RoadmapItem[] }) {
   return (
     <section
       id="roadmap"
-      className="scroll-mt-header hairline-t py-section"
+      className="scroll-mt-header relative hairline-t py-section"
       aria-labelledby="roadmap-heading"
     >
+      <GridCross line={2} />
       <div className="container-content col-grid">
         <Reveal className="lg:col-span-2 lg:pr-12">
           <SectionHead

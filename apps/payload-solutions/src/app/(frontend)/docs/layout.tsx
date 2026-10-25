@@ -34,7 +34,9 @@ export default function Layout({ children }: { children: ReactNode }) {
     whose sidebar and TOC columns own the full height, so a footer placed among its children
     would be boxed into the `main` column. As a sibling it closes the page edge to edge under
     the whole shell — the same move payloadcms.com makes on its docs pages, where the docs
-    grid stops on a hairline and the site footer runs full width beneath it.
+    grid stops on a hairline and the site footer runs full width beneath it. `docs-footer`
+    then re-seats the footer's lattice on the docs shell instead of the site's 84rem grid
+    (see globals.css).
   */
   return (
     <>
@@ -52,7 +54,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <DocsBrandSync />
         {children}
       </DocsLayout>
-      <SiteFooter />
+      <SiteFooter className="docs-footer" />
     </>
   )
 }

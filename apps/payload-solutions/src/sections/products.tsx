@@ -6,6 +6,7 @@ import { ClockDial } from '@payload-solutions/brand/clock-dial'
 import { SectionHead } from '@payload-solutions/brand/lattice'
 import { screens, type ScreenName } from '@payload-solutions/brand/screens'
 import { ThemedImage } from '@payload-solutions/brand/themed-image'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 
 import { CopyCommand } from '@/components/copy-command'
 import { Reveal } from '@/components/reveal'
@@ -41,9 +42,10 @@ export function Products({ products }: { products: Product[] }) {
   return (
     <section
       id="products"
-      className="scroll-mt-header hairline-t py-section"
+      className="scroll-mt-header relative hairline-t py-section"
       aria-labelledby="products-heading"
     >
+      <GridCross line={3} />
       <div className="container-content">
         <Reveal>
           <SectionHead

@@ -12,6 +12,7 @@ import {
   siTurborepo,
   siVercel,
 } from 'simple-icons'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { BrandIcon } from '@/components/brand-icon'
 
 const LOGOS = [
@@ -33,6 +34,9 @@ const LOGOS = [
 export function BuiltWith() {
   return (
     <section aria-label="Built with" className="hairline-t hairline-b relative">
+      {/* Diagonally opposite, as payloadcms.com marks its logo wall. */}
+      <GridCross line={1} />
+      <GridCross line={3} edge="bottom" />
       <div className="container-content flex flex-col gap-7 py-9 md:flex-row md:items-center md:gap-12">
         <p className="label-mono shrink-0">Built with</p>
         <ul className="grid grid-cols-4 gap-x-6 gap-y-6 sm:grid-cols-6 md:flex md:flex-1 md:flex-wrap md:items-center md:justify-between">

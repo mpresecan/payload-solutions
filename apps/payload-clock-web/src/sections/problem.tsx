@@ -1,4 +1,5 @@
 import { SectionHead } from '@payload-solutions/brand/lattice'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { Reveal } from '@/components/reveal'
 
 /*
@@ -29,9 +30,10 @@ export function Problem() {
   return (
     <section
       id="problem"
-      className="scroll-mt-header hairline-t py-section"
+      className="scroll-mt-header relative hairline-t py-section"
       aria-labelledby="problem-heading"
     >
+      <GridCross line={3} />
       <div className="container-content">
         <Reveal>
           <SectionHead

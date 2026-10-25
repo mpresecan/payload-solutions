@@ -1,5 +1,6 @@
 import { PAYLOAD_URL } from '@payload-solutions/brand'
 import { ActionRow, ProseLink, SectionHead } from '@payload-solutions/brand/lattice'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { Reveal } from '@/components/reveal'
 
 const POINTS: Array<{ title: string; body: string }> = [
@@ -25,9 +26,10 @@ export function WhyPayload() {
   return (
     <section
       id="why"
-      className="scroll-mt-header hairline-t py-section"
+      className="scroll-mt-header relative hairline-t py-section"
       aria-labelledby="why-heading"
     >
+      <GridCross line={3} />
       <div className="container-content">
         <Reveal>
           <SectionHead

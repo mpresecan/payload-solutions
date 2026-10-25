@@ -30,6 +30,8 @@ export type VideoBackdropSource = {
  *    from lg (horizontal) and the top of the frame below lg (vertical, where the copy spans
  *    the width), and leaves columns two to four, where the hero visual sits, untouched.
  *    Measured worst case behind the copy with it: 10.4:1 at 1440, 14:1 on a phone.
+ * 5. A top vignette: solid --bg under the header easing out over ~26rem, so the video dissolves
+ *    into the header rather than meeting its bottom border.
  *
  * Like AmbientBackdrop it fades out over the last stretch of its band, so nothing pinned can
  * show through a transparent footer, and it pauses the video once the band is off screen.
@@ -126,6 +128,7 @@ export function VideoBackdrop({
       <div className="video-backdrop__crt absolute inset-0" />
       <div className="video-backdrop__scrim absolute inset-0" />
       <div className="video-backdrop__edge absolute inset-0" />
+      <div className="video-backdrop__vignette absolute inset-0" />
     </motion.div>
   )
 }

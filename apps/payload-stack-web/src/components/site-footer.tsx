@@ -6,6 +6,7 @@ import {
 } from '@payload-solutions/brand'
 import { FooterWordmark } from '@payload-solutions/brand/footer-wordmark'
 import { GridColumns } from '@payload-solutions/brand/grid-columns'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { ManageConsentButton } from '@payload-solutions/consent-react'
 
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -73,7 +74,10 @@ const LEGAL_LINKS: FooterLink[] = [
 
 export function SiteFooter() {
   return (
-    <footer className="relative isolate hairline-t pt-20 lg:pt-32">
+    /* z-10 lifts the footer level with the content above it (relative z-10), so the top half
+       of the GridCross on its top rule is not painted over. Nothing else overlaps. */
+    <footer className="relative isolate z-10 hairline-t pt-20 lg:pt-32">
+      <GridCross line={4} />
       <GridColumns />
 
       <div className="container-content">

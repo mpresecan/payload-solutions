@@ -1,4 +1,5 @@
 import { SectionHead } from '@payload-solutions/brand/lattice'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { Globe } from '@/components/globe'
 import { Reveal } from '@/components/reveal'
 
@@ -10,7 +11,8 @@ import { Reveal } from '@/components/reveal'
 */
 export function Everywhere() {
   return (
-    <section className="hairline-t py-section" aria-labelledby="everywhere-heading">
+    <section className="relative hairline-t py-section" aria-labelledby="everywhere-heading">
+      <GridCross line={2} />
       <div className="container-content col-grid items-center gap-y-12">
         <Reveal className="lg:col-span-2 lg:pr-12">
           <SectionHead

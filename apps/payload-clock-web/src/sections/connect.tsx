@@ -1,5 +1,6 @@
 import { SOLUTIONS_URL } from '@payload-solutions/brand'
 import { ActionRow, SectionHead } from '@payload-solutions/brand/lattice'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { CodeBlock, c, k, p, str } from '@/components/code-block'
 import { Reveal } from '@/components/reveal'
 
@@ -12,9 +13,10 @@ export function Connect() {
   return (
     <section
       id="connect"
-      className="scroll-mt-header hairline-t py-section"
+      className="scroll-mt-header relative hairline-t py-section"
       aria-labelledby="connect-heading"
     >
+      <GridCross line={0} />
       <div className="container-content col-grid gap-y-14">
         <Reveal className="lg:col-span-2 lg:pr-12">
           <SectionHead

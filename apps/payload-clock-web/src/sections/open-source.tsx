@@ -1,12 +1,14 @@
 import { SOLUTIONS_URL, brands } from '@payload-solutions/brand'
 import { ActionRow, SectionHead } from '@payload-solutions/brand/lattice'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { Reveal } from '@/components/reveal'
 
 const brand = brands.clock
 
 export function OpenSource() {
   return (
-    <section className="hairline-t py-section" aria-labelledby="oss-heading">
+    <section className="relative hairline-t py-section" aria-labelledby="oss-heading">
+      <GridCross line={1} />
       <div className="container-content col-grid gap-y-14">
         <Reveal className="lg:col-span-2 lg:pr-12">
           <SectionHead

@@ -1,11 +1,15 @@
-import { PAYLOAD_URL, brands } from '@payload-solutions/brand'
-import { ActionRow, IndependenceNote, ProseLink } from '@payload-solutions/brand/lattice'
-import { Parallax } from '@payload-solutions/brand/parallax'
-import { CopyCommand } from '@/components/copy-command'
-import { LaunchFilm } from '@/components/launch-film'
-import { StackVisual } from '@/components/stack-visual'
+import { brands, PAYLOAD_URL } from "@payload-solutions/brand";
+import {
+	ActionRow,
+	IndependenceNote,
+	ProseLink,
+} from "@payload-solutions/brand/lattice";
+import { Parallax } from "@payload-solutions/brand/parallax";
+import { CopyCommand } from "@/components/copy-command";
+import { LaunchFilm } from "@/components/launch-film";
+import { StackVisual } from "@/components/stack-visual";
 
-const brand = brands.stack
+const brand = brands.stack;
 
 /**
  * The hero. The headline states the transformation rather than the category — the category
@@ -18,39 +22,42 @@ const brand = brands.stack
  * with the isometry of the drawing itself.
  */
 export function Hero() {
-  return (
-    <section className="relative" aria-labelledby="hero-heading">
-      <div className="container-content col-grid relative min-h-[calc(100dvh-var(--header-height))] items-center gap-y-14 py-20 lg:py-24">
-        {/* Two of the four columns. The copy is held back by its own measure; the action rows
+	return (
+		<section className="relative" aria-labelledby="hero-heading">
+			<div className="container-content col-grid relative min-h-[calc(100dvh-var(--header-height))] items-center gap-y-14 py-20 lg:py-24">
+				{/* Two of the four columns. The copy is held back by its own measure; the action rows
             fill the cell, so they start on the left grid line and end on the centre one. */}
-        <div className="lg:col-span-2">
-          <h1 id="hero-heading" className="display-xl max-w-[15ch]">
-            <ProseLink href={PAYLOAD_URL}>Payload</ProseLink>, ready for SaaS.
-          </h1>
-          <p className="lead mt-7 max-w-[30rem]">
-            An agent-ready SaaS boilerplate for Payload, with authentication, organizations, billing,
-            and an admin dashboard already wired in—so your coding agents can start building your
-            product from day one.
-          </p>
+				<div className="lg:col-span-2">
+					<h1 id="hero-heading" className="display-xl max-w-[15ch]">
+						<ProseLink href={PAYLOAD_URL}>Payload CMS</ProseLink>, ready for
+						SaaS.
+					</h1>
+					<p className="lead mt-7 max-w-[30rem]">
+						An agent-ready SaaS boilerplate for Payload, with authentication,
+						organizations, billing, and an admin dashboard already wired in—so
+						your coding agents can start building your product from day one.
+					</p>
 
-          <LaunchFilm className="mt-8" />
+					<LaunchFilm className="mt-8" />
 
-          <div className="mt-11 border-t border-border">
-            <CopyCommand variant="row" />
-            <ActionRow href={brand.docsUrl}>Documentation</ActionRow>
-            <ActionRow href={`${brand.docsUrl}/agents`}>Agentic development</ActionRow>
-            <ActionRow href="/when-to-choose" meta="2 min read">
-              When to choose Payload Stack
-            </ActionRow>
-          </div>
+					<div className="mt-11 border-t border-border">
+						<CopyCommand variant="row" />
+						<ActionRow href={brand.docsUrl}>Documentation</ActionRow>
+						<ActionRow href={`${brand.docsUrl}/agents`}>
+							Agentic development
+						</ActionRow>
+						<ActionRow href="/when-to-choose" meta="2 min read">
+							When to choose Payload Stack
+						</ActionRow>
+					</div>
 
-          <IndependenceNote className="mt-8" />
-        </div>
+					<IndependenceNote className="mt-8" />
+				</div>
 
-        <Parallax speed={-0.08} className="min-w-0 lg:col-span-2 lg:pl-10">
-          <StackVisual className="mx-auto w-full max-w-[20rem] sm:max-w-[26rem] md:max-w-[40rem] lg:max-w-none" />
-        </Parallax>
-      </div>
-    </section>
-  )
+				<Parallax speed={-0.08} className="min-w-0 lg:col-span-2 lg:pl-10">
+					<StackVisual className="mx-auto w-full max-w-[20rem] sm:max-w-[26rem] md:max-w-[40rem] lg:max-w-none" />
+				</Parallax>
+			</div>
+		</section>
+	);
 }

@@ -1,4 +1,5 @@
 import { SectionHead } from '@payload-solutions/brand/lattice'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { Reveal } from '@/components/reveal'
 import { ContactForm } from './contact-form'
 
@@ -19,7 +20,8 @@ const OFFERS: Array<{ title: string; body: string }> = [
 
 export function Contact() {
   return (
-    <section id="contact" className="scroll-mt-header hairline-t py-section" aria-labelledby="contact-heading">
+    <section id="contact" className="scroll-mt-header relative hairline-t py-section" aria-labelledby="contact-heading">
+      <GridCross line={4} />
       <div className="container-content col-grid gap-y-12">
         <div className="lg:col-span-2 lg:pr-12">
           <Reveal>

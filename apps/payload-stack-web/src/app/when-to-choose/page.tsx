@@ -8,6 +8,7 @@ import { MediaStack } from '@payload-solutions/brand/media-stack'
 import { screens } from '@payload-solutions/brand/screens'
 import { ThemeBand } from '@payload-solutions/brand/theme-band'
 import { ThemedImage } from '@payload-solutions/brand/themed-image'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { CliTranscript } from '@/components/cli-transcript'
 import { CopyCommand } from '@/components/copy-command'
 import { Reveal } from '@/components/reveal'
@@ -175,7 +176,8 @@ function Fit() {
 
 function NotFit() {
   return (
-    <section className="hairline-t py-section" aria-labelledby="elsewhere-heading">
+    <section className="relative hairline-t py-section" aria-labelledby="elsewhere-heading">
+      <GridCross line={2} />
       <div className="container-content">
         <Reveal>
           <SectionHead
@@ -192,7 +194,8 @@ function NotFit() {
 
 function Verdict() {
   return (
-    <section className="hairline-t py-section" aria-labelledby="verdict-heading">
+    <section className="relative hairline-t py-section" aria-labelledby="verdict-heading">
+      <GridCross line={0} />
       <div className="container-content">
         <Reveal>
           <SectionHead id="verdict-heading" title="The short version." />
@@ -237,7 +240,8 @@ const SHOT_SIZES = '(min-width: 1280px) 1024px, 90vw'
  */
 function Decide() {
   return (
-    <section className="hairline-t py-section" aria-labelledby="decide-heading">
+    <section className="relative hairline-t py-section" aria-labelledby="decide-heading">
+      <GridCross line={3} />
       <div className="container-content col-grid gap-y-14">
         <Reveal className="lg:col-span-2 lg:pr-12">
           <SectionHead

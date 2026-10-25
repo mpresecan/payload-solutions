@@ -1,4 +1,4 @@
-import { Crosshairs } from '@payload-solutions/brand/crosshairs'
+import { Crosshairs, GridCross } from '@payload-solutions/brand/crosshairs'
 import { SectionHead } from '@payload-solutions/brand/lattice'
 import { Parallax } from '@payload-solutions/brand/parallax'
 import { screens } from '@payload-solutions/brand/screens'
@@ -201,9 +201,10 @@ export function Config() {
   return (
     <section
       id="config"
-      className="scroll-mt-header hairline-t py-section"
+      className="scroll-mt-header relative hairline-t py-section"
       aria-labelledby="config-heading"
     >
+      <GridCross line={0} />
       <div className="container-content">
         <Reveal>
           <SectionHead

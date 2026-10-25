@@ -1,5 +1,6 @@
 import { GITHUB_REPO_URL } from '@payload-solutions/brand'
 import { ActionRow } from '@payload-solutions/brand/lattice'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { ConfigPlate } from '@/components/config-plate'
 import { Reveal } from '@/components/reveal'
 
@@ -18,6 +19,7 @@ import { Reveal } from '@/components/reveal'
 export function Statement() {
   return (
     <section className="hairline-t relative" aria-label="About Payload Solutions">
+      <GridCross line={1} />
       <div className="container-content col-grid py-section lg:items-center">
         <Reveal className="lg:col-span-2 lg:pr-12">
           <p className="display-md">

@@ -1,4 +1,5 @@
 import { SectionHead } from '@payload-solutions/brand/lattice'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { PingBeams } from '@/components/ping-beams'
 import { Reveal } from '@/components/reveal'
 
@@ -25,9 +26,10 @@ export function How() {
   return (
     <section
       id="how"
-      className="scroll-mt-header hairline-t py-section"
+      className="scroll-mt-header relative hairline-t py-section"
       aria-labelledby="how-heading"
     >
+      <GridCross line={1} />
       <div className="container-content col-grid gap-y-14">
         <div className="lg:col-span-2 lg:pr-12">
           <Reveal>

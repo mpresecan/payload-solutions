@@ -6,6 +6,7 @@ import { SectionHead } from '@payload-solutions/brand/lattice'
 import { Clip } from '@payload-solutions/brand/clip'
 import type { ClipId } from '@payload-solutions/brand/clips'
 import { useReducedMotionSafe } from '@payload-solutions/brand/reduced-motion'
+import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { Reveal } from '@/components/reveal'
 import { cn } from '@/lib/cn'
 
@@ -105,9 +106,10 @@ export function SeeItRun() {
   return (
     <section
       id="demo"
-      className="scroll-mt-header hairline-t py-section"
+      className="scroll-mt-header relative hairline-t py-section"
       aria-labelledby="demo-heading"
     >
+      <GridCross line={4} />
       <div className="container-content">
         <Reveal>
           <SectionHead
