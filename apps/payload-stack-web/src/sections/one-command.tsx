@@ -67,7 +67,7 @@ export function OneCommand() {
           </ol>
         </div>
 
-        <Reveal className="min-w-0 lg:col-span-2">
+        <Reveal variant="media" className="min-w-0 lg:col-span-2">
           <CliTranscript className="lg:p-8" />
         </Reveal>
       </div>

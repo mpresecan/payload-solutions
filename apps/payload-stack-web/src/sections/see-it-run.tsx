@@ -124,6 +124,7 @@ export function SeeItRun() {
           {/* The player first on a phone, beside the list from lg, where it stays in view while
               the list scrolls. */}
           <Reveal
+            variant="media"
             index={1}
             className="min-w-0 lg:sticky lg:top-[calc(var(--header-height)+2rem)] lg:order-2 lg:col-span-2 lg:self-start lg:pl-8"
           >

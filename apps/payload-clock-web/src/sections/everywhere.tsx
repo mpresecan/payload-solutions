@@ -23,7 +23,7 @@ export function Everywhere() {
           />
         </Reveal>
 
-        <Reveal className="min-w-0 lg:col-span-2">
+        <Reveal variant="media" className="min-w-0 lg:col-span-2">
           <div className="edge-fade mx-auto w-full max-w-[22rem] lg:max-w-[26rem]">
             <Globe />
           </div>

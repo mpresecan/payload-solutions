@@ -38,7 +38,7 @@ export function Connect() {
           </div>
         </Reveal>
 
-        <Reveal className="min-w-0 lg:col-span-2">
+        <Reveal variant="media" className="min-w-0 lg:col-span-2">
           <CodeBlock file="payload.config.ts">
             {k('import')} {p('{')} clockPlugin, clockAccess {p('}')} {k('from')}{' '}
             {str("'@payload-solutions/plugin-clock'")}

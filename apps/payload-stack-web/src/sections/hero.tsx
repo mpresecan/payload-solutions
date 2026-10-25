@@ -27,7 +27,7 @@ export function Hero() {
 			<div className="container-content col-grid relative min-h-[calc(100dvh-var(--header-height))] items-center gap-y-14 py-20 lg:py-24">
 				{/* Two of the four columns. The copy is held back by its own measure; the action rows
             fill the cell, so they start on the left grid line and end on the centre one. */}
-				<div className="lg:col-span-2">
+				<div className="reveal-load-group lg:col-span-2">
 					<h1 id="hero-heading" className="display-xl max-w-[15ch]">
 						<ProseLink href={PAYLOAD_URL}>Payload CMS</ProseLink>, ready for
 						SaaS.

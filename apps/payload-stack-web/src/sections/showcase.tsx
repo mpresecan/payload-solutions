@@ -23,7 +23,7 @@ export function Showcase() {
           />
         </Reveal>
 
-        <Reveal className="mt-14 lg:mt-20">
+        <Reveal variant="media" className="mt-14 lg:mt-20">
           <MediaStack
             texture={false}
             back={
