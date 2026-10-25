@@ -173,6 +173,17 @@ export function SeeItRun() {
     return () => window.removeEventListener('hashchange', fromHash)
   }, [])
 
+  // A clip that plays to its end hands over to the next one, the last back to the first, so
+  // the section runs as a reel. Clip holds the last frame half a second before calling this.
+  const advance = () => {
+    const index = DEMOS.findIndex((demo) => demo.id === active)
+    const next = DEMOS[(index + 1) % DEMOS.length]
+    if (!next) return
+    setActive(next.id)
+    // No scroll here, unlike a click: the visitor is watching the player, not the list.
+    window.history.replaceState(null, '', `${HASH_PREFIX}${next.id}`)
+  }
+
   const select = (id: ClipId) => {
     setActive(id)
     window.history.replaceState(null, '', `${HASH_PREFIX}${id}`)
@@ -236,6 +247,8 @@ export function SeeItRun() {
                       framed={false}
                       preload={layer.phase === 'waiting'}
                       onReady={() => reveal(layer.key)}
+                      // Only the clip in the frame drives the reel, never one parked or leaving.
+                      onFinish={layer.phase === 'shown' ? advance : undefined}
                     />
                   </motion.div>
                 ))}

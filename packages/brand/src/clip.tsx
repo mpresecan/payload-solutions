@@ -36,7 +36,17 @@ export interface ClipProps {
    * so it fires on mount. Also fires on a load error, so a caller never waits on a dead file.
    */
   onReady?: () => void
+  /**
+   * Called when the clip has played to its end, instead of looping: the clip stops on its last
+   * frame and this fires `FINISH_HOLD_MS` later. Only reaching the end counts, so a pause or a
+   * seek back never triggers it, and a seek or a play inside the hold cancels it. For a gallery
+   * that advances to the next clip. Films ignore it.
+   */
+  onFinish?: () => void
 }
+
+/** The beat a finished clip holds its last frame before `onFinish` fires. */
+const FINISH_HOLD_MS = 500
 
 /**
  * One video in the site frame, from cdn.payload.solutions.
@@ -59,6 +69,7 @@ export function Clip({
   framed = true,
   preload = false,
   onReady,
+  onFinish,
 }: ClipProps) {
   const clip = clipEntry(id)
   const isFilm = Boolean(clip.hasAudio)
@@ -95,9 +106,31 @@ export function Clip({
   const end = clip.end ?? duration ?? 0
 
   const onReadyRef = useRef(onReady)
+  const onFinishRef = useRef(onFinish)
   useEffect(() => {
     onReadyRef.current = onReady
+    onFinishRef.current = onFinish
   })
+  const stopsAtEnd = Boolean(onFinish) && !isFilm
+
+  const finishTimer = useRef<number | null>(null)
+  const cancelFinish = useCallback(() => {
+    if (finishTimer.current === null) return
+    window.clearTimeout(finishTimer.current)
+    finishTimer.current = null
+  }, [])
+  useEffect(() => cancelFinish, [cancelFinish])
+
+  // Reached the end: hold the last frame, then hand over. Idempotent while the hold runs.
+  const finish = useCallback((video: HTMLVideoElement) => {
+    if (finishTimer.current !== null) return
+    video.pause()
+    setTime(video.currentTime)
+    finishTimer.current = window.setTimeout(() => {
+      finishTimer.current = null
+      onFinishRef.current?.()
+    }, FINISH_HOLD_MS)
+  }, [])
   const hasSignalledReady = useRef(false)
   const signalReady = useCallback(() => {
     if (hasSignalledReady.current) return
@@ -147,6 +180,33 @@ export function Clip({
     if (video && src && wantsPlay.current) startPlayback(video)
   }, [src, startPlayback])
 
+  // 'timeupdate' only fires about four times a second, so a clip that stops at a trimmed `end`
+  // watches every frame while it plays: the hold then starts at the end, not up to 250ms after.
+  const trimmedEnd = clip.end
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || !isPlaying || !stopsAtEnd || trimmedEnd === undefined) return
+    let isStopped = false
+    let handle = 0
+    const hasFrameCallback = typeof video.requestVideoFrameCallback === 'function'
+    const check = () => {
+      if (isStopped) return
+      if (video.currentTime >= trimmedEnd) finish(video)
+      else schedule()
+    }
+    const schedule = () => {
+      handle = hasFrameCallback
+        ? video.requestVideoFrameCallback(check)
+        : requestAnimationFrame(check)
+    }
+    schedule()
+    return () => {
+      isStopped = true
+      if (hasFrameCallback) video.cancelVideoFrameCallback(handle)
+      else cancelAnimationFrame(handle)
+    }
+  }, [isPlaying, stopsAtEnd, trimmedEnd, finish])
+
   // Fetch when close, play while at least half visible, pause when it leaves.
   useEffect(() => {
     const frame = frameRef.current
@@ -183,6 +243,7 @@ export function Clip({
   useEffect(() => {
     if (previousId.current === id) return
     previousId.current = id
+    cancelFinish()
     const wasPlaying = Boolean(videoRef.current && !videoRef.current.paused)
     pausedByUser.current = false
     wantsPlay.current = wasPlaying || (inView.current && canAutoPlay)
@@ -192,13 +253,15 @@ export function Clip({
     setDuration(null)
     setTime(clipEntry(id).start ?? 0)
     setSrc(clipUrl(id))
-  }, [id, canAutoPlay])
+  }, [id, canAutoPlay, cancelFinish])
 
   const toggle = () => {
     const video = videoRef.current
     if (!video) return
     if (video.paused) {
       pausedByUser.current = false
+      // Play on a finished clip is a replay, from the top.
+      if (stopsAtEnd && end > 0 && video.currentTime >= end - 0.05) video.currentTime = start
       // A click is a gesture: a film gets its sound now, unless the visitor muted it.
       if (isFilm && !needsSoundClick) video.muted = isMuted
       play()
@@ -220,6 +283,10 @@ export function Clip({
     const video = videoRef.current
     if (!video) return
     if (!isFilm && clip.end !== undefined && video.currentTime >= clip.end) {
+      if (stopsAtEnd) {
+        finish(video)
+        return
+      }
       video.currentTime = start
       if (video.paused && !pausedByUser.current) void video.play().catch(() => {})
     } else if (video.currentTime < start) {
@@ -245,6 +312,8 @@ export function Clip({
       setHasStarted(false)
       setTime(start)
       video.currentTime = start
+    } else if (stopsAtEnd) {
+      finish(video)
     } else {
       video.currentTime = start
       void video.play().catch(() => {})
@@ -254,6 +323,7 @@ export function Clip({
   const seek = (value: number) => {
     const video = videoRef.current
     if (!video) return
+    cancelFinish()
     video.currentTime = value
     setTime(value)
   }
@@ -286,6 +356,7 @@ export function Clip({
         aria-label={clip.alt}
         onClick={toggle}
         onPlay={() => {
+          cancelFinish()
           setIsPlaying(true)
           setHasStarted(true)
           setHasEnded(false)

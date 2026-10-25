@@ -122,7 +122,8 @@ export function FamilyBar({ current }: { current: BrandId }) {
     }
     syncTheme()
     const themeObserver = header ? new MutationObserver(syncTheme) : undefined
-    if (header) themeObserver?.observe(header, { attributes: true, attributeFilter: ['data-theme'] })
+    if (header)
+      themeObserver?.observe(header, { attributes: true, attributeFilter: ['data-theme'] })
 
     window.addEventListener('wheel', onWheel, { passive: true })
     window.addEventListener('touchstart', onTouchStart, { passive: true })
@@ -148,44 +149,46 @@ export function FamilyBar({ current }: { current: BrandId }) {
   return (
     <div ref={ref} className="family-bar" data-state="closed">
       <div className="family-bar__clip">
-        <div className="family-bar__row container-content">
-          <nav aria-label="Payload Solutions family" className="family-bar__family">
-            {FAMILY.map((id) => {
-              const brand = brands[id]
-              const isCurrent = id === current
-              return (
-                <a
-                  key={id}
-                  href={isCurrent ? '/' : brand.url}
-                  aria-current={isCurrent ? 'page' : undefined}
-                  className="family-bar__link"
-                >
-                  <Mark size={11} facet={MARK_FACET_COLORS[id]} />
-                  <span>
-                    <span className="family-bar__prefix">Payload </span>
-                    {brand.word}
-                  </span>
-                </a>
-              )
-            })}
-          </nav>
+        <div className="family-bar__line">
+          <div className="family-bar__row container-content">
+            <nav aria-label="Payload Solutions family" className="family-bar__family">
+              {FAMILY.map((id) => {
+                const brand = brands[id]
+                const isCurrent = id === current
+                return (
+                  <a
+                    key={id}
+                    href={isCurrent ? '/' : brand.url}
+                    aria-current={isCurrent ? 'page' : undefined}
+                    className="family-bar__link"
+                  >
+                    <Mark size={11} facet={MARK_FACET_COLORS[id]} />
+                    <span>
+                      <span className="family-bar__prefix">Payload </span>
+                      {brand.word}
+                    </span>
+                  </a>
+                )
+              })}
+            </nav>
 
-          <div className="family-bar__external">
-            <span className="family-bar__note">Built on</span>
-            <a
-              href={PAYLOAD_URL}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="family-bar__payload"
-              aria-label="Payload CMS (external site; we are not affiliated with or endorsed by Payload CMS)"
-              title="Independent project, not affiliated with or endorsed by Payload CMS"
-            >
-              Payload CMS
-              <svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true" fill="none">
-                <path d="M2 1h5v5M7 1 1 7" stroke="currentColor" strokeWidth="1.1" />
-              </svg>
-            </a>
-            <span className="family-bar__note">not affiliated</span>
+            <div className="family-bar__external">
+              <span className="family-bar__note">Built on</span>
+              <a
+                href={PAYLOAD_URL}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="family-bar__payload"
+                aria-label="Payload CMS (external site; we are not affiliated with or endorsed by Payload CMS)"
+                title="Independent project, not affiliated with or endorsed by Payload CMS"
+              >
+                Payload CMS
+                <svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true" fill="none">
+                  <path d="M2 1h5v5M7 1 1 7" stroke="currentColor" strokeWidth="1.1" />
+                </svg>
+              </a>
+              <span className="family-bar__note">not affiliated</span>
+            </div>
           </div>
         </div>
       </div>

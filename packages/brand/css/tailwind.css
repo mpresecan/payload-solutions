@@ -796,13 +796,18 @@ body:has(.video-backdrop) .site-header[data-theme='dark'] {
   min-height: 0;
   overflow: hidden;
 }
+/* The hairline lives on a full-width wrapper inside the clip, not on the row, so it runs edge
+   to edge on wide screens instead of stopping at the content max-width. Not on the clip
+   itself: a border there would stay visible as a 1px line while the bar is collapsed. */
+.family-bar__line {
+  border-bottom: 1px solid var(--border);
+}
 .family-bar__row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  height: var(--family-bar-height);
-  border-bottom: 1px solid var(--border);
+  height: calc(var(--family-bar-height) - 1px);
   font-size: 0.6875rem;
   line-height: 1;
   letter-spacing: 0.01em;
