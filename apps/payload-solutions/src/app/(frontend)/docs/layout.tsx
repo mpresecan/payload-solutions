@@ -13,11 +13,14 @@ const OVERVIEW_URLS = ['/docs', '/docs/plugins']
 
 /**
  * Fumadocs' own grid template (fumadocs-ui 16.15, layouts/docs/slots/container) plus one row:
- * `footer`. The sidebar area runs down through that row, so the sticky sidebar stays beside the
- * footer the way it stays beside every page, and the footer takes the main and TOC columns
- * (the TOC stops above it). The footer is a grid item next to `<main>`, never inside it: a
- * `<footer>` nested in `<main>` loses its `contentinfo` role, and this one is the page's only
- * one. It comes after the page in the DOM, so reading and tab order match what is seen.
+ * `footer`, in the main column. The sidebar and TOC areas run down through that row, so both
+ * stay beside the footer the way they stay beside every page: the footer closes the document,
+ * not the shell. It cannot also take the TOC columns: Chrome keeps a sticky grid item inside
+ * the whole grid, not its own rows, so the sticky TOC would ride over the footer.
+ *
+ * The footer is a grid item next to `<main>`, never inside it: a `<footer>` nested in `<main>`
+ * loses its `contentinfo` role, and this is the page's only one. It comes after the page in
+ * the DOM, so reading and tab order match what is seen.
  *
  * This replaces the library's inline template wholesale, so re-check it against
  * `slots/container.js` when bumping fumadocs-ui.
@@ -25,7 +28,7 @@ const OVERVIEW_URLS = ['/docs', '/docs/plugins']
 const DOCS_GRID_TEMPLATE = `"sidebar sidebar header toc toc"
 "sidebar sidebar toc-popover toc toc"
 "sidebar sidebar main toc toc" 1fr
-"sidebar sidebar footer footer footer" / minmax(min-content, 1fr) var(--fd-sidebar-col) minmax(0, calc(var(--fd-layout-width,97rem) - var(--fd-sidebar-width) - var(--fd-toc-width))) var(--fd-toc-width) minmax(min-content, 1fr)`
+"sidebar sidebar footer toc toc" / minmax(min-content, 1fr) var(--fd-sidebar-col) minmax(0, calc(var(--fd-layout-width,97rem) - var(--fd-sidebar-width) - var(--fd-toc-width))) var(--fd-toc-width) minmax(min-content, 1fr)`
 
 export default function Layout({ children }: { children: ReactNode }) {
   const tree = source.getPageTree()

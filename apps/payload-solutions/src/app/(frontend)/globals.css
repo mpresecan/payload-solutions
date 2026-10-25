@@ -46,30 +46,29 @@
   border-radius: 0;
 }
 
-/* Docs footer: the site footer, placed in the docs grid's `footer` row (docs/layout.tsx), so
-   the sticky sidebar stays beside it. The row spans the main and TOC columns and the right
-   margin column, so the footer box starts on the sidebar's border. Everything in the footer
+/* Docs footer: the site footer, placed in the docs grid's `footer` row, in the main column
+   (docs/layout.tsx), so the sticky sidebar and TOC stay beside it. Everything in the footer
    (columns, lattice, GridCross, wordmark) measures off .container-content with a --gutter
-   inset on both sides, so only that box moves:
-   - start: pulled back one gutter, so grid line 0 IS the sidebar border, not a second rule
-     beside it. The pulled-back strip sits under the sidebar (z-20 over the footer's z-10), so
-     it never takes the sidebar's clicks.
-   - end: the right margin column, which is the footer's width minus the shell's main + TOC
-     width (97rem - 268px), or 0 once the viewport is narrower than the shell. Line 4 then
-     closes one gutter inside the shell.
-   From md, where Fumadocs shows the sidebar; below that the row is the full width and the
-   stock footer applies. With the sidebar collapsed there is no border to sit on, so the
-   start goes back to the normal gutter. */
+   inset on both sides, so only that box moves: its start is pulled back one gutter, so grid
+   line 0 IS the sidebar border rather than a second rule beside it, and its end is the main
+   column's edge. From md, where Fumadocs shows the sidebar; below that the column is the full
+   width and the stock footer applies. With the sidebar collapsed there is no border to sit
+   on, so the start goes back to the normal gutter. */
 .docs-footer {
   grid-area: footer;
   min-width: 0;
+}
+/* Keyboard focus never lands under the sticky bars above the column (banner, mobile nav,
+   the "on this page" bar): the grid publishes their combined height (WCAG 2.4.11). */
+.docs-footer a,
+.docs-footer button {
+  scroll-margin-block-start: calc(var(--fd-docs-row-3, 0px) + 1rem);
 }
 @media (min-width: 768px) {
   .docs-footer .container-content {
     width: auto;
     max-width: none;
-    margin-inline-start: calc(-1 * var(--gutter));
-    margin-inline-end: max(0px, 100% - (var(--fd-layout-width, 97rem) - var(--docs-sidebar-width)));
+    margin-inline: calc(-1 * var(--gutter)) 0;
   }
   #nd-docs-layout[data-sidebar-collapsed='true'] .docs-footer .container-content {
     margin-inline-start: 0;
@@ -83,15 +82,11 @@
     pointer-events: auto;
   }
   /* First-column links sit on the sidebar border, so the site's 2px focus ring (2px offset)
-     would draw under the sidebar on its start side. While focus is in the footer, the footer
-     stacks over the sidebar (z-20), and the whole ring shows (WCAG 2.4.11 / 2.4.13). */
+     would draw under the sidebar (z-20) on its start side. While focus is in the footer, the
+     footer stacks over the sidebar and the whole ring shows (WCAG 2.4.11 / 2.4.13). */
   .docs-footer:focus-within {
     z-index: 30;
   }
-}
-:root {
-  /* Fumadocs' desktop sidebar width (md:layout:[--fd-sidebar-width:268px] on the sidebar). */
-  --docs-sidebar-width: 268px;
 }
 
 /* Docs pages: square corners, brand type, mono code. */
