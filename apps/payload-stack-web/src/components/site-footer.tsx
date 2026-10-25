@@ -79,7 +79,7 @@ export function SiteFooter() {
        of the GridCross on its top rule is not painted over. Nothing else overlaps. */
     <footer className="relative isolate z-10 hairline-t pt-20 lg:pt-32">
       <GridCross line={4} />
-      <GridColumns />
+      <GridColumns fadeBottom />
 
       <div className="container-content">
         <div className="grid grid-cols-1 gap-y-14 sm:grid-cols-2 lg:grid-cols-4">
