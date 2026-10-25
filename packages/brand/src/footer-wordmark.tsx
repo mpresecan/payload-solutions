@@ -323,11 +323,14 @@ export function FooterWordmark({
                 <stop offset="100%" style={REVEAL} stopOpacity="0" />
               </radialGradient>
 
-              {/* Resting state: a quiet top-down sheen so the word is discoverable without a pointer
-                  (and on touch, where there is none). */}
-              <linearGradient id={sheenId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" style={REVEAL} stopOpacity="0.09" />
-                <stop offset="100%" style={REVEAL} stopOpacity="0.015" />
+              {/* Resting state: a raking top-down sheen so the word is discoverable without a
+                  pointer (and on touch, where there is none) and reads as something to light up.
+                  Its strength is per theme (--wordmark-sheen-*): white on black needs far more
+                  than ink on white, and the grain then eats roughly half of it. */}
+              <linearGradient id={sheenId} x1="0" y1="0" x2="0.25" y2="1">
+                <stop offset="0%" style={{ ...REVEAL, stopOpacity: 'var(--wordmark-sheen-top, 0.09)' }} />
+                <stop offset="45%" style={{ ...REVEAL, stopOpacity: 'var(--wordmark-sheen-mid, 0.055)' }} />
+                <stop offset="100%" style={{ ...REVEAL, stopOpacity: 'var(--wordmark-sheen-bottom, 0.015)' }} />
               </linearGradient>
             </defs>
 

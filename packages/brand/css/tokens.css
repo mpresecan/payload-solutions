@@ -165,6 +165,14 @@
   */
   --wordmark-reveal-opacity: 0.72;
   /*
+    Resting sheen through the letterforms, top / mid / bottom alpha. Light keeps it quiet; dark
+    runs it much stronger so the word is visible — and inviting to hover — before the pointer
+    light arrives (the grain over the band takes back about half).
+  */
+  --wordmark-sheen-top: 0.09;
+  --wordmark-sheen-mid: 0.055;
+  --wordmark-sheen-bottom: 0.015;
+  /*
     The grain tile is black speckle on alpha. On the dark plate it paints nothing and only
     touches the light inside the letterforms, which is where grain belongs; on a white plate
     it would speckle the whole band, so the light theme switches it off.
@@ -222,6 +230,9 @@
     --wordmark-reveal: #ffffff;
     --wordmark-reveal-opacity: 1;
     --wordmark-grain-opacity: 0.6;
+    --wordmark-sheen-top: 0.32;
+    --wordmark-sheen-mid: 0.15;
+    --wordmark-sheen-bottom: 0.06;
   }
 }
 
@@ -262,6 +273,9 @@
   --wordmark-reveal: #ffffff;
   --wordmark-reveal-opacity: 1;
   --wordmark-grain-opacity: 0.6;
+  --wordmark-sheen-top: 0.32;
+  --wordmark-sheen-mid: 0.15;
+  --wordmark-sheen-bottom: 0.06;
 }
 
 /* ---------------------------------------------------------------------------------------
