@@ -72,9 +72,9 @@ export function BuiltWith() {
         <div className="col-grid">
           <p
             id="built-with-heading"
-            className="text-xl leading-snug tracking-[-0.01em] text-fg lg:col-span-2 lg:col-start-2 lg:text-2xl"
+            className="text-xl leading-snug tracking-[-0.01em] text-fg lg:col-span-2 lg:col-start-2 lg:text-[1.375rem] xl:text-2xl"
           >
-            Payload Stack is built on the tools the best SaaS teams already run in production.
+            Built on the tools SaaS teams already run in production.
           </p>
         </div>
 
