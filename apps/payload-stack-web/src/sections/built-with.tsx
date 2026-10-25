@@ -16,6 +16,7 @@ import {
 } from 'simple-icons'
 import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { BrandIcon } from '@/components/brand-icon'
+import { Reveal } from '@/components/reveal'
 
 type Logo = { icon: SimpleIcon; name: string; href: string }
 
@@ -70,16 +71,18 @@ export function BuiltWith() {
     <section aria-labelledby="built-with-heading" className="relative py-20 lg:pt-28 lg:pb-24">
       <div className="container-content">
         <div className="col-grid">
-          <p
-            id="built-with-heading"
-            className="text-xl leading-snug tracking-[-0.01em] text-fg lg:col-span-2 lg:col-start-2 lg:text-[1.375rem] xl:text-2xl"
-          >
-            Built on the tools SaaS teams already run in production.
-          </p>
+          <Reveal className="lg:col-span-2 lg:col-start-2">
+            <p
+              id="built-with-heading"
+              className="text-xl leading-snug tracking-[-0.01em] text-fg lg:text-[1.375rem] xl:text-2xl"
+            >
+              Built on the tools SaaS teams already run in production.
+            </p>
+          </Reveal>
         </div>
 
         {/* Spans exactly the four columns, so the crosses can sit on grid lines 1 and 3. */}
-        <div className="relative mt-10 lg:mt-14">
+        <Reveal variant="media" index={1} className="relative mt-10 lg:mt-14">
           <GridCross line={1} contained />
           <GridCross line={3} edge="bottom" contained />
 
@@ -131,7 +134,7 @@ export function BuiltWith() {
               })}
             </ul>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   )
