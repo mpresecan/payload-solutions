@@ -1,3 +1,5 @@
+import type { SimpleIcon } from 'simple-icons'
+import type { CSSProperties } from 'react'
 import {
   siBetterauth,
   siMongodb,
@@ -15,43 +17,126 @@ import {
 import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { BrandIcon } from '@/components/brand-icon'
 
-const LOGOS = [
-  { icon: siPayloadcms, href: 'https://payloadcms.com' },
-  { icon: siNextdotjs, href: 'https://nextjs.org' },
-  { icon: siBetterauth, href: 'https://better-auth.com' },
-  { icon: siStripe, href: 'https://stripe.com' },
-  { icon: siShadcnui, href: 'https://ui.shadcn.com' },
-  { icon: siTailwindcss, href: 'https://tailwindcss.com' },
-  { icon: siPostgresql, href: 'https://www.postgresql.org' },
-  { icon: siMongodb, href: 'https://www.mongodb.com' },
-  { icon: siSqlite, href: 'https://sqlite.org' },
-  { icon: siResend, href: 'https://resend.com' },
-  { icon: siVercel, href: 'https://vercel.com' },
-  { icon: siTurborepo, href: 'https://turbo.build' },
+type Logo = { icon: SimpleIcon; name: string; href: string }
+
+/**
+ * Six cells, two logos each. The first logo of every pair shows at rest (and is the only one
+ * shown with reduced motion); the second takes its place on the swap.
+ */
+const CELLS: [Logo, Logo][] = [
+  [
+    { icon: siPayloadcms, name: 'Payload', href: 'https://payloadcms.com' },
+    { icon: siPostgresql, name: 'PostgreSQL', href: 'https://www.postgresql.org' },
+  ],
+  [
+    { icon: siNextdotjs, name: 'Next.js', href: 'https://nextjs.org' },
+    { icon: siMongodb, name: 'MongoDB', href: 'https://www.mongodb.com' },
+  ],
+  [
+    { icon: siBetterauth, name: 'Better Auth', href: 'https://better-auth.com' },
+    { icon: siSqlite, name: 'SQLite', href: 'https://sqlite.org' },
+  ],
+  [
+    { icon: siStripe, name: 'Stripe', href: 'https://stripe.com' },
+    { icon: siResend, name: 'Resend', href: 'https://resend.com' },
+  ],
+  [
+    { icon: siShadcnui, name: 'shadcn/ui', href: 'https://ui.shadcn.com' },
+    { icon: siVercel, name: 'Vercel', href: 'https://vercel.com' },
+  ],
+  [
+    { icon: siTailwindcss, name: 'Tailwind CSS', href: 'https://tailwindcss.com' },
+    { icon: siTurborepo, name: 'Turborepo', href: 'https://turbo.build' },
+  ],
 ]
 
-/** Logo wall, logos only. Sits directly under the hero as its own section. */
+/** Must match the `logo-swap` animation duration in globals.css. */
+const SWAP_CYCLE_S = 12
+/** Seconds between one cell swapping and the next, so the row changes one cell at a time. */
+const SWAP_STAGGER_S = 1
+/** Seconds after load before the first cell swaps. */
+const FIRST_SWAP_S = 2.5
+/** Where in the cycle the cross-fade is half done (46% of the keyframes). */
+const SWAP_MIDPOINT_S = SWAP_CYCLE_S * 0.46
+
+/**
+ * Logo wall, set the way payloadcms.com sets its own: a sentence starting on the first grid
+ * line, then a framed row of six square cells, each half a column wide, running from the
+ * middle of the first column to the middle of the fourth — so every other cell divider lands
+ * on a page grid line. Logos cross-fade through a blur, one cell at a time. CSS only, no JS.
+ */
 export function BuiltWith() {
   return (
-    <section aria-label="Built with" className="hairline-t hairline-b relative">
-      {/* Diagonally opposite, as payloadcms.com marks its logo wall. */}
-      <GridCross line={1} />
-      <GridCross line={3} edge="bottom" />
-      <div className="container-content flex flex-col gap-7 py-9 md:flex-row md:items-center md:gap-12">
-        <p className="label-mono shrink-0">Built with</p>
-        <ul className="grid grid-cols-4 gap-x-6 gap-y-6 sm:grid-cols-6 md:flex md:flex-1 md:flex-wrap md:items-center md:justify-between">
-          {LOGOS.map(({ icon, href }) => (
-            <li
-              key={icon.slug}
-              className="flex items-center justify-center text-fg-subtle transition-colors hover:text-fg"
-            >
-              <a href={href} target="_blank" rel="noreferrer noopener" aria-label={icon.title}>
-                <BrandIcon icon={icon} size={26} />
-              </a>
-            </li>
-          ))}
-        </ul>
+    <section aria-labelledby="built-with-heading" className="relative py-20 lg:pt-28 lg:pb-24">
+      <div className="container-content">
+        <div className="col-grid">
+          <p
+            id="built-with-heading"
+            className="text-xl leading-snug tracking-[-0.01em] text-fg lg:col-span-2 lg:col-start-2 lg:text-2xl"
+          >
+            Payload Stack is built on the tools the best SaaS teams already run in production.
+          </p>
+        </div>
+
+        {/* Spans exactly the four columns, so the crosses can sit on grid lines 1 and 3. */}
+        <div className="relative mt-10 lg:mt-14">
+          <GridCross line={1} contained />
+          <GridCross line={3} edge="bottom" contained />
+
+          <div className="relative border-y border-border lg:mx-[12.5%]">
+            {/* Desktop dividers, drawn with GridColumns' own formula so the ones on grid lines
+                land on exactly the same pixel instead of doubling up beside them. */}
+            {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+              <span
+                key={i}
+                aria-hidden
+                className="pointer-events-none absolute inset-y-0 hidden w-px bg-border lg:block"
+                style={{ left: `${(i / 6) * 100}%`, marginLeft: i === 6 ? '-1px' : undefined }}
+              />
+            ))}
+
+            <ul className="grid grid-cols-3 max-lg:border-l max-lg:border-border md:grid-cols-6">
+              {CELLS.map((pair, cell) => {
+                const phase = mod(SWAP_MIDPOINT_S - FIRST_SWAP_S - cell * SWAP_STAGGER_S, SWAP_CYCLE_S)
+                return (
+                  <li
+                    key={pair[0].icon.slug}
+                    className="relative aspect-square bg-bg/50 max-lg:border-r max-lg:border-border max-md:[&:nth-child(-n+3)]:border-b"
+                  >
+                    {pair.map((logo, i) => (
+                      <a
+                        key={logo.icon.slug}
+                        href={logo.href}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        aria-label={logo.name}
+                        // Only the resting logo takes keyboard focus; an invisible focus target
+                        // would strand the focus ring. Both stay in the list for screen readers.
+                        tabIndex={i === 0 ? undefined : -1}
+                        className={`logo-swap ${i === 1 ? 'logo-swap-alt' : ''} absolute inset-0 flex items-center justify-center gap-2.5 text-fg/80 transition-colors hover:text-fg`}
+                        style={
+                          {
+                            animationDelay: `-${mod(phase + (i === 1 ? SWAP_CYCLE_S / 2 : 0), SWAP_CYCLE_S).toFixed(2)}s`,
+                          } as CSSProperties
+                        }
+                      >
+                        <BrandIcon icon={logo.icon} size={24} className="shrink-0" />
+                        <span className="hidden text-[0.9375rem] font-medium tracking-[-0.01em] whitespace-nowrap lg:inline">
+                          {logo.name}
+                        </span>
+                      </a>
+                    ))}
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        </div>
       </div>
     </section>
   )
+}
+
+function mod(value: number, divisor: number) {
+  return ((value % divisor) + divisor) % divisor
 }

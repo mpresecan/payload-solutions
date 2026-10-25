@@ -73,6 +73,12 @@
   #nd-docs-layout[data-sidebar-collapsed='true'] .docs-footer .container-content {
     margin-inline-start: 0;
   }
+  /* Inset the text inside each cell, so it reads off the grid lines rather than on them (the
+     first column would otherwise touch the sidebar border). Padding only: the lattice, which
+     GridColumns draws from the container, stays exactly where it is and gains no lines. */
+  .docs-footer .container-content > .grid > * {
+    padding-inline: 2rem;
+  }
   /* The pulled-back strip is padding, never content: let the pointer through it, so it cannot
      take the sidebar's clicks even while the footer is lifted above it (below). */
   .docs-footer .container-content {

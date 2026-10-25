@@ -168,3 +168,40 @@
   list-style: none;
   padding-left: 0;
 }
+
+/* Built-with logo wall: each cell's two logos trade places through a blur. Both run the same
+   keyframes half a cycle apart (negative delays set per logo in built-with.tsx), so one is
+   always fully in while the other is out. */
+@keyframes logo-swap {
+  0%,
+  42% {
+    opacity: 1;
+    filter: blur(0);
+    visibility: visible;
+  }
+  50%,
+  92% {
+    opacity: 0;
+    filter: blur(10px);
+    /* Hidden, not just transparent: the logo out of view must not catch clicks meant for the
+       one showing. */
+    visibility: hidden;
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    visibility: visible;
+  }
+}
+.logo-swap {
+  animation: logo-swap 12s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .logo-swap {
+    animation: none;
+  }
+  .logo-swap-alt {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
