@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Email } from '@payload-solutions/brand/email'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
 import { COMPANY, LEGAL_EFFECTIVE_DATE, consentConfig, formatLegalDate } from '@/lib/consent'
@@ -43,7 +44,7 @@ export function ContactBlock() {
       <br />
       {COMPANY.address}
       <br />
-      Email: <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a>
+      Email: <Email address={COMPANY.email} link />
       <br />
       Website: <a href={COMPANY.url}>{COMPANY.url}</a>
     </p>

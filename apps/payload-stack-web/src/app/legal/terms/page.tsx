@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { INDEPENDENCE_NOTICE, PAYLOAD_TRADEMARK_ATTRIBUTION, brands } from '@payload-solutions/brand'
 import { ContactBlock, LegalPage } from '@/components/legal/legal-page'
 import { COMPANY } from '@/lib/consent'
+import { Email } from '@payload-solutions/brand/email'
 
 export const metadata: Metadata = {
   title: 'Terms of Use',
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 */
 export default function TermsPage() {
   const { legalName, name, email, governingLaw } = COMPANY
-  const mail = <a href={`mailto:${email}`}>{email}</a>
+  const mail = <Email address={email} link />
 
   return (
     <LegalPage title="Terms of Use">

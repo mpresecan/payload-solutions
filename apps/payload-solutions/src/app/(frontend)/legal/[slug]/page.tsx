@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
+import { Fragment, type ReactNode } from 'react'
 import { notFound } from 'next/navigation'
-import { type JSXConverters, RichText } from '@payloadcms/richtext-lexical/react'
+import type { SerializedTextNode } from '@payloadcms/richtext-lexical'
+import { type JSXConverter, type JSXConverters, RichText } from '@payloadcms/richtext-lexical/react'
 import { legalPageConverters } from '@payload-solutions/plugin-consent/rsc'
 import { getConsentConfig, getProcessorTableData } from '@payload-solutions/plugin-consent/server'
 import { SiteFooter } from '@/components/site-footer'
@@ -60,6 +62,7 @@ export default async function LegalPage({ params }: Params) {
               <RichText
                 converters={({ defaultConverters }) => ({
                   ...defaultConverters,
+                  text: splitEmails(defaultConverters.text as JSXConverter<SerializedTextNode>),
                   // The cast works around a table-converter typing bug in plugin-consent 0.1.0,
                   // fixed in packages/plugin-consent; drop it once the next release is installed.
                   ...(legalPageConverters({
@@ -79,4 +82,35 @@ export default async function LegalPage({ params }: Params) {
       <SiteFooter />
     </>
   )
+}
+
+const EMAIL = /([\w.+-]+)@([\w-]+(?:\.[\w-]+)+)/g
+
+/**
+ * Renders every email address in the text with its `@` in its own element (`user<span>@</span>domain`).
+ * Cloudflare's Email Address Obfuscation otherwise rewrites the address in the HTML, React finds
+ * an `<a>` where it rendered text, throws #418 and re-renders the whole page on the client. Split
+ * like this, Cloudflare leaves it alone. Formatting (bold, italic...) still comes from the default
+ * converter, applied to each piece.
+ */
+function splitEmails(converter: JSXConverter<SerializedTextNode>): JSXConverter<SerializedTextNode> {
+  // A converter may be a static node rather than a function; the default text one never is.
+  if (typeof converter !== 'function') return converter
+  const textConverter = converter
+  return (args) => {
+    const { node } = args
+    if (!node.text.includes('@')) return textConverter(args)
+
+    const render = (text: string) => textConverter({ ...args, node: { ...node, text } })
+    const out: ReactNode[] = []
+    let last = 0
+    for (const match of node.text.matchAll(EMAIL)) {
+      const [whole, user = '', domain = ''] = match
+      if (match.index > last) out.push(render(node.text.slice(last, match.index)))
+      out.push(render(user), <span key={`at-${match.index}`}>@</span>, render(domain))
+      last = match.index + whole.length
+    }
+    if (last < node.text.length) out.push(render(node.text.slice(last)))
+    return out.map((piece, i) => <Fragment key={i}>{piece}</Fragment>)
+  }
 }

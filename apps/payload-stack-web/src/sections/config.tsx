@@ -41,7 +41,10 @@ const LINES: Tok[][] = [
     ['', ': { '],
     ['k', 'email'],
     ['', ': '],
-    ['s', "'help@ridgeline.app'"],
+    // Split at the @ so Cloudflare's email obfuscation doesn't rewrite it (that breaks hydration).
+    ['s', "'help"],
+    ['s', '@'],
+    ['s', "ridgeline.app'"],
     ['', ' },'],
   ],
   [],

@@ -1,6 +1,7 @@
 'use client'
 
 import { CheckCircle } from '@phosphor-icons/react'
+import { Email } from '@payload-solutions/brand/email'
 import posthog from 'posthog-js'
 import { useActionState } from 'react'
 
@@ -98,7 +99,8 @@ export function ContactForm() {
             <a href="/legal/privacy" target="_blank" rel="noopener" className="text-fg underline underline-offset-4">
               privacy policy
             </a>
-            . I can withdraw this at any time by writing to privacy@payload.solutions.
+            . I can withdraw this at any time by writing to{' '}
+            <Email address="privacy@payload.solutions" />.
           </span>
         </label>
         {state.field === 'privacy' ? (

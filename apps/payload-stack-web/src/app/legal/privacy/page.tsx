@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { RecipientsTable, TransfersTable } from '@/components/legal/generated-tables'
 import { ContactBlock, LegalPage, PolicyVersion, Table } from '@/components/legal/legal-page'
 import { COMPANY } from '@/lib/consent'
+import { Email } from '@payload-solutions/brand/email'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 */
 export default function PrivacyPage() {
   const { legalName, name, email } = COMPANY
-  const mail = <a href={`mailto:${email}`}>{email}</a>
+  const mail = <Email address={email} link />
 
   return (
     <LegalPage title="Privacy Policy">

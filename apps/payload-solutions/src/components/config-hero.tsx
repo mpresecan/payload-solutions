@@ -1,6 +1,7 @@
 "use client";
 
 import { ACCENT_COLORS } from "@payload-solutions/brand";
+import { Email } from "@payload-solutions/brand/email";
 import { useReducedMotionSafe } from "@payload-solutions/brand/reduced-motion";
 import {
 	type CSSProperties,
@@ -163,7 +164,9 @@ const CARDS: Record<
 			<>
 				<Kicker>Payload Stack · auth</Kicker>
 				<div className={s.title}>Sign in to Acme</div>
-				<div className={s.field}>ana@acme.com</div>
+				<div className={s.field}>
+					<Email address="ana@acme.com" />
+				</div>
 				<div className={s.field}>••••••••••</div>
 				<div className={s.btn}>Continue</div>
 				<div className={`${s.btn} ${s.ghost}`}>Continue with Google</div>
@@ -254,7 +257,9 @@ const CARDS: Record<
 		body: (
 			<>
 				<Kicker>Emails</Kicker>
-				<div className={s.sub}>To: ana@acme.com</div>
+				<div className={s.sub}>
+					To: <Email address="ana@acme.com" />
+				</div>
 				<div className={s.title}>Welcome to Acme</div>
 				<div className={s.sub}>
 					Your workspace is ready. Invite your team to get started.

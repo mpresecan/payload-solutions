@@ -3,6 +3,7 @@ import { ManageConsentButton } from '@payload-solutions/consent-react'
 import { CookieTable } from '@/components/legal/generated-tables'
 import { LegalPage, PolicyVersion } from '@/components/legal/legal-page'
 import { COMPANY } from '@/lib/consent'
+import { Email } from '@payload-solutions/brand/email'
 
 export const metadata: Metadata = {
   title: 'Cookie Policy',
@@ -81,7 +82,7 @@ export default function CookiesPage() {
 
       <h2>Contact</h2>
       <p>
-        Questions about cookies or this policy: <a href={`mailto:${email}`}>{email}</a>.
+        Questions about cookies or this policy: <Email address={email} link />.
       </p>
     </LegalPage>
   )
