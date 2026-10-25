@@ -779,7 +779,10 @@ body:has(.video-backdrop) .site-header[data-theme='dark'] {
   display: grid;
   grid-template-rows: 0fr;
   background-color: var(--surface);
-  transition: grid-template-rows var(--dur) var(--ease-out);
+  color: var(--fg);
+  transition:
+    grid-template-rows var(--dur) var(--ease-out),
+    background-color var(--dur) var(--ease-standard);
   overflow-anchor: none;
 }
 .family-bar[data-state='open'] {

@@ -22,8 +22,9 @@ const SCROLL_IDLE_MS = 180
  * It is hidden by default and opens only when the visitor is already at the top and keeps
  * going: trackpad momentum past the top, a deliberate extra scroll up, or a pull-down on touch.
  * It sits in normal flow, so opening it moves the page down rather than covering the header.
- * Once it has scrolled out of view it collapses again, and the scroll position is shifted by
- * its height in the same frame, so nothing on screen moves.
+ * Any scroll away from the top closes it again, so every appearance plays the reveal: if it is
+ * already off screen it collapses instantly with the scroll position shifted by its height in
+ * the same frame, so nothing on screen moves; if part of it is still visible it animates shut.
  *
  * Keyboard: the collapsed links stay focusable and are the first stop on the page; focusing
  * one opens the bar.
@@ -49,11 +50,20 @@ export function FamilyBar({ current }: { current: BrandId }) {
       overshoot = 0
     }
 
-    const collapseOutOfView = () => {
+    // Any scroll away from the top closes the bar, so it can only ever come back through the
+    // reveal animation, never by being scrolled back into view while still open.
+    const closeAfterScroll = () => {
       if (!isOpen()) return
       const height = bar.offsetHeight
       const top = window.scrollY
-      if (top < height) return
+      if (top <= 0) return
+      if (top < height) {
+        // Still partly on screen: let it animate shut.
+        bar.dataset.state = 'closed'
+        return
+      }
+      // Fully out of view: close instantly and shift the scroll position by its height in the
+      // same frame, so nothing on screen moves.
       bar.classList.add('family-bar--instant')
       bar.dataset.state = 'closed'
       void bar.offsetHeight
@@ -95,10 +105,24 @@ export function FamilyBar({ current }: { current: BrandId }) {
     const onScroll = () => {
       if (!isOpen()) return
       window.clearTimeout(scrollTimer)
-      scrollTimer = window.setTimeout(collapseOutOfView, SCROLL_IDLE_MS)
+      scrollTimer = window.setTimeout(closeAfterScroll, SCROLL_IDLE_MS)
     }
 
     const onFocusIn = () => open()
+
+    // Wear the header's theme. Over a dark hero band the header switches to dark (see
+    // useHeaderTheme) while the page itself is light; a bar on the page theme would then be a
+    // pale strip sitting on a black header. Mirroring the header keeps the two as one piece of
+    // chrome, and falls back to the page theme wherever the header has none (e.g. the docs).
+    const header = document.querySelector<HTMLElement>('header.site-header')
+    const syncTheme = () => {
+      const theme = header?.getAttribute('data-theme')
+      if (theme) bar.setAttribute('data-theme', theme)
+      else bar.removeAttribute('data-theme')
+    }
+    syncTheme()
+    const themeObserver = header ? new MutationObserver(syncTheme) : undefined
+    if (header) themeObserver?.observe(header, { attributes: true, attributeFilter: ['data-theme'] })
 
     window.addEventListener('wheel', onWheel, { passive: true })
     window.addEventListener('touchstart', onTouchStart, { passive: true })
@@ -108,6 +132,7 @@ export function FamilyBar({ current }: { current: BrandId }) {
     window.addEventListener('scroll', onScroll, { passive: true })
     bar.addEventListener('focusin', onFocusIn)
     return () => {
+      themeObserver?.disconnect()
       window.clearTimeout(overshootTimer)
       window.clearTimeout(scrollTimer)
       window.removeEventListener('wheel', onWheel)
