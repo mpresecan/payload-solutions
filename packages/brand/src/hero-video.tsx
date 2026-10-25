@@ -8,9 +8,9 @@ export const HERO_VIDEO_ORIGIN = 'https://cdn.payload.solutions'
  * folder and is frame 0 of its loop, so the hand-off from still to motion is invisible.
  *
  * Every loop is cut the same way: audio stripped, the tail cross-faded into the opening so it
- * repeats without a jump, 1080p H.264, played here at half speed. solutions and stack are 6.5s
- * loops (~13s per pass); clock is 4s (~8s per pass), because its source fades to black at 5.25s
- * and that fade was cut off.
+ * repeats without a jump, 1080p H.264, played at HERO_VIDEO_PLAYBACK_RATE. solutions and stack
+ * are 6.5s loops (~9.3s per pass at 0.7); clock is 4s (~5.7s per pass), because its source fades
+ * to black at 5.25s and that fade was cut off.
  */
 export const HERO_VIDEOS = {
   // Its light streak runs straight through the copy column (and across a phone's lead and
@@ -29,7 +29,13 @@ export const HERO_VIDEOS = {
 export type HeroVideoId = keyof typeof HERO_VIDEOS
 
 /**
- * The pinned hero video, configured once: CDN file, poster, half speed so it stays ambient under
+ * Playback speed for every site's loop, slowed so the video stays ambient under the hero's own
+ * animation. One value for all three sites.
+ */
+export const HERO_VIDEO_PLAYBACK_RATE = 0.7
+
+/**
+ * The pinned hero video, configured once: CDN file, poster, slowed so it stays ambient under
  * the hero's own animation. Server component: it preconnects to the CDN and preloads the poster
  * (plain <link> elements, which React 19 hoists into <head>, so the brand package needs no
  * react-dom dependency), then renders the client VideoBackdrop.
@@ -54,7 +60,7 @@ export function HeroVideoBackdrop({
       <link rel="preload" as="image" href={poster} fetchPriority="high" />
       <VideoBackdrop
         poster={poster}
-        playbackRate={0.5}
+        playbackRate={HERO_VIDEO_PLAYBACK_RATE}
         copyColumns={copyColumns}
         scrim={scrim}
         sources={[{ src: `${HERO_VIDEO_ORIGIN}/${file}`, type: 'video/mp4' }]}
