@@ -1,0 +1,166 @@
+---
+title: Contributing
+description: How to report bugs, propose changes, set up the monorepo, run the tests and get a pull request merged.
+---
+
+Payload Stack, the `create-payload-stack` CLI, every plugin and this website live in one MIT-licensed monorepo: [github.com/mpresecan/payload-solutions](https://github.com/mpresecan/payload-solutions). Contributions of every size are welcome, from a typo on this page to a new storage adapter. Everything you contribute is licensed under MIT.
+
+The repository's [`CONTRIBUTING.md`](https://github.com/mpresecan/payload-solutions/blob/main/CONTRIBUTING.md) holds the same rules for reading next to the code.
+
+## Before you start
+
+| You have                                          | Do this                                                                                                                                                                                                                                        |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A bug                                             | Open an [issue](https://github.com/mpresecan/payload-solutions/issues) with the package and version, your Payload and Node versions, the database adapter, steps to reproduce, and what you expected. A minimal reproduction gets fixed first. |
+| A feature or larger change                        | Open an issue first and describe the problem, not only the solution.                                                                                                                                                                           |
+| A small fix (docs, typo, obvious bug with a test) | Open a pull request directly.                                                                                                                                                                                                                  |
+| A security issue                                  | Do not open a public issue. Report it privately through [GitHub security advisories](https://github.com/mpresecan/payload-solutions/security/advisories/new).                                                                                  |
+
+<Callout type="warn">
+  Changes to `stack.config.ts`, a CLI prompt or flag, a plugin's public options or a seam's exports
+  reach every user. Agree on the shape in an issue before writing the code.
+</Callout>
+
+## Repository layout
+
+| Path                                               | What                                                                     | Ships as                          |
+| -------------------------------------------------- | ------------------------------------------------------------------------ | --------------------------------- |
+| `templates/payload-stack`                          | [Payload Stack](/docs/payload-stack), the SaaS boilerplate               | Downloaded by the CLI             |
+| `templates/payload-stack/variants/*`               | The plugged-in branch of each optional step (consent, emails, scheduler) | Moved into place by the CLI       |
+| `packages/create-payload-stack`                    | The [scaffolding CLI](/docs/payload-stack/cli)                           | npm `create-payload-stack`        |
+| `packages/plugin-*`                                | [Plugins](/docs/plugins), each with its own `dev/` app                   | npm `@payload-solutions/plugin-*` |
+| `packages/consent-core`, `packages/consent-react`  | Consent runtime used by the consent plugin                               | npm `@payload-solutions/*`        |
+| `packages/brand`                                   | Shared mark, wordmarks, tokens and motion primitives                     | Internal                          |
+| `apps/payload-solutions`                           | This website; renders `docs/`                                            | Vercel                            |
+| `apps/payload-stack-web`, `apps/payload-clock-web` | payloadstack.com and payloadclock.com                                    | Vercel                            |
+| `docs/`                                            | This documentation, as MDX                                               | payload.solutions/docs            |
+
+## Set up the monorepo
+
+You need Node 22.12 or later, pnpm 10 or later, and Docker for the Payload Stack integration and end-to-end suites.
+
+```bash
+git clone https://github.com/<you>/payload-solutions.git
+cd payload-solutions
+corepack enable && corepack prepare pnpm@10.28.0 --activate
+pnpm install
+```
+
+Use pnpm only; do not commit a `package-lock.json` or `yarn.lock`.
+
+### Payload Stack
+
+```bash
+cd templates/payload-stack
+cp .env.example .env
+docker compose up -d     # PostgreSQL, test databases, Mailpit on :8025
+pnpm dev                 # :3000 — app at /, dashboard at /dashboard, admin at /admin
+```
+
+Read `templates/payload-stack/AGENTS.md` before changing the template. Its rules bind contributions too: tenant scope on every privileged call, plugin order, `req` in nested hook operations, routes from `src/lib/paths.ts`, and **change the seam, not the call sites**. A change to an optional step lands in both branches, `src/` and the matching `variants/<step>`, with the same exports.
+
+### The CLI
+
+```bash
+pnpm --filter create-payload-stack build
+node packages/create-payload-stack/dist/index.js my-app --local-template templates/payload-stack --no-install
+pnpm --filter create-payload-stack test
+```
+
+A new prompt needs a matching flag, a default for `-y`, a test, and an entry on the [CLI page](/docs/payload-stack/cli).
+
+### Plugins
+
+Each plugin runs inside its own Payload app in `dev/`, on SQLite by default:
+
+```bash
+cd packages/plugin-emails
+cp dev/.env.example dev/.env
+pnpm dev
+```
+
+| Plugin                     | Dev port |
+| -------------------------- | -------- |
+| `plugin-emails`            | 3300     |
+| `plugin-action-scheduler`  | 3310     |
+| `plugin-consent`           | 3320     |
+| `plugin-vercel`            | 3400     |
+| `plugin-resend-broadcasts` | 3500     |
+
+After changing a collection, field or admin component, run `pnpm generate:types` and `pnpm generate:importmap` and commit the results. Keep `peerDependencies` on `payload` and `@payloadcms/*` as ranges.
+
+### This website and the docs
+
+```bash
+pnpm dev:solutions       # payload.solutions on :3200
+pnpm dev:stack-web       # payloadstack.com on :3100
+pnpm dev:clock-web       # payloadclock.com
+```
+
+Shared visuals and motion belong in `packages/brand`, not in a single app.
+
+## Make a change
+
+1. Fork the repository and branch from `main`: `fix/<topic>`, `feat/<topic>` or `docs/<topic>`.
+2. Keep one concern per pull request. Unrelated formatting or refactors go in their own.
+3. Add or extend tests. Never delete or loosen a test to make a change pass.
+4. Update these docs and the package `README.md` when behaviour, options or flags change.
+5. Run the checks for what you touched:
+
+```bash
+pnpm format:check
+pnpm typecheck
+pnpm lint
+pnpm --filter payload-stack verify          # template: typecheck, lint, unit
+pnpm --filter <package> test                # any package you changed
+```
+
+6. Look at UI changes in a browser with the dev server running. Type-checking is not enough.
+
+## Pick the right test
+
+| You changed                                                                      | Add to                                              | Run                                                                   |
+| -------------------------------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------- |
+| Config parsing, a pure function, a component under some `stack.config.ts` option | Template unit suite                                 | `pnpm --filter payload-stack test:unit`                               |
+| Access control, tenancy, auth or hooks                                           | Template integration suite                          | `pnpm --filter payload-stack test:int` (needs `docker compose up -d`) |
+| A page or a user flow                                                            | Template end-to-end journeys                        | `pnpm --filter payload-stack test:e2e`                                |
+| A CLI flag, prompt, database or storage adapter                                  | CLI suite                                           | `pnpm --filter create-payload-stack test`                             |
+| A plugin                                                                         | That plugin's `test:unit`, `test:int` or `test:e2e` | `pnpm --filter <plugin> test`                                         |
+
+[Testing](/docs/payload-stack/testing) explains the template suites and their helpers in depth. CI runs the template's unit, integration and end-to-end suites and the CLI suite on every pull request.
+
+## Write the commit
+
+Use [Conventional Commits](https://www.conventionalcommits.org), with a scope when one package is affected:
+
+```
+fix(plugin-emails): keep draft copy when a test send fails
+feat(create-payload-stack): add --storage gcs
+docs(payload-stack): document trial reminders
+```
+
+Types are `feat`, `fix`, `perf`, `refactor`, `test`, `docs`, `style` and `chore`. Write the subject in the imperative and say what changed for the user. Mark a breaking change with `!`, as in `feat(plugin-vercel)!: …`, and explain the migration in the body.
+
+## Open the pull request
+
+- Say what changed, why, and how you verified it. Link the issue with `Closes #123`.
+- Add screenshots or a short recording for any visible change.
+- State anything you could not verify.
+- Keep CI green. A maintainer reviews, may ask for changes, and squash-merges.
+- Leave versions and changelogs alone; maintainers release.
+
+## Releases
+
+Packages are versioned independently under semver and published by maintainers. Below `1.0.0`, a minor release may contain breaking changes, and the release notes always call them out. Each Payload Stack template version is tied to the CLI release that downloads it.
+
+## Improve these docs
+
+Every page here is an MDX file in `docs/`, and the sidebar links to the source of the page you are reading. A new page also needs an entry in its folder's `meta.json`. Write for someone installing the package for the first time: what it does, how to install it, the options with their defaults, and one example that runs against the current version.
+
+## Coding agents
+
+Agents are welcome; the template ships `AGENTS.md` and task skills for them (see [Agentic development](/docs/payload-stack/agents)). You are responsible for every line you submit: read it, run the checks, and look at the result in a browser where it matters. Do not commit files generated only for your agent session.
+
+## Trademark
+
+Payload, the Payload design, and related marks are trademarks of Payload CMS, Inc. Payload Solutions is an independent project and is not affiliated with, sponsored by, or endorsed by Payload CMS, Inc. Do not add Payload CMS marks or imply endorsement in code, docs or assets.
