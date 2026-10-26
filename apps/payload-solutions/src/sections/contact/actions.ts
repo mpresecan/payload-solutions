@@ -12,6 +12,8 @@ const schema = z.object({
   topic: z.enum(['saas', 'stack', 'plugin', 'other']),
   message: z.string().trim().min(20, 'A few sentences help us reply well').max(4000),
   budget: z.string().trim().max(80).optional(),
+  // Where the form was sent from (`home`, `case-study:layron`), for attribution only.
+  source: z.string().trim().max(120).optional(),
   privacy: z.literal('on', { message: 'Please agree so we can reply to you' }),
   // honeypot: real people leave it empty
   website: z.string().max(0).optional(),
@@ -25,6 +27,7 @@ export async function submitContact(_prev: ContactState, formData: FormData): Pr
     ...raw,
     company: raw.company || undefined,
     budget: raw.budget || undefined,
+    source: raw.source || undefined,
     website: raw.website || undefined,
   })
   if (!parsed.success) {
@@ -89,6 +92,7 @@ async function notifyInbox({
     ['Company', company ?? '—'],
     ['Topic', TOPIC_LABELS[data.topic]],
     ['Budget', data.budget ?? '—'],
+    ['Sent from', data.source ?? '—'],
   ]
 
   try {

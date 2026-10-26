@@ -70,6 +70,7 @@ export interface Config {
     products: Product;
     plugins: Plugin;
     'roadmap-items': RoadmapItem;
+    'case-studies': CaseStudy;
     'contact-submissions': ContactSubmission;
     media: Media;
     users: User;
@@ -90,6 +91,7 @@ export interface Config {
     products: ProductsSelect<false> | ProductsSelect<true>;
     plugins: PluginsSelect<false> | PluginsSelect<true>;
     'roadmap-items': RoadmapItemsSelect<false> | RoadmapItemsSelect<true>;
+    'case-studies': CaseStudiesSelect<false> | CaseStudiesSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -226,6 +228,90 @@ export interface RoadmapItem {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "case-studies".
+ */
+export interface CaseStudy {
+  id: number;
+  /**
+   * The headline: the outcome, not the client name.
+   */
+  title: string;
+  slug: string;
+  client: string;
+  clientUrl?: string | null;
+  publishedAt: string;
+  /**
+   * Shown on the home page above the contact form.
+   */
+  featured?: boolean | null;
+  /**
+   * Two sentences under the headline. Also the meta description and the card text.
+   */
+  summary: string;
+  industry?: string | null;
+  location?: string | null;
+  /**
+   * e.g. Consulting, 3 weeks
+   */
+  engagement?: string | null;
+  author?: string | null;
+  /**
+   * The numbers a reader scans first. Only figures you can stand behind.
+   */
+  outcomes?:
+    | {
+        value: string;
+        label: string;
+        /**
+         * Optional: who measured it, shown as a footnote.
+         */
+        source?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  builtWith?:
+    | {
+        name: string;
+        id?: string | null;
+      }[]
+    | null;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Only a quote the person said or published. Leave empty otherwise.
+   */
+  quote?: {
+    text?: string | null;
+    author?: string | null;
+    role?: string | null;
+    sourceUrl?: string | null;
+  };
+  /**
+   * The heading and line above the contact form at the end of the page.
+   */
+  cta?: {
+    title?: string | null;
+    body?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "contact-submissions".
  */
 export interface ContactSubmission {
@@ -236,6 +322,7 @@ export interface ContactSubmission {
   topic: 'saas' | 'stack' | 'plugin' | 'other';
   message: string;
   budget?: string | null;
+  source?: string | null;
   consentedAt?: string | null;
   consentPolicyVersion?: string | null;
   status?: ('new' | 'replied' | 'closed') | null;
@@ -745,6 +832,10 @@ export interface PayloadLockedDocument {
         value: number | RoadmapItem;
       } | null)
     | ({
+        relationTo: 'case-studies';
+        value: number | CaseStudy;
+      } | null)
+    | ({
         relationTo: 'contact-submissions';
         value: number | ContactSubmission;
       } | null)
@@ -878,6 +969,55 @@ export interface RoadmapItemsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "case-studies_select".
+ */
+export interface CaseStudiesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  client?: T;
+  clientUrl?: T;
+  publishedAt?: T;
+  featured?: T;
+  summary?: T;
+  industry?: T;
+  location?: T;
+  engagement?: T;
+  author?: T;
+  outcomes?:
+    | T
+    | {
+        value?: T;
+        label?: T;
+        source?: T;
+        id?: T;
+      };
+  builtWith?:
+    | T
+    | {
+        name?: T;
+        id?: T;
+      };
+  content?: T;
+  quote?:
+    | T
+    | {
+        text?: T;
+        author?: T;
+        role?: T;
+        sourceUrl?: T;
+      };
+  cta?:
+    | T
+    | {
+        title?: T;
+        body?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "contact-submissions_select".
  */
 export interface ContactSubmissionsSelect<T extends boolean = true> {
@@ -887,6 +1027,7 @@ export interface ContactSubmissionsSelect<T extends boolean = true> {
   topic?: T;
   message?: T;
   budget?: T;
+  source?: T;
   consentedAt?: T;
   consentPolicyVersion?: T;
   status?: T;

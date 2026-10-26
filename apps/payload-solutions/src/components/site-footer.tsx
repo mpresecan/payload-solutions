@@ -49,6 +49,7 @@ const COLUMNS: Array<{ title: string; links: FooterLink[]; theme?: boolean }> = 
     title: 'Company',
     links: [
       { label: 'Start a project', href: '/#contact' },
+      { label: 'Case studies', href: '/case-studies' },
       { label: 'Payload CMS', href: 'https://payloadcms.com' },
       { label: 'Better Auth', href: 'https://better-auth.com' },
     ],

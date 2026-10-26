@@ -18,7 +18,24 @@ const OFFERS: Array<{ title: string; body: string }> = [
   },
 ]
 
-export function Contact() {
+export interface ContactProps {
+  eyebrow?: string
+  title?: string
+  lead?: string
+  /** Recorded with the submission: which page the enquiry came from. */
+  source?: string
+}
+
+/**
+ * The enquiry block. The home page uses the defaults; a case study passes its own closing
+ * prompt and a `source`, so the inbox shows which write-up a lead read before writing.
+ */
+export function Contact({
+  eyebrow = 'Work with us',
+  title = 'Need it built? We build SaaS on Payload.',
+  lead = 'The same team that maintains these products takes on a few client projects at a time.',
+  source = 'home',
+}: ContactProps = {}) {
   return (
     <section id="contact" className="scroll-mt-header relative hairline-t py-section" aria-labelledby="contact-heading">
       <GridCross line={4} />
@@ -27,9 +44,9 @@ export function Contact() {
           <Reveal>
             <SectionHead
               id="contact-heading"
-              eyebrow="Work with us"
-              title="Need it built? We build SaaS on Payload."
-              lead="The same team that maintains these products takes on a few client projects at a time."
+              eyebrow={eyebrow}
+              title={title}
+              lead={lead}
             />
           </Reveal>
           <ul className="mt-12">
@@ -42,7 +59,7 @@ export function Contact() {
           </ul>
         </div>
         <Reveal className="min-w-0 lg:col-span-2">
-          <ContactForm />
+          <ContactForm source={source} />
         </Reveal>
       </div>
     </section>

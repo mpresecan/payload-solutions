@@ -122,6 +122,12 @@ export const ContactSubmissions: CollectionConfig = {
     { name: 'message', type: 'textarea', required: true },
     { name: 'budget', type: 'text' },
     {
+      // Which page the form was sent from (home, a case study), so we can see what converts.
+      name: 'source',
+      type: 'text',
+      admin: { position: 'sidebar', readOnly: true },
+    },
+    {
       // Proof of consent (GDPR Art. 7(1)): when the sender ticked the privacy checkbox, and
       // which version of the privacy policy it pointed to.
       name: 'consentedAt',
@@ -144,6 +150,94 @@ export const ContactSubmissions: CollectionConfig = {
       ],
       admin: { position: 'sidebar' },
       access: { create: () => false },
+    },
+  ],
+}
+
+/**
+ * Client work, written up. Published entries render at /case-studies/<slug> and feed the
+ * proof section above the contact form on the home page, so every field here exists to move
+ * a reader from "who did this" to "start a project": the outcomes row is the scan, the facts
+ * column answers "is this like us", the closing prompt is the hand-off to the form.
+ *
+ * Drafts are on: a write-up can sit unpublished while the client signs it off.
+ */
+export const CaseStudies: CollectionConfig = {
+  slug: 'case-studies',
+  labels: { singular: 'Case study', plural: 'Case studies' },
+  admin: {
+    useAsTitle: 'title',
+    group: 'Content',
+    defaultColumns: ['title', 'client', 'publishedAt', '_status'],
+    preview: (doc) => (doc?.slug ? `/case-studies/${String(doc.slug)}` : null),
+  },
+  access: {
+    read: ({ req }) => (req.user ? true : { _status: { equals: 'published' } }),
+    create: authenticated,
+    update: authenticated,
+    delete: authenticated,
+  },
+  versions: { drafts: true },
+  defaultSort: '-publishedAt',
+  fields: [
+    { name: 'title', type: 'text', required: true, admin: { description: 'The headline: the outcome, not the client name.' } },
+    { name: 'slug', type: 'text', required: true, unique: true, index: true, admin: { position: 'sidebar' } },
+    { name: 'client', type: 'text', required: true, admin: { position: 'sidebar' } },
+    { name: 'clientUrl', type: 'text', admin: { position: 'sidebar' } },
+    { name: 'publishedAt', type: 'date', required: true, admin: { position: 'sidebar' } },
+    { name: 'featured', type: 'checkbox', defaultValue: false, admin: { position: 'sidebar', description: 'Shown on the home page above the contact form.' } },
+    {
+      name: 'summary',
+      type: 'textarea',
+      required: true,
+      admin: { description: 'Two sentences under the headline. Also the meta description and the card text.' },
+    },
+    {
+      type: 'row',
+      fields: [
+        { name: 'industry', type: 'text', admin: { width: '33%' } },
+        { name: 'location', type: 'text', admin: { width: '33%' } },
+        { name: 'engagement', type: 'text', admin: { width: '33%', description: 'e.g. Consulting, 3 weeks' } },
+      ],
+    },
+    { name: 'author', type: 'text', defaultValue: 'Michael Presecan' },
+    {
+      name: 'outcomes',
+      type: 'array',
+      maxRows: 4,
+      admin: { description: 'The numbers a reader scans first. Only figures you can stand behind.' },
+      fields: [
+        { name: 'value', type: 'text', required: true },
+        { name: 'label', type: 'text', required: true },
+        { name: 'source', type: 'text', admin: { description: 'Optional: who measured it, shown as a footnote.' } },
+      ],
+    },
+    {
+      name: 'builtWith',
+      type: 'array',
+      fields: [{ name: 'name', type: 'text', required: true }],
+    },
+    { name: 'content', type: 'richText', required: true },
+    {
+      name: 'quote',
+      type: 'group',
+      admin: { description: 'Only a quote the person said or published. Leave empty otherwise.' },
+      fields: [
+        { name: 'text', type: 'textarea' },
+        { name: 'author', type: 'text' },
+        { name: 'role', type: 'text' },
+        { name: 'sourceUrl', type: 'text' },
+      ],
+    },
+    {
+      name: 'cta',
+      type: 'group',
+      label: 'Closing prompt',
+      admin: { description: 'The heading and line above the contact form at the end of the page.' },
+      fields: [
+        { name: 'title', type: 'text' },
+        { name: 'body', type: 'textarea' },
+      ],
     },
   ],
 }
