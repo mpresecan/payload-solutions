@@ -22,7 +22,7 @@ import { variantPath } from './variants'
 export const CONSENT_PACKAGE = '@payload-solutions/plugin-consent'
 export const CONSENT_REACT_PACKAGE = '@payload-solutions/consent-react'
 /** Pinned, like every other dependency the CLI writes. Bump with the plugin. */
-export const CONSENT_VERSION = '0.1.1'
+export const CONSENT_VERSION = '0.1.2'
 /** The React bindings release on their own schedule, so they carry their own pin. */
 export const CONSENT_REACT_VERSION = '0.1.0'
 

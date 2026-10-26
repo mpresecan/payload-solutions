@@ -1365,7 +1365,7 @@ export interface ConsentSetting {
       acceptAll?: string | null;
       rejectAll?: string | null;
       customize?: string | null;
-      save?: string | null;
+      savePreferences?: string | null;
       close?: string | null;
       manage?: string | null;
       requiredBadge?: string | null;
@@ -1561,7 +1561,7 @@ export interface ConsentSettingsSelect<T extends boolean = true> {
               acceptAll?: T;
               rejectAll?: T;
               customize?: T;
-              save?: T;
+              savePreferences?: T;
               close?: T;
               manage?: T;
               requiredBadge?: T;

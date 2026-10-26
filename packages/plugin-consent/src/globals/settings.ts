@@ -232,7 +232,9 @@ export function createSettingsGlobal(options: ResolvedConsentPluginOptions, loca
                           { name: 'customize', type: 'text', defaultValue: DEFAULT_BANNER.labels.customize },
                         ] },
                         { type: 'row', fields: [
-                          { name: 'save', type: 'text', defaultValue: DEFAULT_BANNER.labels.save },
+                          // Stored as `savePreferences`: `save` is a reserved Mongoose path (a document method) and
+                          // makes MongoDB projects log a warning on boot. Exposed as `labels.save` by config.ts.
+                          { name: 'savePreferences', label: 'Save', type: 'text', defaultValue: DEFAULT_BANNER.labels.save },
                           { name: 'close', type: 'text', defaultValue: DEFAULT_BANNER.labels.close },
                           { name: 'manage', type: 'text', defaultValue: DEFAULT_BANNER.labels.manage },
                         ] },

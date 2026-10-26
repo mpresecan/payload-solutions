@@ -8,6 +8,7 @@ import * as migration_20261026_080000_plugin_display_names from './20261026_0800
 import * as migration_20261026_110000_roadmap_docs_quarter from './20261026_110000_roadmap_docs_quarter';
 import * as migration_20261026_120000_case_studies from './20261026_120000_case_studies';
 import * as migration_20261026_121000_case_study_layron from './20261026_121000_case_study_layron';
+import * as migration_20261026_130000_consent_save_label from './20261026_130000_consent_save_label';
 
 export const migrations = [
   {
@@ -59,5 +60,10 @@ export const migrations = [
     up: migration_20261026_121000_case_study_layron.up,
     down: migration_20261026_121000_case_study_layron.down,
     name: '20261026_121000_case_study_layron',
+  },
+  {
+    up: migration_20261026_130000_consent_save_label.up,
+    down: migration_20261026_130000_consent_save_label.down,
+    name: '20261026_130000_consent_save_label',
   },
 ];

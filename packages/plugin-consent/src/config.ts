@@ -111,6 +111,10 @@ async function loadBase(payload: Payload, options: ResolvedConsentPluginOptions,
 
   const bannerDoc = (settings.banner ?? {}) as Record<string, unknown>
   const labelsDoc = (bannerDoc.labels ?? {}) as Record<string, unknown>
+  // `labels.save` is stored as `savePreferences` (see globals/settings.ts). A MongoDB doc written before
+  // that rename may still hold `save`, which is used only when the new field is empty.
+  const { save: legacySave, savePreferences, ...storedLabels } = labelsDoc
+  storedLabels.save = savePreferences || legacySave
   const pageUrl = (page: unknown): string | undefined => {
     if (!page) return undefined
     if (typeof page === 'object' && 'slug' in page) return `/legal/${String((page as { slug: unknown }).slug)}`
@@ -133,7 +137,7 @@ async function loadBase(payload: Payload, options: ResolvedConsentPluginOptions,
     description: String(bannerDoc.description ?? DEFAULT_BANNER.description),
     labels: {
       ...DEFAULT_BANNER.labels,
-      ...Object.fromEntries(Object.entries(labelsDoc).filter(([, v]) => typeof v === 'string' && v)),
+      ...Object.fromEntries(Object.entries(storedLabels).filter(([, v]) => typeof v === 'string' && v)),
     } as ConsentBannerConfig['labels'],
     position: (bannerDoc.position as ConsentBannerConfig['position']) ?? DEFAULT_BANNER.position,
     showRejectAll: bannerDoc.showRejectAll !== false,

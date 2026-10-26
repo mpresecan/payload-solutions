@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { siGithub } from 'simple-icons'
-import { Logo, brands } from '@payload-solutions/brand'
+import { Logo, X_URL, brands } from '@payload-solutions/brand'
 import { HeaderThemeSync } from '@payload-solutions/brand/use-header-theme'
 
 import { BrandIcon } from '@/components/brand-icon'
+import { MobileMenu } from '@/components/mobile-menu'
 import { Button } from '@/components/ui/button'
 
 const brand = brands.solutions
@@ -38,17 +39,13 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          {/* The primary nav collapses below lg; Docs is the one destination that stays
-              reachable from the header on phones. */}
-          <Link href="/docs" className="px-2 text-sm text-fg-muted transition-colors hover:text-fg lg:hidden">
-            Docs
-          </Link>
           <a
             href={brand.github}
             target="_blank"
             rel="noreferrer noopener"
             aria-label="GitHub repository"
-            className="inline-flex h-9 w-9 items-center justify-center text-fg-muted transition-colors hover:text-fg"
+            /* Below sm the header is logo + menu; GitHub moves into the sheet. */
+            className="hidden h-9 w-9 items-center justify-center text-fg-muted transition-colors hover:text-fg sm:inline-flex"
           >
             <BrandIcon icon={siGithub} size={18} />
           </a>
@@ -59,6 +56,12 @@ export function SiteHeader() {
               Start a project
             </Button>
           </div>
+          <MobileMenu
+            items={NAV}
+            cta={{ href: '/#contact', label: 'Start a project' }}
+            github={brand.github}
+            x={X_URL}
+          />
         </div>
       </div>
     </header>
