@@ -1,5 +1,7 @@
 # @payload-solutions/plugin-resend-broadcasts
 
+[![Payload Directory](https://payloaddirectory.dev/badge/1356812914-plugin-resend-broadcasts.svg)](https://payloaddirectory.dev/plugins/1356812914-plugin-resend-broadcasts)
+
 <img alt="Resend Broadcasts — admin screenshot" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/resend-broadcasts/banner.webp">
 
 Newsletters for Payload CMS on [Resend Broadcasts](https://resend.com/docs/dashboard/broadcasts/introduction). Any collection with an email becomes a subscriber source kept in step with Resend contacts; lists created in the admin become Resend segments; campaigns are written in Lexical, previewed as any person in the list, tested, and sent or scheduled as a Resend broadcast. Unsubscribes come back by signed webhook.

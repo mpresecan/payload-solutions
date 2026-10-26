@@ -277,6 +277,13 @@
   --wordmark-sheen-top: 0.32;
   --wordmark-sheen-mid: 0.15;
   --wordmark-sheen-bottom: 0.06;
+
+  /* Tokens derived from --bg must be restated here. A custom property holding var() is
+     resolved where it is DECLARED (:root), so without these a dark band on a light page
+     inherits the light page's values: slide buttons there got a white glass tint and showed
+     as grey slabs over black. */
+  --glass-tint: color-mix(in oklab, var(--bg) 45%, transparent);
+  --wordmark-ink: var(--bg);
 }
 
 /* ---------------------------------------------------------------------------------------

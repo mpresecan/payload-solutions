@@ -1,5 +1,7 @@
 # @payload-solutions/plugin-vercel
 
+[![Payload Directory](https://payloaddirectory.dev/badge/1356812914-plugin-vercel.svg)](https://payloaddirectory.dev/plugins/1356812914-plugin-vercel)
+
 <img alt="Vercel Integration — admin screenshot" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/vercel-integration/banner.webp">
 
 Vercel Integration for Payload CMS. Your frontend is a separate Vercel project — Astro, a static Next export, a second Next app — and it has to be rebuilt when editors publish. This plugin gives editors a **Deploy** button on every admin page, shows **what is waiting to go live**, deploys **automatically one minute after the last change**, follows every deployment on Vercel, and can **cancel** or **roll back** from the same place. Nobody needs a Vercel login.

@@ -1,5 +1,7 @@
 # @payload-solutions/plugin-emails
 
+[![Payload Directory](https://payloaddirectory.dev/badge/1356812914-plugin-emails.svg)](https://payloaddirectory.dev/plugins/1356812914-plugin-emails)
+
 <img alt="Transactional Emails for Payload — admin screenshot" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/banner.webp">
 
 Code-defined transactional emails for Payload CMS. You declare each email once in TypeScript — its key, the input callers pass, the variables editors may use, and default copy. The plugin keeps one document per email in the admin, where non-developers edit the subject and body, preview it with sample data, send themselves a test, and switch non-critical emails off. Application code sends with one typed call.

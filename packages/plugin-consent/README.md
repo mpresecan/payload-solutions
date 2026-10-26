@@ -1,5 +1,7 @@
 # @payload-solutions/plugin-consent
 
+[![Payload Directory](https://payloaddirectory.dev/badge/1356812914-plugin-consent.svg)](https://payloaddirectory.dev/plugins/1356812914-plugin-consent)
+
 <img alt="Cookie Consent for Payload — admin screenshot" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/banner.webp">
 
 **Cookie Consent for Payload** — cookie categories, trackers, legal pages and consent records managed in the Payload admin. One config endpoint drives the banner, the script gating and the generated cookie table, so they can never disagree.
