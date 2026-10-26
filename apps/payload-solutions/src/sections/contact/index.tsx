@@ -1,4 +1,4 @@
-import { SectionHead } from '@payload-solutions/brand/lattice'
+import { ActionRow, SectionHead } from '@payload-solutions/brand/lattice'
 import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { Reveal } from '@/components/reveal'
 import { ContactForm } from './contact-form'
@@ -24,6 +24,8 @@ export interface ContactProps {
   lead?: string
   /** Recorded with the submission: which page the enquiry came from. */
   source?: string
+  /** The "Read our case studies" row under the offers. Off on the case study pages themselves. */
+  caseStudiesLink?: boolean
 }
 
 /**
@@ -35,6 +37,7 @@ export function Contact({
   title = 'Need it built? We build SaaS on Payload.',
   lead = 'The same team that maintains these products takes on a few client projects at a time.',
   source = 'home',
+  caseStudiesLink = true,
 }: ContactProps = {}) {
   return (
     <section id="contact" className="scroll-mt-header relative hairline-t py-section" aria-labelledby="contact-heading">
@@ -57,6 +60,13 @@ export function Contact({
               </Reveal>
             ))}
           </ul>
+          {/* Proof sits behind one row rather than a home page section, so no single client
+              gets the spotlight; a carousel can replace it once there are several studies. */}
+          {caseStudiesLink ? (
+            <Reveal className="border-t border-border">
+              <ActionRow href="/case-studies">Read our case studies</ActionRow>
+            </Reveal>
+          ) : null}
         </div>
         <Reveal className="min-w-0 lg:col-span-2">
           <ContactForm source={source} />
