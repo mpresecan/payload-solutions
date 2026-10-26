@@ -7,6 +7,8 @@ import { brands } from '@payload-solutions/brand'
 import { CLIP_CDN } from '@payload-solutions/brand/clips'
 import { FamilyBar } from '@payload-solutions/brand/family-bar'
 import { ConsentRoot } from '@/components/consent/consent-root'
+import { JsonLd, ORGANIZATION_ID, organizationLd } from '@payload-solutions/brand/json-ld'
+
 import './globals.css'
 
 const brand = brands.solutions
@@ -16,7 +18,7 @@ export const metadata: Metadata = {
   // the one host Google should index (www.payload.solutions redirects to it), on every deploy.
   metadataBase: new URL(brand.url),
   title: {
-    default: `${brand.name}: ${brand.tagline}`,
+    default: brand.title,
     template: `%s | ${brand.name}`,
   },
   description: brand.description,
@@ -48,6 +50,23 @@ export default function FrontendLayout({ children }: { children: ReactNode }) {
       <body className="flex min-h-dvh flex-col bg-bg text-fg antialiased">
         {/* Docs videos stream from here; React hoists this into <head>. */}
         <link rel="preconnect" href={CLIP_CDN} />
+        {/* Who publishes this site, for search engines: the organization and the site itself. */}
+        <JsonLd
+          data={{
+            '@context': 'https://schema.org',
+            '@graph': [
+              organizationLd(),
+              {
+                '@type': 'WebSite',
+                '@id': `${brand.url}/#website`,
+                url: brand.url,
+                name: brand.name,
+                description: brand.description,
+                publisher: { '@id': ORGANIZATION_ID },
+              },
+            ],
+          }}
+        />
         {/* Family strip above the header; opens only on overscroll past the top. */}
         <FamilyBar current="solutions" />
         <RootProvider

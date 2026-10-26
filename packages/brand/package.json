@@ -13,6 +13,7 @@
     "./logos": "./src/logos.tsx",
     "./footer-wordmark": "./src/footer-wordmark.tsx",
     "./brands": "./src/brands.ts",
+    "./json-ld": "./src/json-ld.tsx",
     "./tokens.css": "./css/tokens.css",
     "./tailwind.css": "./css/tailwind.css",
     "./assets/*": "./assets/*",

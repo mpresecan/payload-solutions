@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { RichText } from '@payloadcms/richtext-lexical/react'
 import { X_HANDLE, brands } from '@payload-solutions/brand'
+import { JsonLd, ORGANIZATION_ID } from '@payload-solutions/brand/json-ld'
 import { GridColumns } from '@payload-solutions/brand/grid-columns'
 import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { ActionRow, Eyebrow } from '@payload-solutions/brand/lattice'
@@ -33,7 +34,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   // they carry is restated (see the docs page). The image is ./opengraph-image.tsx.
   const url = `/case-studies/${study.slug}`
   return {
-    title: `${study.client}: ${study.title}`,
+    // Short enough for search results; the outcome headline is the og:title and the H1.
+    title: `${study.client} case study`,
     description: study.summary,
     alternates: { canonical: url },
     openGraph: {
@@ -77,6 +79,20 @@ export default async function CaseStudyPage({ params }: Params) {
 
   return (
     <>
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'Article',
+          headline: study.title,
+          description: study.summary,
+          url: `${brands.solutions.url}/case-studies/${study.slug}`,
+          datePublished: study.publishedAt,
+          dateModified: study.updatedAt,
+          ...(study.author && { author: { '@type': 'Person', name: study.author } }),
+          publisher: { '@id': ORGANIZATION_ID },
+          about: { '@type': 'Organization', name: study.client, ...(study.clientUrl && { url: study.clientUrl }) },
+        }}
+      />
       <SiteHeader />
       <main id="main" className="flex-1">
         <ThemeBand theme="dark" as="div" className="relative -mt-header pt-header">

@@ -4,6 +4,8 @@ import { GeistMono } from 'geist/font/mono'
 import { brands } from '@payload-solutions/brand'
 import { FamilyBar } from '@payload-solutions/brand/family-bar'
 import { ConsentRoot } from '@/components/consent/consent-root'
+import { JsonLd, ORGANIZATION_ID, organizationLd } from '@payload-solutions/brand/json-ld'
+
 import './globals.css'
 import { CLIP_CDN } from '@payload-solutions/brand/clips'
 
@@ -12,7 +14,7 @@ const brand = brands.stack
 export const metadata: Metadata = {
   metadataBase: new URL(brand.url),
   title: {
-    default: `${brand.name}: ${brand.tagline}`,
+    default: brand.title,
     template: `%s | ${brand.name}`,
   },
   description: brand.description,
@@ -83,6 +85,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href={CLIP_CDN} />
       </head>
       <body className="min-h-dvh bg-bg text-fg antialiased">
+        {/* The product as software for search engines: free, MIT, published by Payload Solutions. */}
+        <JsonLd
+          data={{
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'SoftwareApplication',
+                '@id': `${brand.url}/#software`,
+                name: brand.name,
+                description: brand.description,
+                url: brand.url,
+                applicationCategory: 'DeveloperApplication',
+                operatingSystem: 'Any',
+                license: `${brand.github}/blob/main/LICENSE`,
+                softwareHelp: { '@type': 'CreativeWork', url: brand.docsUrl },
+                installUrl: 'https://www.npmjs.com/package/create-payload-stack',
+                offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+                publisher: { '@id': ORGANIZATION_ID },
+              },
+              organizationLd(),
+            ],
+          }}
+        />
         {/* Family strip above the header; opens only on overscroll past the top. */}
         <FamilyBar current="stack" />
         <ConsentRoot>{children}</ConsentRoot>
