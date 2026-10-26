@@ -1,6 +1,7 @@
 import { PAYLOAD_URL } from '@payload-solutions/brand'
 import { ActionRow, Eyebrow, IndependenceNote, ProseLink } from '@payload-solutions/brand/lattice'
 import { ConfigHero } from '@/components/config-hero'
+import { SplitLoad } from '@payload-solutions/brand/split-load'
 
 /**
  * The umbrella hero. The visual is the product, not the mark: a payload.config.ts writes
@@ -22,12 +23,12 @@ export function Hero() {
         */}
         <div className="reveal-load-group lg:w-1/4">
           <Eyebrow className="mb-7">Open source · MIT</Eyebrow>
-          <h1
+          <SplitLoad as="h1"
             id="hero-heading"
             className="display-xl max-w-[18ch] lg:max-w-none lg:text-[length:clamp(2.25rem,3.6vw,3.75rem)]"
           >
             The SaaS layer for <ProseLink href={PAYLOAD_URL}>Payload CMS</ProseLink>.
-          </h1>
+          </SplitLoad>
           <p className="lead mt-7 max-w-[30rem]">
             Boilerplate, plugins and the engineers who build them. Built in the open, used in
             production.

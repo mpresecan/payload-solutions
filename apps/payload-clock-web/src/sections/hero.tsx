@@ -2,6 +2,7 @@ import { PAYLOAD_URL, SOLUTIONS_URL, brands } from '@payload-solutions/brand'
 import { ActionRow, IndependenceNote, ProseLink } from '@payload-solutions/brand/lattice'
 import { ClockDial } from '@payload-solutions/brand/clock-dial'
 import { Parallax } from '@payload-solutions/brand/parallax'
+import { SplitLoad } from '@payload-solutions/brand/split-load'
 import { ShimmerNote } from '@/components/text-shimmer'
 
 const brand = brands.clock
@@ -24,10 +25,10 @@ export function Hero() {
             From the makers of Payload Stack
           </ShimmerNote>
 
-          <h1 id="hero-heading" className="display-xl max-w-[16ch]">
+          <SplitLoad as="h1" id="hero-heading" className="display-xl max-w-[16ch]">
             The clock your serverless <ProseLink href={PAYLOAD_URL}>Payload</ProseLink> app doesn’t
             have.
-          </h1>
+          </SplitLoad>
           <p className="lead mt-7 max-w-[31rem]">
             Nothing runs between requests on serverless, so queued jobs wait. Payload Clock calls
             your job queue on schedule, drains the backlog in one pass, keeps a history worth
