@@ -23,11 +23,13 @@ export const CONSENT_PACKAGE = '@payload-solutions/plugin-consent'
 export const CONSENT_REACT_PACKAGE = '@payload-solutions/consent-react'
 /** Pinned, like every other dependency the CLI writes. Bump with the plugin. */
 export const CONSENT_VERSION = '0.1.1'
+/** The React bindings release on their own schedule, so they carry their own pin. */
+export const CONSENT_REACT_VERSION = '0.1.0'
 
 /** Both packages the plugged branch imports. `consent-core` arrives as a dependency of the React one. */
 export const CONSENT_PACKAGES: Record<string, string> = {
   [CONSENT_PACKAGE]: CONSENT_VERSION,
-  [CONSENT_REACT_PACKAGE]: CONSENT_VERSION,
+  [CONSENT_REACT_PACKAGE]: CONSENT_REACT_VERSION,
 }
 
 const VARIANT_CONSENT = variantPath('consent-plugin')
