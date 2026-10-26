@@ -958,3 +958,27 @@ body:has(.video-backdrop) .site-header[data-theme='dark'] {
     transition: none;
   }
 }
+
+/* Hero headlines (<SplitLoad>, src/split-load.tsx): the same word rise as a keyframe on first
+   paint, no JavaScript, so the page's largest paint never waits on hydration. `backwards` holds
+   each word below its mask through its delay and then hands back the resting style. Inside a
+   `.reveal-load-group` the headline drops the group's block fade-up; its words are the motion. */
+@keyframes split-rise {
+  from {
+    transform: translateY(150%) rotate(10deg);
+  }
+}
+.split-words--load .split-words__word {
+  transform: none;
+  transition: none;
+  animation: split-rise 1.125s cubic-bezier(0.165, 0.84, 0.44, 1) backwards;
+  animation-delay: calc(0.15s + var(--i, 0) * 75ms);
+}
+.reveal-load-group > .split-words--load {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .split-words--load .split-words__word {
+    animation: none;
+  }
+}

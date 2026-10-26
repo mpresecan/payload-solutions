@@ -5,6 +5,7 @@ import {
 	ProseLink,
 } from "@payload-solutions/brand/lattice";
 import { Parallax } from "@payload-solutions/brand/parallax";
+import { SplitLoad } from "@payload-solutions/brand/split-load";
 import { CopyCommand } from "@/components/copy-command";
 import { LaunchFilm } from "@/components/launch-film";
 import { StackVisual } from "@/components/stack-visual";
@@ -28,10 +29,10 @@ export function Hero() {
 				{/* Two of the four columns. The copy is held back by its own measure; the action rows
             fill the cell, so they start on the left grid line and end on the centre one. */}
 				<div className="reveal-load-group lg:col-span-2">
-					<h1 id="hero-heading" className="display-xl max-w-[15ch]">
+					<SplitLoad as="h1" id="hero-heading" className="display-xl max-w-[15ch]">
 						<ProseLink href={PAYLOAD_URL}>Payload CMS</ProseLink>, ready for
 						SaaS.
-					</h1>
+					</SplitLoad>
 					<p className="lead mt-7 max-w-[30rem]">
 						An agent-ready SaaS boilerplate for Payload, with authentication,
 						organizations, billing, and an admin dashboard already wired in—so
