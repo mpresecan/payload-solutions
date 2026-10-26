@@ -38,6 +38,7 @@
     "./lattice": "./src/lattice.tsx",
     "./family-bar": "./src/family-bar.tsx",
     "./reveal": "./src/reveal.tsx",
+    "./split-words": "./src/split-words.tsx",
     "./og-card": "./src/og-card.tsx",
     "./email": "./src/email.tsx"
   },

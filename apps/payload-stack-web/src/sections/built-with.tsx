@@ -64,7 +64,7 @@ const SWAP_MIDPOINT_S = SWAP_CYCLE_S * 0.46
  * Logo wall, set the way payloadcms.com sets its own: a sentence starting on the first grid
  * line, then a framed row of six square cells, each half a column wide, running from the
  * middle of the first column to the middle of the fourth — so every other cell divider lands
- * on a page grid line. Logos cross-fade through a blur, one cell at a time. CSS only, no JS.
+ * on a page grid line. Logos cross-fade, one cell at a time. CSS only, no JS.
  */
 export function BuiltWith() {
   return (

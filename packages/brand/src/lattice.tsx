@@ -1,5 +1,7 @@
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react'
 
+import { SplitWords } from './split-words'
+
 /*
   The lattice grammar, shared by payload.solutions and payloadstack.com.
 
@@ -9,7 +11,7 @@ import type { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react'
   sites use, so a section headline, an eyebrow and a call-to-action row are identical
   everywhere and only the accent changes.
 
-  All server components; no client JS, no icon dependency (the arrow is inline SVG).
+  All server components except the SplitWords headline (one IntersectionObserver); no other client JS, no icon dependency (the arrow is inline SVG).
 */
 
 /** The diagonal arrow used on outbound rows and links. Inline so brand stays dependency-free. */
@@ -72,9 +74,14 @@ export function SectionHead({
   return (
     <div className={`max-w-[46rem] ${className ?? ''}`}>
       {eyebrow ? <Eyebrow className="mb-7">{eyebrow}</Eyebrow> : null}
-      <Tag id={id} className={size === 'lg' ? 'display-lg' : 'display-md'}>
-        {title}
-      </Tag>
+      {/* String titles rise word by word, as payloadcms.com's section headings do. */}
+      {typeof title === 'string' ? (
+        <SplitWords as={Tag} id={id} text={title} className={size === 'lg' ? 'display-lg' : 'display-md'} />
+      ) : (
+        <Tag id={id} className={size === 'lg' ? 'display-lg' : 'display-md'}>
+          {title}
+        </Tag>
+      )}
       {lead ? <p className="lead mt-6 max-w-[38rem]">{lead}</p> : null}
     </div>
   )
