@@ -3,6 +3,10 @@ title: Vercel Integration
 description: Trigger Vercel deployments from the Payload admin or automatically after content changes, see what is waiting to go live, follow every build, cancel and roll back — without giving editors a Vercel login.
 ---
 
+```bash
+npm install @payload-solutions/plugin-vercel
+```
+
 A headless Payload site usually has a frontend that is built and hosted separately on Vercel: Astro, a static Next export, a second Next app. When an editor publishes, that site has to be rebuilt, and `revalidatePath` cannot reach a different project. Vercel solves the rebuild with deploy hooks. This plugin solves the editor's side of it: knowing the site is behind, seeing what is waiting, pressing one button, watching the build finish or fail, and undoing a bad release.
 
 ```ts title="payload.config.ts"
