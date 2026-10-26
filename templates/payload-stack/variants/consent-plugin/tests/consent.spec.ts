@@ -1,5 +1,5 @@
 /**
- * src/consent: the seam between a project with Payload Consent and one without.
+ * src/consent: the seam between a project with Cookie Consent and one without.
  *
  * No database here. These are the checks that catch what actually goes wrong when the plugin is
  * wired in: the legal-pages collection registered twice (or not at all), a seeded company that

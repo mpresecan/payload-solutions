@@ -17,9 +17,9 @@ npx create-payload-stack@latest [name] [options]
 | `--organizations` / `--no-organizations` | Enable teams | prompt (on) |
 | `--billing <mode>` | `organization`, `user`, `none` | prompt |
 | `--storage <adapter>` | `none`, `vercel-blob`, `s3`, `r2`, `azure`, `gcs`, `uploadthing` | prompt (none = local disk) |
-| `--emails` / `--no-emails` | Edit email copy in the admin with [Payload Emails](/docs/plugins/payload-emails) | prompt (on) |
-| `--consent` / `--no-consent` | Cookie banner and audited legal pages with [Payload Consent](/docs/plugins/payload-consent) | prompt (on) |
-| `--scheduler` / `--no-scheduler` | Scheduled and recurring actions with [Payload Action Scheduler](/docs/plugins/payload-action-scheduler) | prompt (on) |
+| `--emails` / `--no-emails` | Edit email copy in the admin with [Transactional Emails](/docs/plugins/payload-emails) | prompt (on) |
+| `--consent` / `--no-consent` | Cookie banner and audited legal pages with [Cookie Consent](/docs/plugins/payload-consent) | prompt (on) |
+| `--scheduler` / `--no-scheduler` | Scheduled and recurring actions with [Action Scheduler](/docs/plugins/payload-action-scheduler) | prompt (on) |
 | `--runner <kind>` | `clock`, `vercel`, `server`, `later` — what runs the job queue. Asked only with a scheduler; see [Scheduled actions](/docs/payload-stack/scheduling#runners) | prompt (clock) |
 | `--agents <list>` | Comma-separated: `claude`, `codex`, `cursor`, or `none` — skills and MCP servers for your coding agents; see [Agentic development](/docs/payload-stack/agents) | prompt (all three) |
 | `--use-pnpm`, `--use-npm`, `--use-yarn`, `--use-bun` | Package manager | detected |
@@ -52,7 +52,7 @@ npx create-payload-stack@latest ridgeline \
 - `src/payload.config.ts` with the chosen database adapter (between the `database-adapter` markers) and the chosen [storage adapter](/docs/payload-stack/storage) (between the `storage-adapter` markers; local disk when skipped).
 - `package.json` with the matching `@payloadcms/db-*` and `@payloadcms/storage-*` dependencies and your project name.
 - `src/emails` in one of two shapes, and the plugin registration between the `emails-plugin` markers of `payload.config.ts` — see [Emails](/docs/payload-stack/emails).
-- `src/consent` in one of two shapes: a plain `legal-pages` collection, or Payload Consent with the banner, the consent records and the audited legal pages — see [Legal pages and consent](/docs/payload-stack/legal).
+- `src/consent` in one of two shapes: a plain `legal-pages` collection, or Cookie Consent with the banner, the consent records and the audited legal pages — see [Legal pages and consent](/docs/payload-stack/legal).
 - `src/scheduler` in one of two shapes: an empty seam, or the Action Scheduler with its ledger, its action catalogue and a run endpoint locked to a cron secret — see [Scheduled actions](/docs/payload-stack/scheduling). With `--runner vercel`, a `vercel.json` that runs the queue.
 - Agent files for the tools you picked: `AGENTS.md` always; `CLAUDE.md`, `.claude/skills`, `.claude/settings.json` and `.mcp.json` for Claude Code; `.agents/skills` for Codex; `.cursor/mcp.json` for Cursor — see [Agentic development](/docs/payload-stack/agents).
 - `.env` from `.env.example`, with `DATABASE_URL`, a generated `PAYLOAD_SECRET` and `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_APP_URL`, and — with a scheduler — a generated `CRON_SECRET` (and `RUN_JOBS_IN_PROCESS` for `--runner server`).

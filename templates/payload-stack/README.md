@@ -19,7 +19,7 @@ npx create-payload-stack@latest
 | Admin | Payload's admin at `/admin` for users, organizations, subscriptions, content and support, with a tenant selector. |
 | Email | React Email templates sent through Payload's email adapter (Resend in production, console in development). |
 | Content | Legal pages as a Payload collection (seeded), rich text with Lexical, media uploads. |
-| Consent | With `--consent`, [Payload Consent](https://payload.solutions/docs/plugins/payload-consent): cookie banner and Google Consent Mode defaults, consent records, a processor register, generated cookie and sub-processor tables inside the legal pages, and a CLI that audits them against the project. |
+| Consent | With `--consent`, [Cookie Consent](https://payload.solutions/docs/plugins/payload-consent): cookie banner and Google Consent Mode defaults, consent records, a processor register, generated cookie and sub-processor tables inside the legal pages, and a CLI that audits them against the project. |
 | Storage | Uploads on local disk by default; the CLI wires Vercel Blob, S3 (and S3-compatible), Cloudflare R2, Azure Blob, Google Cloud Storage or Uploadthing into `payload.config.ts`, switched on by environment variables. |
 | Config | `src/stack.config.ts` validated with zod; `src/lib/env.ts` validates environment variables at boot. |
 

@@ -11,7 +11,7 @@ Every scaffolded project gets four things:
 | --- | --- | --- |
 | `AGENTS.md` | Where things are, the commands, a definition of done, and the rules that are easy to break | Codex, Cursor, Claude Code (through `CLAUDE.md`), most other agents |
 | Skills | Step-by-step recipes for the jobs you do most in a SaaS | Claude Code, Codex, Cursor |
-| MCP servers | The running Next.js app, a real browser, the shadcn registry, and the Payload Consent audit | Claude Code, Cursor |
+| MCP servers | The running Next.js app, a real browser, the shadcn registry, and the Cookie Consent audit | Claude Code, Cursor |
 | `pnpm verify` | Typecheck, lint and the unit suite in one command | everyone |
 
 Pick your agents when you scaffold:
@@ -66,7 +66,7 @@ Add your own skills next to them as your product picks up its own recipes: an `i
 | `next-devtools` | Routes, build and runtime errors, and logs from the running `pnpm dev` server. Needs Next.js 16 and the dev server running |
 | `playwright` | A real browser to open the page it just changed and check it |
 | `shadcn` | The shadcn registry, to find and add components instead of writing them |
-| `payload-consent` | With [Payload Consent](/docs/plugins/payload-consent): audits the legal pages against the cookies, scripts and processors the app actually uses |
+| `payload-consent` | With [Cookie Consent](/docs/plugins/payload-consent): audits the legal pages against the cookies, scripts and processors the app actually uses |
 
 Codex reads MCP servers from your own Codex configuration rather than from the project; add the same entries there if you use them.
 

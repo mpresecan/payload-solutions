@@ -4,6 +4,7 @@ import * as migration_20260912_090000_plugins_shipped from './20260912_090000_pl
 import * as migration_20260929_184546_consent_plugin from './20260929_184546_consent_plugin';
 import * as migration_20260929_191625_contact_consent from './20260929_191625_contact_consent';
 import * as migration_20261020_080228_payload_3_91 from './20261020_080228_payload_3_91';
+import * as migration_20261026_080000_plugin_display_names from './20261026_080000_plugin_display_names';
 
 export const migrations = [
   {
@@ -34,6 +35,11 @@ export const migrations = [
   {
     up: migration_20261020_080228_payload_3_91.up,
     down: migration_20261020_080228_payload_3_91.down,
-    name: '20261020_080228_payload_3_91'
+    name: '20261020_080228_payload_3_91',
+  },
+  {
+    up: migration_20261026_080000_plugin_display_names.up,
+    down: migration_20261026_080000_plugin_display_names.down,
+    name: '20261026_080000_plugin_display_names',
   },
 ];

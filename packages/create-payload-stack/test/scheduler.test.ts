@@ -1,5 +1,5 @@
 /**
- * src/scheduler.ts: the optional Payload Action Scheduler step, and the runner that goes with it.
+ * src/scheduler.ts: the optional Action Scheduler step, and the runner that goes with it.
  *
  * Like consent, the seam is a module rather than a set of markers: both branches of
  * `src/scheduler` export the same names, so payload.config.ts and src/lib/auth/options.ts are the

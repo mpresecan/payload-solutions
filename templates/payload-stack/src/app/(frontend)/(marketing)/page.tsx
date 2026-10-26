@@ -16,7 +16,7 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* Development-only, and only with Payload Consent: how to get the legal pages right. */}
+      {/* Development-only, and only with Cookie Consent: how to get the legal pages right. */}
       <LegalSetupNotice />
 
       <section className="mx-auto max-w-6xl px-4 pt-20 pb-16 sm:px-6 sm:pt-28">

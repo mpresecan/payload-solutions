@@ -5,7 +5,7 @@ import path from 'node:path'
 import { variantPath } from './variants'
 
 /**
- * The optional Payload Action Scheduler step.
+ * The optional Action Scheduler step.
  *
  * Like consent, the seam is a module and not a set of markers: `src/scheduler` exports the same
  * three names in both branches — `schedulerPlugins`, `schedulerJobs`, and the pair of Better Auth

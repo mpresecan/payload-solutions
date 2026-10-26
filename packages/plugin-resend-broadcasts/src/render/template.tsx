@@ -133,7 +133,7 @@ export const darkModeCSS = `
  * copy (`children`); `footer` arrives with the Newsletter Settings footer and the unsubscribe link
  * already in it, so any template that renders `footer` stays compliant.
  *
- * It is the same component as Payload Emails' default template, and takes the same props, so one
+ * It is the same component as Transactional Emails' default template, and takes the same props, so one
  * branded template can be registered with both plugins.
  *
  * Register your own with `resendBroadcastsPlugin({ templates: { default: MyTemplate } })`.

@@ -1,6 +1,6 @@
 ---
 title: Templates
-description: The design is a React Email component in your repo, with the same contract as Payload Emails — so one branded template can serve your transactional mail and your newsletters.
+description: The design is a React Email component in your repo, with the same contract as Transactional Emails — so one branded template can serve your transactional mail and your newsletters.
 ---
 
 Every campaign is rendered inside a template: a React Email component that owns the shell — colours, spacing, the wordmark, the container. Editors write the words; the design is reviewed in pull requests.
@@ -18,9 +18,9 @@ resendBroadcastsPlugin({
 
 Register more than one and campaigns get a **Template** select.
 
-## The same contract as Payload Emails
+## The same contract as Transactional Emails
 
-A template here takes the same props as a [Payload Emails template](/docs/plugins/payload-emails/templates) — `children`, `footer`, `preheader`, `subject`, `settings`, `variables` — and the body is converted with the same class names (`pe-text`, `pe-heading`, `pe-button`, …) and the same `styles` override. If you already have a branded template for transactional mail, register it with both plugins and your newsletters look like the rest of your product.
+A template here takes the same props as a [Transactional Emails template](/docs/plugins/payload-emails/templates) — `children`, `footer`, `preheader`, `subject`, `settings`, `variables` — and the body is converted with the same class names (`pe-text`, `pe-heading`, `pe-button`, …) and the same `styles` override. If you already have a branded template for transactional mail, register it with both plugins and your newsletters look like the rest of your product.
 
 ```tsx title="src/emails/template.tsx"
 import { Body, Container, Head, Html, Preview, Section, Text } from '@react-email/components'

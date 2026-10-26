@@ -1,5 +1,5 @@
 /**
- * src/consent.ts: the optional Payload Consent step.
+ * src/consent.ts: the optional Cookie Consent step.
  *
  * The step has no markers to check, because the seam is a module: both branches of `src/consent`
  * export the same names, so payload.config.ts, the frontend layout, the footer, the /legal route

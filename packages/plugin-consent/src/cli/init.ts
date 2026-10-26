@@ -15,7 +15,7 @@ export type InitOptions = { root: string; agent?: string; force?: boolean }
 const SERVER_ENTRY = { command: 'npx', args: ['payload-consent', 'mcp'] }
 
 const AGENTS_SECTION = `
-## Legal pages (Payload Consent)
+## Legal pages (Cookie Consent)
 
 Legal pages, cookie categories, trackers and the processor register live in Payload, not in this
 repo. Before changing anything legal-adjacent:
@@ -85,15 +85,16 @@ export function runInit(options: InitOptions): string[] {
   const agentsFile = path.join(root, 'AGENTS.md')
   if (existsSync(agentsFile)) {
     const current = readFileSync(agentsFile, 'utf8')
-    if (!current.includes('Payload Consent)')) {
+    // 'Payload Consent)' is the heading older versions wrote; don't add a second section.
+    if (!current.includes('Cookie Consent)') && !current.includes('Payload Consent)')) {
       writeFileSync(agentsFile, `${current.trimEnd()}\n${AGENTS_SECTION}`, 'utf8')
-      done.push('added a Payload Consent section to AGENTS.md')
+      done.push('added a Cookie Consent section to AGENTS.md')
     } else {
-      done.push('AGENTS.md already mentions Payload Consent')
+      done.push('AGENTS.md already mentions Cookie Consent')
     }
   } else {
     writeFileSync(agentsFile, `# Agent notes\n${AGENTS_SECTION}`, 'utf8')
-    done.push('created AGENTS.md with a Payload Consent section')
+    done.push('created AGENTS.md with a Cookie Consent section')
   }
 
   const gitignore = path.join(root, '.gitignore')

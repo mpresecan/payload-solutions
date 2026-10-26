@@ -89,7 +89,7 @@ export const clips = {
   },
   'emails-promo': {
     file: 'payload-emails-promo.mp4',
-    alt: 'Payload Emails: the introduction film',
+    alt: 'Transactional Emails: the introduction film',
     hasAudio: true,
   },
 
@@ -186,7 +186,7 @@ export const clips = {
     file: 'payload-solutions-post-51-four-plugins.mp4',
     start: 4,
     poster: fourPlugins,
-    alt: 'Payload Consent, Payload Emails, Action Scheduler and the Vercel Integration, one after another',
+    alt: 'Cookie Consent, Transactional Emails, Action Scheduler and the Vercel Integration, one after another',
     end: 40,
     post: 51,
   },

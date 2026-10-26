@@ -113,7 +113,7 @@ export async function createProjectViaUi(page: Page, name: string, description?:
  */
 export const test = base.extend<{ account: { user: E2EUser; org: E2EOrg | null }; member: { user: E2EUser; org: E2EOrg } }>({
   page: async ({ page }, use) => {
-    // With Payload Consent the cookie banner opens bottom-left, over the sidebar's user menu. A
+    // With Cookie Consent the cookie banner opens bottom-left, over the sidebar's user menu. A
     // visitor answers it once; the journeys answer it whenever it shows up in their way. Without the
     // consent plugin there is no banner and the handler never runs.
     await page.addLocatorHandler(page.getByRole('region', { name: 'Your privacy choices' }), async (banner) => {

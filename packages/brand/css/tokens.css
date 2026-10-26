@@ -342,7 +342,7 @@
   --accent-glow: light-dark(rgba(138, 97, 0, 0.1), rgba(240, 184, 77, 0.14));
 }
 
-/* Payload Consent — emerald */
+/* Cookie Consent — emerald */
 [data-brand='consent'] {
   --accent: #3dd98a;
   --accent: light-dark(#0f7a48, #3dd98a);
@@ -356,7 +356,7 @@
   --accent-glow: light-dark(rgba(15, 122, 72, 0.1), rgba(61, 217, 138, 0.14));
 }
 
-/* Payload Emails — rose */
+/* Transactional Emails — rose */
 [data-brand='emails'] {
   --accent: #ff7a8a;
   --accent: light-dark(#c2344a, #ff7a8a);
@@ -370,7 +370,7 @@
   --accent-glow: light-dark(rgba(194, 52, 74, 0.1), rgba(255, 122, 138, 0.14));
 }
 
-/* Payload Action Scheduler — teal */
+/* Action Scheduler — teal */
 [data-brand='scheduler'] {
   --accent: #3aced3;
   --accent: light-dark(#00777b, #3aced3);

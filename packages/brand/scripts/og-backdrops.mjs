@@ -14,7 +14,7 @@
  *   - cover-cropped to 1200 x 630 from the 16:9 poster;
  *   - Clock's poster carries a black frame from its source, trimmed before cropping;
  *   - the docs variants map the solutions poster's luminance onto each entity's accent
- *     (black -> accent -> a little white at the hottest streak), so a Payload Consent page gets
+ *     (black -> accent -> a little white at the hottest streak), so a Cookie Consent page gets
  *     emerald light, a Clock page brass, and so on.
  *
  * Needs `sharp`. It is not a dependency of the repo, so run it from anywhere sharp is installed:

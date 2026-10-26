@@ -16,9 +16,9 @@ import { removeVariants } from './variants'
  *   1. src/stack.config.ts written from their answers
  *   2. database adapter swapped in payload.config.ts and package.json
  *   3. media storage adapter written into payload.config.ts and package.json (or left on local disk)
- *   4. transactional emails wired to the Payload Emails plugin, or left as React Email components
- *   5. consent and legal pages wired to the Payload Consent plugin, or left as a plain collection
- *   6. scheduled actions wired to the Payload Action Scheduler, and a runner for the job queue
+ *   4. transactional emails wired to the Transactional Emails plugin, or left as React Email components
+ *   5. consent and legal pages wired to the Cookie Consent plugin, or left as a plain collection
+ *   6. scheduled actions wired to the Action Scheduler, and a runner for the job queue
  *   7. .env generated from .env.example
  *   8. package.json renamed
  *   9. skills and MCP servers arranged for the chosen coding agents
@@ -64,7 +64,7 @@ export function renderStackConfig(o: Pick<ProjectOptions, 'name' | 'authMethods'
     ],
   },`
 
-  // With Payload Consent every seeded legal document is written from this block, and
+  // With Cookie Consent every seeded legal document is written from this block, and
   // `payload-consent scan` reports each value still left as a placeholder. Without it the block is
   // only quoted in the footer and the three starter pages, so the extra keys would be noise.
   const legalBlock = o.consent

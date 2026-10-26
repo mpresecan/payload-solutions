@@ -87,7 +87,7 @@ describe('mcpServers', () => {
     for (const server of Object.values(servers)) expect(server.command).toBe('npx')
   })
 
-  it('adds the Payload Consent audit server only with the plugin', () => {
+  it('adds the Cookie Consent audit server only with the plugin', () => {
     expect(mcpServers({ consent: true })['payload-consent']).toEqual({ command: 'npx', args: ['payload-consent', 'mcp'] })
   })
 

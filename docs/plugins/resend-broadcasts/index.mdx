@@ -61,14 +61,14 @@ Payload is the source of truth for **who exists and who is in which list**. Rese
 
 ## What it is not
 
-It is not an email builder: the design is a React Email component your developers own, and the body is written in a deliberately small Lexical editor. It does not do transactional email — that is what [Payload Emails](/docs/plugins/payload-emails) is for, and the two share the same template contract. It does not report opens and clicks inside Payload yet; Resend's dashboard has them for every broadcast.
+It is not an email builder: the design is a React Email component your developers own, and the body is written in a deliberately small Lexical editor. It does not do transactional email — that is what [Transactional Emails](/docs/plugins/payload-emails) is for, and the two share the same template contract. It does not report opens and clicks inside Payload yet; Resend's dashboard has them for every broadcast.
 
 <Cards>
   <Card title="Installation" href="/docs/plugins/resend-broadcasts/installation" description="API key, sources, the webhook, and the first boot." />
   <Card title="Sources" href="/docs/plugins/resend-broadcasts/sources" description="Which collections are subscribers, the fields that are added, and how contacts are kept in sync." />
   <Card title="Lists" href="/docs/plugins/resend-broadcasts/lists" description="Resend segments over one collection, narrowed by a Payload query." />
   <Card title="Campaigns" href="/docs/plugins/resend-broadcasts/campaigns" description="Writing, variables and fallbacks, Preview & send, scheduling and the campaign lifecycle." />
-  <Card title="Templates" href="/docs/plugins/resend-broadcasts/templates" description="The React Email template, shared with Payload Emails, and the unsubscribe link it must carry." />
+  <Card title="Templates" href="/docs/plugins/resend-broadcasts/templates" description="The React Email template, shared with Transactional Emails, and the unsubscribe link it must carry." />
   <Card title="Webhooks" href="/docs/plugins/resend-broadcasts/webhooks" description="Bringing unsubscribes from Resend back into Payload." />
   <Card title="API" href="/docs/plugins/resend-broadcasts/api" description="payload.resendBroadcasts and the REST endpoints." />
   <Card title="Recipes" href="/docs/plugins/resend-broadcasts/recipes" description="A sign-up endpoint, an opt-in checkbox for users, serverless hosts, real Resend in development." />

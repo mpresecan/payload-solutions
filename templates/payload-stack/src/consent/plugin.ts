@@ -1,7 +1,7 @@
 import type { Plugin } from 'payload'
 
 /**
- * Payload Consent is not installed in this project.
+ * Cookie Consent is not installed in this project.
  *
  * The cookie banner, the consent records, the processor register and the legal-page editor with
  * its generated cookie and sub-processor tables all live in `@payload-solutions/plugin-consent`.

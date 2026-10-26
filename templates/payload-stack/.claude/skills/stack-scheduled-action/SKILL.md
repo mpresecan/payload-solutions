@@ -1,6 +1,6 @@
 ---
 name: stack-scheduled-action
-description: Use when something in this Payload Stack project must happen later or on a schedule (reminders, follow-ups, sweeps, cron-like jobs, retries) using the Payload Action Scheduler in src/scheduler.
+description: Use when something in this Payload Stack project must happen later or on a schedule (reminders, follow-ups, sweeps, cron-like jobs, retries) using the Action Scheduler in src/scheduler.
 ---
 
 # Add a scheduled or recurring action

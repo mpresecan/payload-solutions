@@ -8,7 +8,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-## Legal pages (Payload Consent)
+## Legal pages (Cookie Consent)
 
 Legal pages, cookie categories, trackers and the processor register live in Payload, not in this
 repo. Before changing anything legal-adjacent:

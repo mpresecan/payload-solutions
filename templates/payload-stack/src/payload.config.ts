@@ -160,11 +160,11 @@ if (sentryReady) {
 // emails-plugin-config-start
 // emails-plugin-config-end
 
-// 5. Consent, cookie banner and legal pages. Empty without the Payload Consent plugin; scaffold
+// 5. Consent, cookie banner and legal pages. Empty without the Cookie Consent plugin; scaffold
 // with `create-payload-stack --consent` to fill it in (src/consent/plugin.ts).
 plugins.push(...consentPlugins)
 
-// 6. Scheduled and recurring actions. Empty without the Payload Action Scheduler plugin; scaffold
+// 6. Scheduled and recurring actions. Empty without the Action Scheduler plugin; scaffold
 // with `create-payload-stack --scheduler` to fill it in (src/scheduler/plugin.ts).
 plugins.push(...schedulerPlugins)
 

@@ -108,7 +108,7 @@ export default buildConfig({
 		}
 	},
 	plugins: [
-		// Payload Consent: banner config, cookie categories, trackers, consent records and the
+		// Cookie Consent: banner config, cookie categories, trackers, consent records and the
 		// legal pages, all under Privacy in the admin. The seed runs once, into empty collections
 		// only, so it never overwrites an editor's changes.
 		consentPlugin({

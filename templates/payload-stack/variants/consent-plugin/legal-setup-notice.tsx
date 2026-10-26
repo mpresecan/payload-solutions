@@ -67,7 +67,7 @@ export function LegalSetupNotice() {
           {stack.name} shipped with a privacy policy, terms, a cookie policy and a processor register
           under <span className="text-foreground">/legal</span>. They are templates addressed to{' '}
           <span className="text-foreground">{stack.legal.company}</span> and they do not yet describe
-          what this project does. Payload Consent turns them into documents that agree with the
+          what this project does. Cookie Consent turns them into documents that agree with the
           configuration — it derives the facts from the project, extracts the claims from the prose,
           and reports where the two disagree.
         </p>

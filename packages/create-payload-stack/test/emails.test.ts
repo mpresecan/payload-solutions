@@ -1,5 +1,5 @@
 /**
- * src/emails.ts: the optional Payload Emails step.
+ * src/emails.ts: the optional Transactional Emails step.
  *
  * The transformations are pure over file contents, so both answers are checked against the real
  * template: the plugin lands between the markers in payload.config.ts, the dependency set follows

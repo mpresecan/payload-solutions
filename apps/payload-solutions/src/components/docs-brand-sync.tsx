@@ -6,7 +6,7 @@ import { accentForSlug } from '@payload-solutions/brand'
 
 /**
  * Gives a documentation page the accent of the thing it documents: Payload Stack docs are
- * platinum, Payload Clock brass, Payload Consent emerald, Payload Emails rose, Action
+ * platinum, Payload Clock brass, Cookie Consent emerald, Transactional Emails rose, Action
  * Scheduler teal, Vercel Integration orchid, and the overview stays on the umbrella cobalt.
  *
  * The attribute goes on <html> rather than on a wrapper because Fumadocs renders the sidebar,

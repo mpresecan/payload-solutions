@@ -10,7 +10,7 @@ const LAYERS: IsoLayer[] = [
     id: 'plugins',
     name: 'Plugins',
     detail: 'Built for every Payload project',
-    cycle: ['Payload Emails', 'Vercel Integration', 'Action Scheduler', 'Clock plugin'],
+    cycle: ['Transactional Emails', 'Vercel Integration', 'Action Scheduler', 'Clock plugin'],
     accent: true,
   },
 ]
@@ -21,7 +21,7 @@ export function FamilyVisual({ className }: { className?: string }) {
     <IsoStack
       className={className}
       layers={LAYERS}
-      caption="The Payload Solutions family: Payload CMS at the base, then Payload Stack, Payload Clock and a growing set of plugins (Payload Emails, Vercel Integration, Action Scheduler, the Clock plugin)."
+      caption="The Payload Solutions family: Payload CMS at the base, then Payload Stack, Payload Clock and a growing set of plugins (Transactional Emails, Vercel Integration, Action Scheduler, the Clock plugin)."
     />
   )
 }

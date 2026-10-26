@@ -7,7 +7,7 @@
       "name": "consent-banner",
       "type": "registry:block",
       "title": "Consent banner",
-      "description": "Cookie consent banner, preferences dialog and footer link for Payload Consent. A card, never a full-width bar; accept and reject equally prominent; copy from the Payload admin.",
+      "description": "Cookie consent banner, preferences dialog and footer link for Cookie Consent. A card, never a full-width bar; accept and reject equally prominent; copy from the Payload admin.",
       "dependencies": [
         "@payload-solutions/consent-react",
         "@payload-solutions/consent-core",

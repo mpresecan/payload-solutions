@@ -1,7 +1,7 @@
 {
   "name": "@payload-solutions/consent-react",
   "version": "0.1.0",
-  "description": "React bindings for Payload Consent: provider, hooks, ConsentGate, consent-gated script loading, Google Consent Mode v2 script and Next.js server helpers.",
+  "description": "React bindings for Cookie Consent for Payload: provider, hooks, ConsentGate, consent-gated script loading, Google Consent Mode v2 script and Next.js server helpers.",
   "keywords": [
     "react",
     "nextjs",

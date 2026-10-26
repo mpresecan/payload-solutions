@@ -177,7 +177,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
           await p.confirm({
             message: 'Transactional emails',
             initialValue: true,
-            active: 'Editable in the admin (Payload Emails)',
+            active: 'Editable in the admin (Transactional Emails)',
             inactive: 'React Email components in code',
           }),
         ))
@@ -191,7 +191,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
           await p.confirm({
             message: 'Cookie consent and legal pages',
             initialValue: true,
-            active: 'Banner, consent records and audited legal pages (Payload Consent)',
+            active: 'Banner, consent records and audited legal pages (Cookie Consent)',
             inactive: 'Plain legal pages, no banner',
           }),
         ))
@@ -205,7 +205,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
           await p.confirm({
             message: 'Scheduled and recurring actions',
             initialValue: true,
-            active: 'Trial reminders, dunning, sweeps, and a ledger in the admin (Payload Action Scheduler)',
+            active: 'Trial reminders, dunning, sweeps, and a ledger in the admin (Action Scheduler)',
             inactive: 'No scheduler',
           }),
         ))
@@ -354,7 +354,7 @@ export async function run(flags: CliFlags, positionalName?: string) {
 /**
  * The template ships `importMap.js` and `payload-types.ts` generated for its own checkout: every
  * optional plugin on, organizations on. Once the variants are applied those files describe a
- * different project, so the admin logs missing components (the Payload Consent dashboard widget,
+ * different project, so the admin logs missing components (the Cookie Consent dashboard widget,
  * for one) and the types still list collections the project no longer has. Regenerate both from
  * the configured project. Neither command needs the database to be running.
  *
