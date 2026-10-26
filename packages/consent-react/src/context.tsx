@@ -44,9 +44,11 @@ export function ConsentProvider({ config: configProp, configUrl, initialCookie, 
     if (configProp || !configUrl) return
     let cancelled = false
     fetch(configUrl, { credentials: 'same-origin' })
-      .then((r) => r.json())
-      .then((data: ConsentConfig) => {
-        if (!cancelled) setFetched(data)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: ConsentConfig | null) => {
+        // A failed endpoint must not take the page down: without a usable config the provider
+        // renders children with no consent context (no banner, no gated scripts).
+        if (!cancelled && data?.cookie?.name) setFetched(data)
       })
       .catch(() => undefined)
     return () => {
