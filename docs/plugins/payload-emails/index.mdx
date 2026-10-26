@@ -3,6 +3,10 @@ title: Transactional Emails for Payload
 description: Transactional emails declared once in code and written by your team in the admin. Typed at every call site, rendered through your own React Email template, sent through the adapter you already configured.
 ---
 
+```bash
+npm install @payload-solutions/plugin-emails
+```
+
 <Clip id="emails-promo" />
 
 Every project ends up with the same folder: a dozen transactional emails hard-coded in TypeScript, and a marketing lead who wants one sentence changed. Transactional Emails for Payload splits that file in two along the line that actually matters — **code owns what an email *is*, the database owns what it *says*** — without giving up type safety at the call site.
@@ -71,7 +75,7 @@ It is not a marketing or campaign tool: no lists, no bulk sends, no open trackin
 ## Quick start
 
 ```bash
-pnpm add @payload-solutions/plugin-emails
+npm install @payload-solutions/plugin-emails
 ```
 
 ```ts title="payload.config.ts"

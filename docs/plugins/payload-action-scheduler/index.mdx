@@ -3,6 +3,10 @@ title: Action Scheduler for Payload
 description: Named, typed actions scheduled at runtime with arguments — once, as soon as possible, on an interval or on a cron — executed by Payload's job queue, recorded in a small ledger, and operated from a real admin view.
 ---
 
+```bash
+npm install @payload-solutions/plugin-action-scheduler
+```
+
 Every Payload project past a certain size grows the same drawer of deferred work: "send the reminder in three days", "retry that webhook", "rebuild the sitemap every hour", "charge the renewal on the 1st". Payload's job queue can execute all of it, but it does not remember what it ran, cannot schedule "every hour for *this* order" from application code, and has no admin view. WooCommerce solved this years ago with Action Scheduler. This plugin is that idea rebuilt on Payload primitives.
 
 A developer declares an action once:
