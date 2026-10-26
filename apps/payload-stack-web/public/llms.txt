@@ -1,0 +1,32 @@
+# Payload Stack
+
+> The agentic SaaS boilerplate for Payload CMS: Better Auth, organizations, Stripe subscriptions, a shadcn/ui dashboard and the Payload admin, wired into one Next.js app and configured from one file (src/stack.config.ts). Scaffold with `npx create-payload-stack@latest`. Open source, MIT licensed.
+
+Every generated project ships AGENTS.md, task skills and MCP servers for Claude Code, Codex and Cursor, plus `pnpm verify` to check a change. Payload Stack is a payload.solutions project, independent of and not endorsed by Payload CMS. The documentation lives on payload.solutions.
+
+## Docs
+
+- [Overview](https://payload.solutions/docs/payload-stack): The SaaS boilerplate for Payload CMS.
+- [Getting started](https://payload.solutions/docs/payload-stack/getting-started): From an empty directory to a signed-in dashboard.
+- [CLI reference](https://payload.solutions/docs/payload-stack/cli): Every flag of create-payload-stack.
+- [Agentic development](https://payload.solutions/docs/payload-stack/agents): AGENTS.md, task skills, MCP servers and one verify command for Claude Code, Codex and Cursor.
+- [Configuration](https://payload.solutions/docs/payload-stack/configuration): Everything product-specific lives in src/stack.config.ts.
+- [Authentication](https://payload.solutions/docs/payload-stack/authentication): Better Auth for the app and the Payload admin, through payload-auth.
+- [Organizations](https://payload.solutions/docs/payload-stack/organizations): Better Auth organizations as Payload tenants.
+- [Billing](https://payload.solutions/docs/payload-stack/billing): Stripe subscriptions with @better-auth/stripe.
+- [Emails](https://payload.solutions/docs/payload-stack/emails): Transactional emails in code, or editable in the admin.
+- [Legal pages and consent](https://payload.solutions/docs/payload-stack/legal): Privacy policy, terms, cookie policy and a consent banner.
+- [Scheduled actions](https://payload.solutions/docs/payload-stack/scheduling): Trial reminders, dunning, sweeps and other deferred work, with a ledger.
+- [Database](https://payload.solutions/docs/payload-stack/database): PostgreSQL, MongoDB, SQLite or Vercel Postgres.
+- [Media storage](https://payload.solutions/docs/payload-stack/storage): Local disk, Vercel Blob, S3, Cloudflare R2, Azure, Google Cloud Storage or Uploadthing.
+- [Dashboard and UI](https://payload.solutions/docs/payload-stack/dashboard): shadcn/ui, Better Auth UI, the sidebar shell and where to put your product.
+- [Observability](https://payload.solutions/docs/payload-stack/observability): Error monitoring through a provider-agnostic port.
+- [Testing](https://payload.solutions/docs/payload-stack/testing): Unit, integration and end-to-end suites covering every stack.config.ts option.
+- [Deployment](https://payload.solutions/docs/payload-stack/deployment): Environment variables, migrations and hosting.
+- [FAQ](https://payload.solutions/docs/payload-stack/faq): Common questions about Payload Stack.
+
+## Optional
+
+- [When to choose Payload Stack](https://payloadstack.com/when-to-choose): When it fits, and when another starter fits better.
+- [Source code](https://github.com/mpresecan/payload-solutions/tree/main/templates/payload-stack): The template in the public monorepo.
+- [All payload.solutions docs](https://payload.solutions/llms.txt): Index covering Payload Clock and the plugins as well.

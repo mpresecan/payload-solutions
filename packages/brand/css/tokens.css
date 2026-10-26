@@ -17,9 +17,10 @@
 
   Brand strategy: `data-brand="solutions | stack | clock | consent | emails | scheduler |
   vercel"` sets the accent family on any element. The light/dark pair is resolved with
-  light-dark(), which follows the nearest inherited `color-scheme` — so a Payload Clock card
-  inside a dark band gets Clock's dark accent without the card knowing which band it is in. A
-  flat fallback is declared first for engines without light-dark().
+  light-dark(), redeclared on every `[data-theme]` element so it resolves against that band's
+  `color-scheme` — so a Payload Clock card inside a dark band gets Clock's dark accent without
+  the card knowing which band it is in (see the Brand accents block for why the redeclaration
+  is needed). A flat fallback is declared first for engines without light-dark().
 
   Every entity owns its own position on the OKLCH hue wheel, at least 42° from its nearest
   neighbour: rose 14°, brass 81°, emerald 156°, teal 198°, cobalt 258°, orchid 308°. Payload
@@ -285,6 +286,14 @@
    darkened to clear 4.5:1 on white; the dark value is the luminous one. Both are carried in
    a single light-dark() pair so the accent follows whichever band it is dropped into.
 
+   Every block is also declared on `[data-theme]` descendants (a ThemeBand). Chromium resolves
+   light-dark() inside a custom property on the element that DECLARES it, so a pair declared
+   only on <html> reaches a dark band already resolved against the page theme: on a light
+   page the band got the light twin on black (~3.5:1). Redeclaring the same pair on the band
+   re-resolves it against the band's own color-scheme. Bands are page-level sections, so the
+   one case this does not cover, a band nested inside a differently-branded element, does
+   not occur on either site.
+
    --accent        the hue itself: fills, marks, active states
    --accent-hover  one step brighter (dark) / deeper (light)
    --accent-fg     text on an --accent fill
@@ -292,13 +301,15 @@
    --accent-line   a hairline in the accent, for a cell that needs to be singled out
    --accent-glow   the hero light; low alpha, large blur
    --------------------------------------------------------------------------------------- */
-[data-brand] {
+[data-brand],
+[data-brand] [data-theme] {
   --accent-fg: #ffffff;
   --accent-fg: light-dark(#ffffff, #000000);
 }
 
 /* Payload Solutions — cobalt */
-[data-brand='solutions'] {
+[data-brand='solutions'],
+[data-brand='solutions'] [data-theme] {
   --accent: #5b9dff;
   --accent: light-dark(#1d62d8, #5b9dff);
   --accent-hover: #7db0ff;
@@ -315,7 +326,8 @@
   Payload Stack — platinum. The one near-neutral in the set: chroma 0.045, so it reads as a
   cool steel rather than a pale cobalt. Its glow is a white bloom, not a coloured one.
 */
-[data-brand='stack'] {
+[data-brand='stack'],
+[data-brand='stack'] [data-theme] {
   --accent: #b4cee7;
   --accent: light-dark(#4c667f, #b4cee7);
   --accent-hover: #d0e4f8;
@@ -329,7 +341,8 @@
 }
 
 /* Payload Clock — brass */
-[data-brand='clock'] {
+[data-brand='clock'],
+[data-brand='clock'] [data-theme] {
   --accent: #f0b84d;
   --accent: light-dark(#8a6100, #f0b84d);
   --accent-hover: #ffcd6b;
@@ -343,7 +356,8 @@
 }
 
 /* Cookie Consent — emerald */
-[data-brand='consent'] {
+[data-brand='consent'],
+[data-brand='consent'] [data-theme] {
   --accent: #3dd98a;
   --accent: light-dark(#0f7a48, #3dd98a);
   --accent-hover: #62e5a2;
@@ -357,7 +371,8 @@
 }
 
 /* Transactional Emails — rose */
-[data-brand='emails'] {
+[data-brand='emails'],
+[data-brand='emails'] [data-theme] {
   --accent: #ff7a8a;
   --accent: light-dark(#c2344a, #ff7a8a);
   --accent-hover: #ff97a3;
@@ -371,7 +386,8 @@
 }
 
 /* Action Scheduler — teal */
-[data-brand='scheduler'] {
+[data-brand='scheduler'],
+[data-brand='scheduler'] [data-theme] {
   --accent: #3aced3;
   --accent: light-dark(#00777b, #3aced3);
   --accent-hover: #6fe3e6;
@@ -385,7 +401,8 @@
 }
 
 /* Vercel Integration — orchid */
-[data-brand='vercel'] {
+[data-brand='vercel'],
+[data-brand='vercel'] [data-theme] {
   --accent: #c175fc;
   --accent: light-dark(#8b36c3, #c175fc);
   --accent-hover: #d392ff;
@@ -404,7 +421,8 @@
   so it can never outrank a brand block set on <html> itself (both would be one attribute of
   specificity, and this rule comes last).
 */
-:root:not([data-brand]) {
+:root:not([data-brand]),
+:root:not([data-brand]) [data-theme] {
   --accent: #1d62d8;
   --accent: light-dark(#1d62d8, #5b9dff);
   --accent-hover: #1450b5;
