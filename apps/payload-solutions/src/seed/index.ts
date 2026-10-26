@@ -22,6 +22,8 @@ export async function seed(payload: Payload) {
           { text: 'Better Auth with passkeys, magic links, 2FA and social sign-in' },
           { text: 'Organizations bridged into the Payload multi-tenant plugin' },
           { text: 'Stripe subscriptions per user or per organization' },
+          { text: 'Optional transactional emails, cookie consent and scheduled actions' },
+          { text: 'Agent-ready: AGENTS.md, skills and MCP servers for coding agents' },
           { text: 'Payload admin as your back office' },
         ],
       },
@@ -57,6 +59,7 @@ export async function seed(payload: Payload) {
           'One source of truth for the consent banner, the script gating and the generated cookie table. Jurisdiction-aware (opt-in, opt-out with Global Privacy Control, notice), Google Consent Mode v2, immutable consent records without IP addresses, seeded privacy, terms and cookie policies. React bindings and a shadcn banner included.',
         status: 'available',
         docsPath: '/docs/plugins/payload-consent',
+        repoUrl: 'https://github.com/mpresecan/payload-solutions/tree/main/packages/plugin-consent',
       },
       {
         name: 'Transactional Emails for Payload',
@@ -67,16 +70,18 @@ export async function seed(payload: Payload) {
           'Declare each email once in TypeScript — the input callers pass, the variables editors may use, its default copy — and your team edits the subject and body in the admin, previews it with real sample data and sends itself a test. Rendered through your own React Email template and sent through the adapter you already configured, with every call site typed from generate:types.',
         status: 'available',
         docsPath: '/docs/plugins/payload-emails',
+        repoUrl: 'https://github.com/mpresecan/payload-solutions/tree/main/packages/plugin-emails',
       },
       {
         name: 'Resend Broadcasts',
         slug: 'resend-broadcasts',
         packageName: '@payload-solutions/plugin-resend-broadcasts',
-        summary: 'Alpha, in testing: newsletters from any collection, sent as Resend broadcasts.',
+        summary: 'Alpha: newsletters from any collection, sent as Resend broadcasts.',
         description:
           'Turn any collection with an email into newsletter subscribers kept in step with Resend contacts. Lists become Resend segments, filtered with a Payload query. Campaigns are written in the admin, previewed as any person in the list, tested, then sent or scheduled as a Resend broadcast — and unsubscribes come back by webhook.',
-        status: 'in-progress',
+        status: 'available',
         docsPath: '/docs/plugins/resend-broadcasts',
+        repoUrl: 'https://github.com/mpresecan/payload-solutions/tree/main/packages/plugin-resend-broadcasts',
       },
       {
         name: 'Vercel Integration',
@@ -87,6 +92,7 @@ export async function seed(payload: Payload) {
           'Trigger Vercel deploy hooks from the Payload admin or automatically after content changes, see what is waiting to go live, follow every build, cancel and roll back — without giving editors a Vercel login.',
         status: 'available',
         docsPath: '/docs/plugins/vercel-integration',
+        repoUrl: 'https://github.com/mpresecan/payload-solutions/tree/main/packages/plugin-vercel',
       },
       {
         name: 'Action Scheduler for Payload',
@@ -97,6 +103,7 @@ export async function seed(payload: Payload) {
           'Named, typed actions scheduled at runtime with arguments — once, as soon as possible, on an interval or on a cron — executed by the Payload job queue, recorded in a ledger and operated from an admin view: retry, cancel, run now.',
         status: 'available',
         docsPath: '/docs/plugins/payload-action-scheduler',
+        repoUrl: 'https://github.com/mpresecan/payload-solutions/tree/main/packages/plugin-action-scheduler',
       },
       {
         name: 'Payload Clock plugin',
@@ -114,12 +121,12 @@ export async function seed(payload: Payload) {
   const roadmap = await payload.count({ collection: 'roadmap-items', overrideAccess: true })
   if (roadmap.totalDocs === 0) {
     for (const [order, data] of [
-      { title: 'Payload Stack 0.4', description: 'Better Auth, organizations, Stripe, shadcn dashboard, CLI.', stage: 'shipped', quarter: 'Q3 2026' },
-      { title: 'Cookie Consent plugin 0.1', description: 'Consent banner, script gating, cookie table and consent records managed in the Payload admin.', stage: 'shipped', quarter: 'Q3 2026' },
-      { title: 'Transactional Emails plugin 0.1', description: 'Code-defined transactional emails with admin-editable copy, React Email templates, preview and test sends.', stage: 'shipped', quarter: 'Q3 2026' },
-      { title: 'Vercel Integration plugin 0.1', description: 'Deploys from the admin or after content changes, build status, cancel and rollback.', stage: 'shipped', quarter: 'Q3 2026' },
-      { title: 'Action Scheduler plugin 0.1', description: 'Scheduled and recurring actions on top of job queues, with an admin view.', stage: 'shipped', quarter: 'Q3 2026' },
-      { title: 'Resend Broadcasts plugin 0.1 (alpha)', description: 'In testing. Newsletters from any collection: Resend contacts and segments, campaigns previewed per subscriber, scheduling and unsubscribe sync.', stage: 'in-progress', quarter: 'Q4 2026' },
+      { title: 'Payload Stack 0.6.0', description: 'Better Auth, organizations, Stripe, shadcn dashboard, optional emails, cookie consent and scheduled actions, agent-ready (AGENTS.md, skills, MCP), CLI.', stage: 'shipped', quarter: 'Q4 2026', link: 'https://payloadstack.com' },
+      { title: 'Cookie Consent plugin 0.1.1', description: 'Consent banner, script gating, cookie table and consent records managed in the Payload admin.', stage: 'shipped', quarter: 'Q4 2026', link: 'https://github.com/mpresecan/payload-solutions/tree/main/packages/plugin-consent' },
+      { title: 'Transactional Emails plugin 0.1.1', description: 'Code-defined transactional emails with admin-editable copy, React Email templates, preview and test sends.', stage: 'shipped', quarter: 'Q4 2026', link: 'https://github.com/mpresecan/payload-solutions/tree/main/packages/plugin-emails' },
+      { title: 'Action Scheduler plugin 0.3.0', description: 'Scheduled and recurring actions on top of job queues, with an admin view.', stage: 'shipped', quarter: 'Q4 2026', link: 'https://github.com/mpresecan/payload-solutions/tree/main/packages/plugin-action-scheduler' },
+      { title: 'Vercel Integration plugin 0.2.0', description: 'Deploys from the admin or after content changes, build status, cancel and rollback.', stage: 'shipped', quarter: 'Q4 2026', link: 'https://github.com/mpresecan/payload-solutions/tree/main/packages/plugin-vercel' },
+      { title: 'Resend Broadcasts plugin 0.1.0 (alpha)', description: 'Newsletters from any collection: Resend contacts and segments, campaigns previewed per subscriber, scheduling and unsubscribe sync.', stage: 'shipped', quarter: 'Q4 2026', link: 'https://github.com/mpresecan/payload-solutions/tree/main/packages/plugin-resend-broadcasts' },
       { title: 'Payload Stack documentation', description: 'Guides for configuration, authentication, organizations, billing, deployment.', stage: 'in-progress', quarter: 'Q3 2026' },
       { title: 'Payload Clock beta', description: 'Hosted scheduler for serverless Payload job queues, with the companion plugin.', stage: 'planned', quarter: 'Q4 2026' },
       { title: 'Payload Stack on Payload 4', description: 'Move the boilerplate to Payload 4 once payload-auth supports it.', stage: 'exploring' },
