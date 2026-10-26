@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { Check, X } from '@phosphor-icons/react/dist/ssr'
-import { SOLUTIONS_URL, brands } from '@payload-solutions/brand'
+import { SOLUTIONS_URL, X_HANDLE, brands } from '@payload-solutions/brand'
 import { GridColumns } from '@payload-solutions/brand/grid-columns'
 import { ActionRow, Eyebrow, SectionHead } from '@payload-solutions/brand/lattice'
 import { MediaStack } from '@payload-solutions/brand/media-stack'
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     url: `${brand.url}/when-to-choose`,
   },
-  twitter: { card: 'summary_large_image', title: TITLE, description: DESCRIPTION },
+  twitter: { card: 'summary_large_image', site: X_HANDLE, creator: X_HANDLE, title: TITLE, description: DESCRIPTION },
 }
 
 interface Point {

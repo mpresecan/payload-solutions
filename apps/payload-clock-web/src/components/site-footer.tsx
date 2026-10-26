@@ -2,6 +2,7 @@ import {
   INDEPENDENCE_NOTICE,
   PAYLOAD_TRADEMARK_ATTRIBUTION,
   SOLUTIONS_URL,
+  X_URL,
   brands,
 } from '@payload-solutions/brand'
 import { FooterWordmark } from '@payload-solutions/brand/footer-wordmark'
@@ -60,6 +61,7 @@ const COLUMNS: Array<{ title: string; links: FooterLink[]; theme?: boolean }> = 
     title: 'Stay connected',
     links: [
       { label: 'GitHub', href: clock.github },
+      { label: 'X', href: X_URL },
       { label: 'Status', href: '/#free', soon: true },
     ],
     theme: true,

@@ -9,7 +9,7 @@ import {
 } from 'fumadocs-ui/layouts/docs/page'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { GITHUB_REPO_URL, brands } from '@payload-solutions/brand'
+import { GITHUB_REPO_URL, X_HANDLE, brands } from '@payload-solutions/brand'
 
 import { source } from '@/lib/source'
 import { getMDXComponents } from '@/mdx-components'
@@ -73,6 +73,6 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       description,
       images: [{ url: image, width: 1200, height: 630, alt: `${title} — ${brands.solutions.name} documentation` }],
     },
-    twitter: { card: 'summary_large_image', title, description },
+    twitter: { card: 'summary_large_image', site: X_HANDLE, creator: X_HANDLE, title, description },
   }
 }

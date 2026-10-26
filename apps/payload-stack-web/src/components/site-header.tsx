@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { siGithub } from 'simple-icons'
-import { Logo, brands } from '@payload-solutions/brand'
+import { siGithub, siX } from 'simple-icons'
+import { Logo, X_URL, brands } from '@payload-solutions/brand'
 import { HeaderThemeSync } from '@payload-solutions/brand/use-header-theme'
 import { BrandIcon } from '@/components/brand-icon'
 import { MobileNav } from '@/components/mobile-nav'
@@ -41,6 +41,15 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-1 sm:gap-2">
           <a
+            href={X_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label="Follow Payload Stack on X"
+            className="inline-flex h-9 w-9 items-center justify-center text-fg-muted transition-colors hover:text-fg"
+          >
+            <BrandIcon icon={siX} size={16} />
+          </a>
+          <a
             href={brand.githubSource ?? brand.github}
             target="_blank"
             rel="noreferrer noopener"
@@ -55,7 +64,11 @@ export function SiteHeader() {
             </Button>
           </div>
           <MobileNav
-            items={[...NAV, { href: brand.docsUrl, label: 'Documentation', external: true }]}
+            items={[
+              ...NAV,
+              { href: brand.docsUrl, label: 'Documentation', external: true },
+              { href: X_URL, label: 'Follow on X', external: true },
+            ]}
           />
         </div>
       </div>

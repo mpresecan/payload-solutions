@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   applicationName: brand.name,
   keywords: ['Payload CMS', 'Payload plugins', 'Payload SaaS', 'Payload Stack', 'Payload agency', 'Better Auth Payload'],
   openGraph: { type: 'website', siteName: brand.name, title: brand.tagline, description: brand.description, url: brand.url },
-  twitter: { card: 'summary_large_image', title: brand.tagline, description: brand.description },
+  twitter: { card: 'summary_large_image', site: brand.twitter, creator: brand.twitter, title: brand.tagline, description: brand.description },
   robots: { index: true, follow: true },
 }
 

@@ -1,4 +1,4 @@
-import { SOLUTIONS_URL, brands } from '@payload-solutions/brand'
+import { SOLUTIONS_URL, X_URL, brands } from '@payload-solutions/brand'
 import { ActionRow, SectionHead } from '@payload-solutions/brand/lattice'
 import { GridCross } from '@payload-solutions/brand/crosshairs'
 import { CopyCommand } from '@/components/copy-command'
@@ -21,7 +21,7 @@ export function OpenSource() {
             id="oss-heading"
             eyebrow="MIT"
             title="Open source, built in the open."
-            lead="Payload Stack is a payload.solutions project. Follow the roadmap, open an issue, or hire the team behind it to build on your stack."
+            lead="Payload Stack is a payload.solutions project. Follow along on X, open an issue, or hire the team behind it to build on your stack."
           />
         </Reveal>
 
@@ -30,6 +30,7 @@ export function OpenSource() {
             <CopyCommand variant="row" />
             <ActionRow href={brand.github}>GitHub repository</ActionRow>
             <ActionRow href={brand.docsUrl}>Documentation</ActionRow>
+            <ActionRow href={X_URL}>Follow @PayloadStack on X</ActionRow>
             <ActionRow href={`${SOLUTIONS_URL}/#contact`}>Hire the team</ActionRow>
           </div>
         </Reveal>

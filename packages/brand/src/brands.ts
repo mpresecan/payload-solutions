@@ -20,6 +20,7 @@ export interface Brand {
   github: string
   /** Deep link to this product's own folder in the repo, when it has one. */
   githubSource?: string
+  /** X handle, with the @. Used for `twitter:site` in each app's metadata. */
   twitter?: string
 }
 
@@ -29,6 +30,10 @@ export const PAYLOAD_URL = 'https://payloadcms.com'
 export const SOLUTIONS_URL = 'https://payload.solutions'
 export const DOCS_BASE_URL = `${SOLUTIONS_URL}/docs`
 export const GITHUB_REPO_URL = 'https://github.com/mpresecan/payload-solutions'
+
+/** The family's one X account. Linked from every footer and the Payload Stack header. */
+export const X_HANDLE = '@PayloadStack'
+export const X_URL = 'https://x.com/PayloadStack'
 
 /** The Payload Stack template itself, inside the monorepo. */
 export const STACK_TEMPLATE_URL = `${GITHUB_REPO_URL}/tree/main/templates/payload-stack`
@@ -45,6 +50,7 @@ export const brands: Record<BrandId, Brand> = {
       'Payload Solutions builds open-source products and plugins for the Payload CMS community, and builds custom SaaS on Payload CMS for clients.',
     docsUrl: DOCS_BASE_URL,
     github: GITHUB_REPO_URL,
+    twitter: X_HANDLE,
   },
   stack: {
     id: 'stack',
@@ -58,6 +64,7 @@ export const brands: Record<BrandId, Brand> = {
     docsUrl: `${DOCS_BASE_URL}/payload-stack`,
     github: GITHUB_REPO_URL,
     githubSource: STACK_TEMPLATE_URL,
+    twitter: X_HANDLE,
   },
   clock: {
     id: 'clock',
@@ -70,6 +77,7 @@ export const brands: Record<BrandId, Brand> = {
       'Payload Clock triggers your Payload job queues on schedule so serverless deployments never miss a beat.',
     docsUrl: `${DOCS_BASE_URL}/payload-clock`,
     github: GITHUB_REPO_URL,
+    twitter: X_HANDLE,
   },
 }
 
