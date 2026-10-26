@@ -77,7 +77,7 @@ Task recipes live in `.claude/skills/` (Claude Code, Cursor) and `.agents/skills
 - `next-devtools`: routes, build and runtime errors, and logs from the running `pnpm dev` server.
 - `playwright`: drive a real browser to check a page after a change.
 - `shadcn`: browse and add registry components.
-- `payload-consent` (with Payload Consent): audit the legal pages against what the app actually loads.
+- `payload-consent` (with Cookie Consent): audit the legal pages against what the app actually loads.
 
 ## Conventions
 

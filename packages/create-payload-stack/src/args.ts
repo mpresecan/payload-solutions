@@ -28,9 +28,9 @@ export function helpText(version: string): string {
         --storage <adapter>       ${STORAGE_KEYS.join(' | ')} (none = local disk)
         --emails                  Edit transactional email copy in the Payload admin
         --no-emails               Keep emails as React Email components in code
-        --consent                 Cookie banner and audited legal pages (Payload Consent)
+        --consent                 Cookie banner and audited legal pages (Cookie Consent)
         --no-consent              Plain legal pages, no banner
-        --scheduler               Scheduled and recurring actions (Payload Action Scheduler)
+        --scheduler               Scheduled and recurring actions (Action Scheduler)
         --no-scheduler            No scheduler
         --runner <kind>           ${RUNNER_KEYS.join(' | ')} (what runs the queue; default: clock)
         --agents <list>           Comma-separated: ${AGENT_KEYS.join(', ')}, or none (skills and MCP servers)

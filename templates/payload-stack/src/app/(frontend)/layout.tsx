@@ -44,7 +44,7 @@ export default function FrontendLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
       <head>
-        {/* Google Consent Mode defaults, before any third-party tag. Nothing without Payload Consent. */}
+        {/* Google Consent Mode defaults, before any third-party tag. Nothing without Cookie Consent. */}
         <ConsentHead />
       </head>
       <body className="min-h-dvh font-sans">

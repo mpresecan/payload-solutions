@@ -18,7 +18,7 @@ Both answers use the same call sites. `src/scheduler` exports the same names eit
 
 ## With `--scheduler`
 
-The [Payload Action Scheduler](/docs/plugins/payload-action-scheduler) is registered and the project gets:
+The [Action Scheduler](/docs/plugins/payload-action-scheduler) is registered and the project gets:
 
 | | Where |
 | --- | --- |
@@ -43,7 +43,7 @@ Six actions, filtered by the features in `stack.config.ts` exactly as the rest o
 | `accounts.purge-unverified` | Nothing: registered but unscheduled (see below) | — |
 | `emails.send` | Whenever you schedule it | `--emails` |
 
-The messages need the [Payload Emails](/docs/payload-stack/emails) plugin, because that is where the copy and the recipients live. `src/scheduler/actions/billing.ts` knows nothing about plans, owners or Stripe invoices: it calls `sendTrialReminder` and `sendPaymentReminder` in `src/emails/hooks.ts`, which are no-ops in a project without the catalogue. Scaffold with `--scheduler --no-emails` and the sweeps still run; the notices are simply not registered.
+The messages need the [Transactional Emails](/docs/payload-stack/emails) plugin, because that is where the copy and the recipients live. `src/scheduler/actions/billing.ts` knows nothing about plans, owners or Stripe invoices: it calls `sendTrialReminder` and `sendPaymentReminder` in `src/emails/hooks.ts`, which are no-ops in a project without the catalogue. Scaffold with `--scheduler --no-emails` and the sweeps still run; the notices are simply not registered.
 
 ### The trial reminder moves the notice earlier
 

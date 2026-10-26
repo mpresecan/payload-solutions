@@ -33,7 +33,7 @@ export function Connect() {
               href={`${SOLUTIONS_URL}/docs/plugins/payload-action-scheduler`}
               meta="companion"
             >
-              Payload Action Scheduler
+              Action Scheduler
             </ActionRow>
           </div>
         </Reveal>

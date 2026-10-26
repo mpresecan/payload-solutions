@@ -1,5 +1,5 @@
 /**
- * Shared types for Payload Consent. The `ConsentConfig` shape is the contract between the Payload
+ * Shared types for Cookie Consent. The `ConsentConfig` shape is the contract between the Payload
  * plugin (which produces it at `GET /api/consent/config` or via the local API) and every client.
  */
 

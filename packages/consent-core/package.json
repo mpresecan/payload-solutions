@@ -1,7 +1,7 @@
 {
   "name": "@payload-solutions/consent-core",
   "version": "0.1.0",
-  "description": "Framework-agnostic consent state machine, cookie codec, jurisdiction models, Google Consent Mode v2 bridge and consent-gated script loader. The client core of Payload Consent.",
+  "description": "Framework-agnostic consent state machine, cookie codec, jurisdiction models, Google Consent Mode v2 bridge and consent-gated script loader. The client core of Cookie Consent for Payload.",
   "keywords": [
     "consent",
     "cookie-consent",

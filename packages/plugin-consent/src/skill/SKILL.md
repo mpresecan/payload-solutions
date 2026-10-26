@@ -1,6 +1,6 @@
 ---
 name: payload-consent-legal
-description: Audit, draft and update the legal pages of a Payload project — privacy policy, cookie policy, terms, sub-processor list and DPA — against GDPR and ePrivacy requirements and against the project's own configuration. Use when asked to check whether legal pages are current, to seed or update them, to review a DPA, or when working on anything under the Payload Consent plugin.
+description: Audit, draft and update the legal pages of a Payload project — privacy policy, cookie policy, terms, sub-processor list and DPA — against GDPR and ePrivacy requirements and against the project's own configuration. Use when asked to check whether legal pages are current, to seed or update them, to review a DPA, or when working on anything under the Cookie Consent plugin.
 ---
 
 # Legal audit for a Payload project

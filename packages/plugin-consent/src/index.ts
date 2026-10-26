@@ -45,7 +45,7 @@ export function getPluginOptions(payload?: object): ResolvedConsentPluginOptions
 }
 
 /**
- * Payload Consent. Adds consent settings, cookie categories, trackers, consent records and
+ * Cookie Consent. Adds consent settings, cookie categories, trackers, consent records and
  * (optionally) legal pages, the `/api/consent/*` endpoints, seeds and the retention job.
  */
 export const consentPlugin =

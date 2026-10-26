@@ -49,7 +49,7 @@ export async function seed(payload: Payload) {
   if (plugins.totalDocs === 0) {
     for (const [order, data] of [
       {
-        name: 'Payload Consent',
+        name: 'Cookie Consent for Payload',
         slug: 'payload-consent',
         packageName: '@payload-solutions/plugin-consent',
         summary: 'Cookie categories, trackers, legal pages and consent records in the Payload admin.',
@@ -59,7 +59,7 @@ export async function seed(payload: Payload) {
         docsPath: '/docs/plugins/payload-consent',
       },
       {
-        name: 'Payload Emails',
+        name: 'Transactional Emails for Payload',
         slug: 'payload-emails',
         packageName: '@payload-solutions/plugin-emails',
         summary: 'Transactional emails defined in code, written by your team in the admin.',
@@ -89,7 +89,7 @@ export async function seed(payload: Payload) {
         docsPath: '/docs/plugins/vercel-integration',
       },
       {
-        name: 'Payload Action Scheduler',
+        name: 'Action Scheduler for Payload',
         slug: 'payload-action-scheduler',
         packageName: '@payload-solutions/plugin-action-scheduler',
         summary: 'A WooCommerce-style action scheduler on top of Payload job queues.',
@@ -115,10 +115,10 @@ export async function seed(payload: Payload) {
   if (roadmap.totalDocs === 0) {
     for (const [order, data] of [
       { title: 'Payload Stack 0.4', description: 'Better Auth, organizations, Stripe, shadcn dashboard, CLI.', stage: 'shipped', quarter: 'Q3 2026' },
-      { title: 'Payload Consent plugin 0.1', description: 'Consent banner, script gating, cookie table and consent records managed in the Payload admin.', stage: 'shipped', quarter: 'Q3 2026' },
-      { title: 'Payload Emails plugin 0.1', description: 'Code-defined transactional emails with admin-editable copy, React Email templates, preview and test sends.', stage: 'shipped', quarter: 'Q3 2026' },
+      { title: 'Cookie Consent plugin 0.1', description: 'Consent banner, script gating, cookie table and consent records managed in the Payload admin.', stage: 'shipped', quarter: 'Q3 2026' },
+      { title: 'Transactional Emails plugin 0.1', description: 'Code-defined transactional emails with admin-editable copy, React Email templates, preview and test sends.', stage: 'shipped', quarter: 'Q3 2026' },
       { title: 'Vercel Integration plugin 0.1', description: 'Deploys from the admin or after content changes, build status, cancel and rollback.', stage: 'shipped', quarter: 'Q3 2026' },
-      { title: 'Payload Action Scheduler plugin 0.1', description: 'Scheduled and recurring actions on top of job queues, with an admin view.', stage: 'shipped', quarter: 'Q3 2026' },
+      { title: 'Action Scheduler plugin 0.1', description: 'Scheduled and recurring actions on top of job queues, with an admin view.', stage: 'shipped', quarter: 'Q3 2026' },
       { title: 'Resend Broadcasts plugin 0.1 (alpha)', description: 'In testing. Newsletters from any collection: Resend contacts and segments, campaigns previewed per subscriber, scheduling and unsubscribe sync.', stage: 'in-progress', quarter: 'Q4 2026' },
       { title: 'Payload Stack documentation', description: 'Guides for configuration, authentication, organizations, billing, deployment.', stage: 'in-progress', quarter: 'Q3 2026' },
       { title: 'Payload Clock beta', description: 'Hosted scheduler for serverless Payload job queues, with the companion plugin.', stage: 'planned', quarter: 'Q4 2026' },

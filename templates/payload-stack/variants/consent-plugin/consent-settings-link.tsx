@@ -7,7 +7,7 @@ import { ManageConsentButton } from '@payload-solutions/consent-react'
  * as easy as giving it, which in practice means a link that is always there.
  *
  * It renders its own `<li>` so the footer list has no empty row in a project scaffolded without
- * Payload Consent.
+ * Cookie Consent.
  */
 export function ConsentSettingsLink() {
   return (

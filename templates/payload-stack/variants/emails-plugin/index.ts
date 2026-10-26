@@ -7,7 +7,7 @@ import type { Payload } from 'payload'
  *
  * The signatures are the seam: Better Auth's callbacks (src/lib/auth/options.ts) and payload-auth's
  * admin invitations call these functions and know nothing about how a message is built. Here they
- * are routed through Payload Emails, so subject, preheader and body live in the Payload admin under
+ * are routed through Transactional Emails, so subject, preheader and body live in the Payload admin under
  * **Emails** and marketing can change the words without a deploy. The design lives in code
  * (src/emails/template.tsx) and the variables each message may use live in its definition
  * (src/emails/definitions).

@@ -5,7 +5,7 @@ import { adminOnly } from '@/access'
 import stack from '@/stack.config'
 
 /**
- * Payload Consent: cookie categories, trackers, consent records, a processor register, the legal
+ * Cookie Consent: cookie categories, trackers, consent records, a processor register, the legal
  * pages and the `/api/consent/*` endpoints that drive the banner.
  *
  * Everything a visitor sees is editable in the admin under **Privacy**; everything here is the part

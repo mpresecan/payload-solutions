@@ -1,6 +1,6 @@
 # @payload-solutions/consent-react
 
-React bindings for [Payload Consent](https://payload.solutions/docs/plugins/payload-consent).
+React bindings for [Cookie Consent for Payload](https://payload.solutions/docs/plugins/payload-consent).
 
 - `<ConsentProvider config initialCookie>` — client provider; pass the server-read cookie for a flash-free first render.
 - `useConsent()`, `useCategory(key)`, `useHasConsent(expr)` — state and actions.

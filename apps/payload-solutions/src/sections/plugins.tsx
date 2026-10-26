@@ -19,7 +19,7 @@ import type { Plugin } from '@/payload-types'
  * link to its documentation, which is also what gives the empty half of each row something
  * to be.
  *
- * Like the product wall, each row carries its own accent (Payload Consent is emerald, Payload
+ * Like the product wall, each row carries its own accent (Cookie Consent is emerald, Payload
  * Emails is rose), so the family reads as a set of distinct things rather than one branded
  * block; here the accent shows up on hover, in the row's rule, its name and its arrow.
  */

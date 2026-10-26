@@ -1,5 +1,5 @@
 {
-  "title": "Payload Action Scheduler",
+  "title": "Action Scheduler for Payload",
   "description": "Scheduled and recurring actions with a bounded history and a real admin view",
   "root": true,
   "pages": [

@@ -18,16 +18,16 @@ Open-source products, plugins and websites for teams building SaaS on [Payload C
 <tr>
 <td width="50%" valign="top">
 
-<img alt="Payload Consent" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/banner.webp">
+<img alt="Cookie Consent for Payload" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-consent/banner.webp">
 
-<sub><b><a href="packages/plugin-consent">Payload Consent</a></b> — cookie categories, trackers, legal pages and consent records in the admin.</sub>
+<sub><b><a href="packages/plugin-consent">Cookie Consent for Payload</a></b> — cookie categories, trackers, legal pages and consent records in the admin.</sub>
 
 </td>
 <td width="50%" valign="top">
 
-<img alt="Payload Emails" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/banner.webp">
+<img alt="Transactional Emails for Payload" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-emails/banner.webp">
 
-<sub><b><a href="packages/plugin-emails">Payload Emails</a></b> — transactional email copy your team edits, previews and test-sends.</sub>
+<sub><b><a href="packages/plugin-emails">Transactional Emails for Payload</a></b> — transactional email copy your team edits, previews and test-sends.</sub>
 
 </td>
 </tr>
@@ -41,9 +41,9 @@ Open-source products, plugins and websites for teams building SaaS on [Payload C
 </td>
 <td width="50%" valign="top">
 
-<img alt="Payload Action Scheduler" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-action-scheduler/banner.webp">
+<img alt="Action Scheduler for Payload" src="https://raw.githubusercontent.com/mpresecan/payload-solutions/main/apps/payload-solutions/public/images/docs/payload-action-scheduler/banner.webp">
 
-<sub><b><a href="packages/plugin-action-scheduler">Payload Action Scheduler</a></b> — scheduled and recurring actions with a real admin view.</sub>
+<sub><b><a href="packages/plugin-action-scheduler">Action Scheduler for Payload</a></b> — scheduled and recurring actions with a real admin view.</sub>
 
 </td>
 </tr>

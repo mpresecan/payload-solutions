@@ -26,11 +26,11 @@ export interface ProjectOptions {
   billing: BillingMode
   /** Media storage adapter, or 'none' for local disk. */
   storage: StorageKey
-  /** Manage transactional email copy in the Payload admin with the Payload Emails plugin. */
+  /** Manage transactional email copy in the Payload admin with the Transactional Emails plugin. */
   emails: boolean
-  /** Cookie banner, consent records and audited legal pages with the Payload Consent plugin. */
+  /** Cookie banner, consent records and audited legal pages with the Cookie Consent plugin. */
   consent: boolean
-  /** Scheduled and recurring actions with the Payload Action Scheduler plugin. */
+  /** Scheduled and recurring actions with the Action Scheduler plugin. */
   scheduler: boolean
   /** What runs the job queue. Only meaningful with `scheduler`. */
   runner: RunnerKey

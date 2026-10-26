@@ -13,7 +13,7 @@ import { expireInvitations, pruneAuthRecords, purgeUnverified } from './maintena
  * The catalogue follows `stack.config.ts` the way the rest of the template does: an action that
  * could never fire — a trial reminder in a product without billing, an invitation sweep without
  * organizations — is not registered at all, so the admin lists what this product actually has
- * rather than what the boilerplate shipped with. Messages additionally need the Payload Emails
+ * rather than what the boilerplate shipped with. Messages additionally need the Transactional Emails
  * plugin, since that is where the copy and the recipients live (see src/emails/hooks.ts).
  *
  * Add your own with `defineAction` and put it in this array. The slug is a promise: rows already in

@@ -8,7 +8,7 @@ export async function ConsentOverview(props: { payload: Payload }) {
   const categories = Object.entries(overview.grantedLast30Days)
   return (
     <div style={{ border: '1px solid var(--theme-elevation-150)', borderRadius: 4, padding: '16px 20px', marginBottom: 24 }}>
-      <h3 style={{ margin: '0 0 8px', fontSize: 16 }}>Payload Consent</h3>
+      <h3 style={{ margin: '0 0 8px', fontSize: 16 }}>Cookie Consent</h3>
       <p style={{ margin: '0 0 12px', color: 'var(--theme-elevation-600)' }}>
         {overview.enabled ? 'Enabled' : 'Disabled'} · policy version <code>{overview.versions.policyVersion ?? '—'}</code>
         {overview.versions.bumpedAt ? ` (changed ${new Date(overview.versions.bumpedAt).toLocaleDateString()})` : ''} · {overview.trackers} trackers,{' '}

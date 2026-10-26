@@ -1,5 +1,5 @@
 /**
- * src/scheduler: the seam between a project with the Payload Action Scheduler and one without.
+ * src/scheduler: the seam between a project with the Action Scheduler and one without.
  *
  * No database and no job runner here. These are the checks that catch what actually goes wrong
  * when a scheduler is wired into a product: an action registered for a feature the product does

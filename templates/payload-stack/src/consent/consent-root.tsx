@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 /**
  * Where the consent layer would go.
  *
- * Without Payload Consent there is no banner, no Google Consent Mode default, and no third-party
+ * Without Cookie Consent there is no banner, no Google Consent Mode default, and no third-party
  * script waiting on a category, so both components are pass-throughs and the frontend layout reads
  * the same in both projects.
  */

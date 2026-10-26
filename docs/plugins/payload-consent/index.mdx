@@ -1,9 +1,9 @@
 ---
-title: Payload Consent
+title: Cookie Consent for Payload
 description: Cookie categories, trackers, legal pages and consent records managed in the Payload admin. One source of truth for the banner, the script gating and the cookie policy.
 ---
 
-Payload Consent is a consent management platform that lives inside your Payload admin instead of inside someone else's SaaS. Editors maintain one list of the cookies and scripts the site uses, and the plugin derives from it the three things that normally drift apart:
+Cookie Consent for Payload is a consent management platform that lives inside your Payload admin instead of inside someone else's SaaS. Editors maintain one list of the cookies and scripts the site uses, and the plugin derives from it the three things that normally drift apart:
 
 - the **categories and copy in the consent banner**,
 - **which scripts actually load** after which decision,
@@ -14,10 +14,10 @@ A second register does the same for everyone who receives personal data at all â
 Every decision is stored as a minimal, immutable consent record, which is the audit trail hosted consent tools sell as a paid tier. Nothing is fetched from a third-party CDN at runtime, so there is no extra vendor in your privacy policy and no consent banner that blocks rendering while it phones home.
 
 <Callout type="warn">
-Payload Consent helps you publish and enforce your privacy choices. It is not legal advice, and the seeded documents are a starting point, not a compliance guarantee. Have them reviewed for your jurisdiction and your actual data flows.
+Cookie Consent helps you publish and enforce your privacy choices. It is not legal advice, and the seeded documents are a starting point, not a compliance guarantee. Have them reviewed for your jurisdiction and your actual data flows.
 </Callout>
 
-<Screenshot name="payload-consent/dashboard" alt="The Payload Consent dashboard widget above the Privacy collections, listing decisions and warnings" caption="The dashboard widget: versions, decisions in the last 30 days and the warnings worth acting on." />
+<Screenshot name="payload-consent/dashboard" alt="The Cookie Consent dashboard widget above the Privacy collections, listing decisions and warnings" caption="The dashboard widget: versions, decisions in the last 30 days and the warnings worth acting on." />
 
 <Clip id="consent" caption="The banner on the site, trackers and categories in the admin, and the legal pages they drive." />
 
@@ -25,7 +25,7 @@ Payload Consent helps you publish and enforce your privacy choices. It is not le
 
 A cookie banner is easy. Keeping it honest is not. In most projects the banner lists four categories, the analytics snippet sits hard-coded in the layout, and the cookie policy is a Word document somebody pasted into a CMS two years ago. Adding a chat widget touches none of them, so the banner promises something the site does not do â€” which is the part regulators actually fine.
 
-Payload Consent removes the drift by making the tracker list the source of truth. Add Intercom in **Cookies & scripts**, pick its category, list its cookies, and the banner, the loader and the policy table all update from that one document. The version hash of that list is stored in the visitor's consent cookie, so when the list changes in a way you said should matter, the visitor is asked again, automatically.
+Cookie Consent removes the drift by making the tracker list the source of truth. Add Intercom in **Cookies & scripts**, pick its category, list its cookies, and the banner, the loader and the policy table all update from that one document. The version hash of that list is stored in the visitor's consent cookie, so when the list changes in a way you said should matter, the visitor is asked again, automatically.
 
 ## How it fits together
 

@@ -16,7 +16,7 @@ test.describe('admin', () => {
     await page.fill('#field-password', devUser.password)
     await Promise.all([page.waitForURL(/\/admin\/?$/), page.click('.form-submit button')])
     await expect(page).toHaveTitle(/Dashboard/)
-    await expect(page.getByText('Payload Consent', { exact: true })).toBeVisible()
+    await expect(page.getByText('Cookie Consent', { exact: true })).toBeVisible()
     await expect(page.locator('#nav-consent-trackers')).toBeVisible()
     await expect(page.locator('#nav-consent-categories')).toBeVisible()
     await expect(page.locator('#nav-legal-pages')).toBeVisible()

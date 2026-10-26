@@ -80,7 +80,7 @@ test.describe('legal pages', () => {
     test(`/legal/${slug} renders the seeded ${title}`, async ({ page }) => {
       await page.goto(`${BASE}/legal/${slug}`)
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(title)
-      // The date line under the title. Payload Consent's generated documents repeat it in the body.
+      // The date line under the title. Cookie Consent's generated documents repeat it in the body.
       await expect(page.getByText(/^Effective /).first()).toBeVisible()
       await expect(page.locator('article h2').first()).toBeVisible()
       // The seed writes the company into privacy and terms, the product name into all three.

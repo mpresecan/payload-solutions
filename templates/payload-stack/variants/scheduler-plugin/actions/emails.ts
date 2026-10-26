@@ -5,7 +5,7 @@ import { notify } from '@/emails/hooks'
 /**
  * Send any message in the catalogue later.
  *
- * The Payload Emails plugin can already defer a send by itself (`queue: { waitUntil }`), which is
+ * The Transactional Emails plugin can already defer a send by itself (`queue: { waitUntil }`), which is
  * the right tool for "in ten minutes, don't make the request wait". This action is for the other
  * case: a send far enough out that somebody will want to look at it, move it or call it off —
  * onboarding nudges, a renewal notice, a follow-up after a trial. It is a row in Scheduled Actions

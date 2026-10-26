@@ -8,7 +8,7 @@ description: Use when adding, changing or sending a transactional email in this 
 A project is scaffolded in one of two email branches. Check which one before writing anything:
 
 ```bash
-ls src/emails/definitions 2>/dev/null && echo "Payload Emails (copy in the admin)" || echo "React Email in code"
+ls src/emails/definitions 2>/dev/null && echo "Transactional Emails (copy in the admin)" || echo "React Email in code"
 ```
 
 Either way, `src/emails/index.ts` exports `emails` with the same function signatures, and Better
@@ -34,9 +34,9 @@ is behind them.
   `payload.sendEmail`. Do not call Resend directly: going through Payload is what lets the adapter
   change (console in development, Resend in production) without touching call sites.
 - `src/emails/hooks.ts` is the no-op half of a seam here: `emailsEnabled` is `false` and `notify`
-  does nothing. Do not put real sending in it; that file is replaced when Payload Emails is added.
+  does nothing. Do not put real sending in it; that file is replaced when Transactional Emails is added.
 
-## Branch B: Payload Emails (`src/emails/definitions` exists)
+## Branch B: Transactional Emails (`src/emails/definitions` exists)
 
 Subject, preheader and body live in the Payload admin under **Emails**; the design is
 `src/emails/template.tsx`; each message is a definition.

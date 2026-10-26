@@ -6,7 +6,7 @@ import { adminOnly } from '@/access'
 import { actions, recurring } from './actions'
 
 /**
- * Scheduled and recurring actions, with the Payload Action Scheduler.
+ * Scheduled and recurring actions, with the Action Scheduler.
  *
  * `src/payload.config.ts` spreads this array into `plugins`. The plugin adds the
  * `scheduled-actions` ledger, its log collection and a hidden status global, one Payload job per

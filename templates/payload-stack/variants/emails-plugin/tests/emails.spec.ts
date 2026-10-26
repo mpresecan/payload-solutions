@@ -1,5 +1,5 @@
 /**
- * src/emails/definitions: the catalogue of transactional emails, as Payload Emails sees it.
+ * src/emails/definitions: the catalogue of transactional emails, as Transactional Emails sees it.
  *
  * No database and no rendering here — these are the checks that catch the mistakes copy and
  * configuration actually produce: a definition that no longer sanitizes, a `{{token}}` typed into

@@ -1,6 +1,6 @@
 ---
 title: Recipes
-description: Reminders from hooks, webhooks with backoff, nightly jobs in code, Payload Emails, serverless runners, and testing.
+description: Reminders from hooks, webhooks with backoff, nightly jobs in code, Transactional Emails, serverless runners, and testing.
 ---
 
 ## Schedule from a collection hook
@@ -82,7 +82,7 @@ Both default to `unique: true`, so re-running the code that creates them is safe
 
 ## Sending emails later
 
-With [Payload Emails](/docs/plugins/payload-emails) installed, wrap `send` in an action and you get scheduled and retried delivery without storing the rendered message anywhere:
+With [Transactional Emails](/docs/plugins/payload-emails) installed, wrap `send` in an action and you get scheduled and retried delivery without storing the rendered message anywhere:
 
 ```ts
 export const sendEmail = defineAction({

@@ -54,7 +54,7 @@ async function renderPage<T>(input: StackInput, session: Session, importer: () =
   const payload = fakePayload()
   vi.doMock('@/lib/payload', () => ({ getPayloadClient: async () => payload }))
   // The body of a legal page belongs to src/consent, which reads the consent config when the
-  // Payload Consent plugin is installed and cannot do that against a stub. What the route owes is
+  // Cookie Consent plugin is installed and cannot do that against a stub. What the route owes is
   // the lookup, the heading, the effective date and the 404; the body is the seam's own test.
   vi.doMock('@/consent/legal-page', () => ({ renderLegalPageContent: async () => null }))
   vi.doMock('@/lib/auth/session', () => ({

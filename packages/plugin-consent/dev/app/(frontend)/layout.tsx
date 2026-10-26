@@ -25,7 +25,7 @@ export default async function FrontendLayout({ children }: { children: ReactNode
       <body>
         <ConsentProvider config={consent} initialCookie={cookie}>
           <header className="site-header">
-            <a href="/">Payload Consent dev</a>
+            <a href="/">Cookie Consent dev</a>
             <nav>
               <a href="/legal/privacy">Privacy</a>
               <a href="/legal/cookies">Cookies</a>

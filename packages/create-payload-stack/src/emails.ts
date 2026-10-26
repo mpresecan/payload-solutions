@@ -5,7 +5,7 @@ import path from 'node:path'
 import { variantPath, VARIANT_DIR } from './variants'
 
 /**
- * The optional Payload Emails step.
+ * The optional Transactional Emails step.
  *
  * The template ships both branches. By default `src/emails` sends React Email components straight
  * through Payload's email adapter, and `src/emails/hooks.ts` is a set of empty callbacks. Choosing

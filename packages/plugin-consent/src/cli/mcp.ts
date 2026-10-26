@@ -414,7 +414,7 @@ export async function runMcpServer(opts: { allowDrafts?: boolean; root?: string 
             resources: [
               {
                 uri: 'payload-consent://skill',
-                name: 'Payload Consent legal skill',
+                name: 'Cookie Consent legal skill',
                 description: 'The procedure and the rules: deterministic first, never invent legal facts, respect the language.',
                 mimeType: 'text/markdown',
               },

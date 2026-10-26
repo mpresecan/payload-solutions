@@ -66,7 +66,7 @@ export async function SiteFooter() {
                 Contact support
               </a>
             </li>
-            {/* Renders its own <li>, or nothing at all without Payload Consent. */}
+            {/* Renders its own <li>, or nothing at all without Cookie Consent. */}
             <ConsentSettingsLink />
           </ul>
         </div>

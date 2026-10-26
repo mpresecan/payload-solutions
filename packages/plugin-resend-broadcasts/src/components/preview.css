@@ -1,4 +1,4 @@
-/* Preview & send tab — the same layout as Payload Emails' Preview & test, so both plugins read as one.
+/* Preview & send tab — the same layout as Transactional Emails' Preview & test, so both plugins read as one.
    Laid out like Payload's native Live Preview view: the inputs sit in a scrolling column on the
    left, and the rendered email lives in a sticky window on the right with a static toolbar on top.
    Everything leans on Payload's theme variables so it matches the admin in light and dark. */

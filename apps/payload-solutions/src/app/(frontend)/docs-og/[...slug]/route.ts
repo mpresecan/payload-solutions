@@ -20,7 +20,7 @@ const brand = brands.solutions
 /**
  * The product or plugin a page belongs to, taken from the page tree rather than parsed out
  * of the slug: every product and plugin folder is a Fumadocs root folder, and its `name` is
- * the title from that folder's meta.json ("Payload Stack", "Payload Consent"). A page that
+ * the title from that folder's meta.json ("Payload Stack", "Cookie Consent for Payload"). A page that
  * sits outside any root folder — /docs itself, and each section's own index page — has no
  * section above it and falls back to the label below.
  *

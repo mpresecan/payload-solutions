@@ -5,7 +5,7 @@ import path from 'node:path'
 import { variantPath } from './variants'
 
 /**
- * The optional Payload Consent step.
+ * The optional Cookie Consent step.
  *
  * The template ships both branches behind one seam, `src/consent`. By default that directory
  * registers the template's own `LegalPages` collection, seeds three plain documents on first boot,
