@@ -10,7 +10,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import { CONSENT_PACKAGE, CONSENT_PACKAGES, CONSENT_REACT_PACKAGE, CONSENT_VERSION, swapConsentPackages } from '../src/consent'
+import { CONSENT_PACKAGE, CONSENT_PACKAGES, CONSENT_REACT_PACKAGE, CONSENT_REACT_VERSION, CONSENT_VERSION, swapConsentPackages } from '../src/consent'
 import { stripWorkspaceDependencies } from '../src/configure'
 import { VARIANT_DIR } from '../src/variants'
 
@@ -60,7 +60,7 @@ describe('swapConsentPackages', () => {
   it('adds both packages as real dependencies when consent is on', () => {
     const result = swapConsentPackages(packageJson, true) as { dependencies: Record<string, string>; devDependencies: Record<string, string> }
     expect(result.dependencies[CONSENT_PACKAGE]).toBe(CONSENT_VERSION)
-    expect(result.dependencies[CONSENT_REACT_PACKAGE]).toBe(CONSENT_VERSION)
+    expect(result.dependencies[CONSENT_REACT_PACKAGE]).toBe(CONSENT_REACT_VERSION)
     // Never both: a workspace protocol resolves nowhere outside this repo.
     expect(result.devDependencies[CONSENT_PACKAGE]).toBeUndefined()
     expect(result.devDependencies[CONSENT_REACT_PACKAGE]).toBeUndefined()
