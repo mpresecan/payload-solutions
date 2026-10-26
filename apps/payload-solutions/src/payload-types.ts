@@ -241,7 +241,7 @@ export interface CaseStudy {
   clientUrl?: string | null;
   publishedAt: string;
   /**
-   * Shown on the home page above the contact form.
+   * Reserved for a home page carousel once there are several case studies.
    */
   featured?: boolean | null;
   /**

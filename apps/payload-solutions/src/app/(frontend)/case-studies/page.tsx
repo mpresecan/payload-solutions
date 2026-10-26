@@ -98,6 +98,7 @@ export default async function CaseStudiesPage() {
             eyebrow="Start a project"
             title="Your product could be the next one here."
             lead="Tell us what you are building and where it is stuck. We reply within two working days."
+            caseStudiesLink={false}
             source="case-studies"
           />
         </div>

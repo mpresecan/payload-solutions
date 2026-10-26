@@ -155,9 +155,8 @@ export const ContactSubmissions: CollectionConfig = {
 }
 
 /**
- * Client work, written up. Published entries render at /case-studies/<slug> and feed the
- * proof section above the contact form on the home page, so every field here exists to move
- * a reader from "who did this" to "start a project": the outcomes row is the scan, the facts
+ * Client work, written up. Published entries render at /case-studies and /case-studies/<slug>,
+ * reached from the "Work with us" section. Every field here exists to move a reader from "who did this" to "start a project": the outcomes row is the scan, the facts
  * column answers "is this like us", the closing prompt is the hand-off to the form.
  *
  * Drafts are on: a write-up can sit unpublished while the client signs it off.
@@ -185,7 +184,7 @@ export const CaseStudies: CollectionConfig = {
     { name: 'client', type: 'text', required: true, admin: { position: 'sidebar' } },
     { name: 'clientUrl', type: 'text', admin: { position: 'sidebar' } },
     { name: 'publishedAt', type: 'date', required: true, admin: { position: 'sidebar' } },
-    { name: 'featured', type: 'checkbox', defaultValue: false, admin: { position: 'sidebar', description: 'Shown on the home page above the contact form.' } },
+    { name: 'featured', type: 'checkbox', defaultValue: false, admin: { position: 'sidebar', description: 'Reserved for a home page carousel once there are several case studies.' } },
     {
       name: 'summary',
       type: 'textarea',
