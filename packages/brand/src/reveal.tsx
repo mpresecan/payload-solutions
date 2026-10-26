@@ -9,8 +9,8 @@ import { useReducedMotionSafe } from './reduced-motion'
   The enter-on-scroll motion, taken from payloadcms.com (their Steps block, read off the
   source of payloadcms/website): content rises 3rem and media 6rem while fading in, over 1s on
   cubic-bezier(0.4, 0, 0, 1), siblings 75ms apart, once, when the element is well inside the
-  viewport rather than the moment its top edge appears. Ours adds a short blur that clears as
-  it lands, so text resolves into focus instead of only sliding.
+  viewport rather than the moment its top edge appears. Opacity and transform only: an earlier
+  blur was dropped because animating filters was too heavy on phones.
 
   The CSS twin for content that must not wait for hydration (the heroes) is `.reveal-load` in
   css/tailwind.css; keep the two curves and the stagger in step.
@@ -21,9 +21,9 @@ export const REVEAL_STAGGER_S = 0.075
 
 const VARIANTS = {
   /** Headlines, copy, lists. */
-  content: { y: '3rem', blur: 6 },
+  content: { y: '3rem' },
   /** Screenshots, illustrations, code panels: they travel twice as far, as on payloadcms.com. */
-  media: { y: '6rem', blur: 8 },
+  media: { y: '6rem' },
 } as const
 
 export type RevealVariant = keyof typeof VARIANTS
@@ -47,10 +47,6 @@ export interface RevealProps {
 /**
  * Enter-on-scroll for section content. Motivation: hierarchy, it draws the eye to each
  * section's headline as it arrives. Collapses to static under reduced motion.
- *
- * The filter is handed back as `none` once the blur has cleared: a leftover `blur(0px)` still
- * creates a containing block and a stacking context, which would quietly break sticky,
- * fixed and blend-mode descendants long after the animation is over.
  */
 export function Reveal({
   children,
@@ -66,8 +62,8 @@ export function Reveal({
   return (
     <Tag
       className={className}
-      initial={reduce ? false : { opacity: 0, y: from.y, filter: `blur(${from.blur}px)` }}
-      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)', transitionEnd: { filter: 'none' } }}
+      initial={reduce ? false : { opacity: 0, y: from.y }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '0px 0px -15% 0px' }}
       transition={{
         duration: REVEAL_DURATION_S,
