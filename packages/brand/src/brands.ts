@@ -14,6 +14,8 @@ export interface Brand {
   domain: string
   url: string
   tagline: string
+  /** The home page <title>. Under 60 characters, so search results show it whole. */
+  title: string
   description: string
   /** Where this product's documentation lives. All docs are hosted on payload.solutions. */
   docsUrl: string
@@ -46,6 +48,7 @@ export const brands: Record<BrandId, Brand> = {
     domain: 'payload.solutions',
     url: SOLUTIONS_URL,
     tagline: 'Products, plugins and engineering for teams building on Payload CMS.',
+    title: 'Payload Solutions: SaaS, plugins and builds on Payload CMS',
     description:
       'Payload Solutions builds open-source products and plugins for the Payload CMS community, and builds custom SaaS on Payload CMS for clients.',
     docsUrl: DOCS_BASE_URL,
@@ -59,8 +62,10 @@ export const brands: Record<BrandId, Brand> = {
     domain: 'payloadstack.com',
     url: 'https://www.payloadstack.com',
     tagline: 'The agentic SaaS boilerplate for Payload CMS.',
+    title: 'Payload Stack: The agentic SaaS boilerplate for Payload CMS',
+    // Kept under ~155 characters so search results show it whole.
     description:
-      'Payload Stack is an open-source, agent-ready SaaS boilerplate on Payload CMS and Next.js: Better Auth, organizations, Stripe subscriptions, a shadcn dashboard and a Payload admin, with the rules, skills and MCP servers Claude Code, Codex and Cursor need to build on it. Scaffolded with one command.',
+      'Open-source, agent-ready SaaS boilerplate on Payload CMS and Next.js: Better Auth, organizations, Stripe billing and a shadcn dashboard, in one command.',
     docsUrl: `${DOCS_BASE_URL}/payload-stack`,
     github: GITHUB_REPO_URL,
     githubSource: STACK_TEMPLATE_URL,
@@ -73,6 +78,7 @@ export const brands: Record<BrandId, Brand> = {
     domain: 'payloadclock.com',
     url: 'https://www.payloadclock.com',
     tagline: 'A reliable clock for serverless Payload jobs.',
+    title: 'Payload Clock: A reliable clock for serverless Payload jobs',
     description:
       'Payload Clock triggers your Payload job queues on schedule so serverless deployments never miss a beat.',
     docsUrl: `${DOCS_BASE_URL}/payload-clock`,

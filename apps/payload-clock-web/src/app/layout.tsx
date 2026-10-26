@@ -10,7 +10,7 @@ const brand = brands.clock
 export const metadata: Metadata = {
   metadataBase: new URL(brand.url),
   title: {
-    default: `${brand.name}: ${brand.tagline}`,
+    default: brand.title,
     template: `%s | ${brand.name}`,
   },
   description: brand.description,
