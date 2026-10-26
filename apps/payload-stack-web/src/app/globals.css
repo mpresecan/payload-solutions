@@ -169,24 +169,30 @@
   padding-left: 0;
 }
 
-/* Built-with logo wall: each cell's two logos cross-fade (no blur: an endless filter animation is too heavy on phones). Both run the same
-   keyframes half a cycle apart (negative delays set per logo in built-with.tsx), so one is
-   always fully in while the other is out. */
+/* Built-with logo wall: each cell's two logos trade places through a 10px blur. Both run the
+   same keyframes half a cycle apart (negative delays set per logo in built-with.tsx), so one is
+   always fully in while the other is out. Each transition takes 12% of the cycle (~1.4s), long
+   enough for the blur to read; SWAP_MIDPOINT_S in built-with.tsx is the middle of the outgoing
+   one (44%). The resting frames sit at `filter: none`, so between swaps there is no filter on
+   the page at all and a phone only pays for the blur during the cross-fade itself. */
 @keyframes logo-swap {
   0%,
-  42% {
+  38% {
     opacity: 1;
+    filter: none;
     visibility: visible;
   }
   50%,
-  92% {
+  88% {
     opacity: 0;
+    filter: blur(10px);
     /* Hidden, not just transparent: the logo out of view must not catch clicks meant for the
        one showing. */
     visibility: hidden;
   }
   100% {
     opacity: 1;
+    filter: none;
     visibility: visible;
   }
 }

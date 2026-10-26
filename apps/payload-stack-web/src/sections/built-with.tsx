@@ -57,14 +57,14 @@ const SWAP_CYCLE_S = 12
 const SWAP_STAGGER_S = 1
 /** Seconds after load before the first cell swaps. */
 const FIRST_SWAP_S = 2.5
-/** Where in the cycle the cross-fade is half done (46% of the keyframes). */
-const SWAP_MIDPOINT_S = SWAP_CYCLE_S * 0.46
+/** Where in the cycle the cross-fade is half done (44% of the keyframes). */
+const SWAP_MIDPOINT_S = SWAP_CYCLE_S * 0.44
 
 /**
  * Logo wall, set the way payloadcms.com sets its own: a sentence starting on the first grid
  * line, then a framed row of six square cells, each half a column wide, running from the
  * middle of the first column to the middle of the fourth — so every other cell divider lands
- * on a page grid line. Logos cross-fade, one cell at a time. CSS only, no JS.
+ * on a page grid line. Logos cross-fade through a blur, one cell at a time. CSS only, no JS.
  */
 export function BuiltWith() {
   return (
