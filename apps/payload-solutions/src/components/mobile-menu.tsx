@@ -180,7 +180,7 @@ export function MobileMenu({ items, cta, github, x }: MobileMenuProps) {
         aria-controls={sheetId}
         aria-label={open ? 'Close menu' : 'Open menu'}
         data-state={open ? 'open' : 'closed'}
-        className="menu-toggle lg:hidden"
+        className="menu-toggle inline-flex lg:hidden"
       >
         <span className="menu-toggle__bar" aria-hidden />
         <span className="menu-toggle__bar" aria-hidden />
