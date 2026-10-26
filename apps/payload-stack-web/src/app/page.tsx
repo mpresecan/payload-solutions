@@ -10,7 +10,6 @@ import { Hero } from '@/sections/hero'
 import { Inside } from '@/sections/inside'
 import { OneCommand } from '@/sections/one-command'
 import { OpenSource } from '@/sections/open-source'
-import { InProduction } from '@/sections/in-production'
 import { SeeItRun } from '@/sections/see-it-run'
 import { Showcase } from '@/sections/showcase'
 import { WhyPayload } from '@/sections/why-payload'
@@ -42,7 +41,6 @@ export default function HomePage() {
           <OneCommand />
           <Config />
           <WhyPayload />
-          <InProduction />
           <OpenSource />
         </div>
       </main>
