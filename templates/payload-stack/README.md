@@ -1,5 +1,7 @@
 # Payload Stack
 
+![Payload Stack: database, Payload CMS, Better Auth, organizations, Stripe billing and Next.js + shadcn/ui, one command away](https://raw.githubusercontent.com/mpresecan/payload-solutions/main/.github/assets/payload-stack-cover.png)
+
 A SaaS boilerplate on [Payload CMS](https://payloadcms.com) and Next.js. Better Auth, organizations, Stripe subscriptions, a shadcn/ui dashboard and Payload's admin as your back office, wired together and driven by one config file.
 
 Documentation: **https://payload.solutions/docs/payload-stack**
