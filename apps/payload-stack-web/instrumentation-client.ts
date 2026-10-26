@@ -14,6 +14,14 @@ if (!projectToken || !posthogHost) {
     )
   }
 } else {
+  // A visitor who agreed on an earlier visit has to start on real persistence. Starting in memory
+  // and switching later makes PostHog save the fresh in-memory identity over the stored one, so
+  // every page load counted as a new visitor. The key and value are posthog-js's own opt-in record.
+  let optedIn = false
+  try {
+    optedIn = localStorage.getItem(`__ph_opt_in_out_${projectToken}`) === '1'
+  } catch {}
+
   // Nothing is captured or stored until the visitor grants the analytics category; the
   // opt-in itself is driven by PostHogConsent (src/components/consent/posthog-consent.tsx).
   posthog.init(projectToken, {
@@ -22,11 +30,7 @@ if (!projectToken || !posthogHost) {
     capture_exceptions: true,
     debug: process.env.NODE_ENV === 'development',
     opt_out_capturing_by_default: true,
-    persistence: 'memory',
-    loaded: (ph) => {
-      // A visitor who agreed on an earlier visit: restore normal persistence straight away.
-      if (ph.has_opted_in_capturing()) ph.set_config({ persistence: 'localStorage+cookie' })
-    },
+    persistence: optedIn ? 'localStorage+cookie' : 'memory',
     logs: {
       serviceName: 'payload-stack-web',
       environment: process.env.NODE_ENV,
