@@ -24,7 +24,7 @@
   "dependencies": {
     "@payload-solutions/brand": "workspace:*",
     "@payload-solutions/consent-react": "^0.1.0",
-    "@payload-solutions/plugin-consent": "^0.1.0",
+    "@payload-solutions/plugin-consent": "^0.1.2",
     "@payloadcms/db-postgres": "3.91.0",
     "@payloadcms/email-resend": "3.91.0",
     "@payloadcms/next": "3.91.0",
