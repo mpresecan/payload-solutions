@@ -3,7 +3,7 @@ import { siGithub, siX } from 'simple-icons'
 import { Logo, X_URL, brands } from '@payload-solutions/brand'
 import { HeaderThemeSync } from '@payload-solutions/brand/use-header-theme'
 import { BrandIcon } from '@/components/brand-icon'
-import { MobileNav } from '@/components/mobile-nav'
+import { MobileMenu } from '@/components/mobile-menu'
 import { Button } from '@/components/ui/button'
 
 const brand = brands.stack
@@ -63,12 +63,11 @@ export function SiteHeader() {
               Documentation
             </Button>
           </div>
-          <MobileNav
-            items={[
-              ...NAV,
-              { href: brand.docsUrl, label: 'Documentation', external: true },
-              { href: X_URL, label: 'Follow on X', external: true },
-            ]}
+          <MobileMenu
+            items={NAV}
+            cta={{ href: brand.docsUrl, label: 'Documentation', external: true }}
+            github={brand.githubSource ?? brand.github}
+            x={X_URL}
           />
         </div>
       </div>

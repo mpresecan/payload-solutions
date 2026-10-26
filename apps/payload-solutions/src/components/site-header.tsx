@@ -44,8 +44,7 @@ export function SiteHeader() {
             target="_blank"
             rel="noreferrer noopener"
             aria-label="GitHub repository"
-            /* Below sm the header is logo + menu; GitHub moves into the sheet. */
-            className="hidden h-9 w-9 items-center justify-center text-fg-muted transition-colors hover:text-fg sm:inline-flex"
+            className="inline-flex h-9 w-9 items-center justify-center text-fg-muted transition-colors hover:text-fg"
           >
             <BrandIcon icon={siGithub} size={18} />
           </a>

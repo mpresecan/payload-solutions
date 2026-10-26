@@ -12,6 +12,8 @@ import { BrandIcon } from '@/components/brand-icon'
 export interface MobileMenuItem {
   href: string
   label: string
+  /** Opens in a new tab (the CTA on payloadstack.com goes to the docs on payload.solutions). */
+  external?: boolean
 }
 
 export interface MobileMenuProps {
@@ -161,9 +163,21 @@ export function MobileMenu({ items, cta, github, x }: MobileMenuProps) {
           <div className="mobile-menu__foot" style={{ '--i': items.length } as CSSProperties}>
             {/* SlideFaces on a Next Link rather than ActionRow (a plain <a>), so going to the
                 contact section from a case study is a client navigation, not a reload. */}
-            <Link href={cta.href} onClick={() => close()} className="slide-btn mobile-menu__cta w-full">
-              <SlideFaces>{cta.label}</SlideFaces>
-            </Link>
+            {cta.external ? (
+              <a
+                href={cta.href}
+                target="_blank"
+                rel="noreferrer noopener"
+                onClick={() => close()}
+                className="slide-btn mobile-menu__cta w-full"
+              >
+                <SlideFaces>{cta.label}</SlideFaces>
+              </a>
+            ) : (
+              <Link href={cta.href} onClick={() => close()} className="slide-btn mobile-menu__cta w-full">
+                <SlideFaces>{cta.label}</SlideFaces>
+              </Link>
+            )}
             <div className="mobile-menu__social">
               <a href={github} target="_blank" rel="noreferrer noopener" className="mobile-menu__social-link">
                 <span aria-hidden className="contents">
