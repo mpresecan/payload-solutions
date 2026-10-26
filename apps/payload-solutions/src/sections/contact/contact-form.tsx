@@ -15,7 +15,7 @@ const TOPICS = [
   { value: 'other', label: 'Something else' },
 ]
 
-export function ContactForm() {
+export function ContactForm({ source = 'home' }: { source?: string } = {}) {
   const submit = async (previousState: ContactState, formData: FormData) => {
     const nextState = await submitContact(previousState, formData)
     const topic = formData.get('topic')
@@ -27,7 +27,7 @@ export function ContactForm() {
       process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
       process.env.NEXT_PUBLIC_POSTHOG_HOST
     ) {
-      posthog.capture('contact_form_submitted', { topic })
+      posthog.capture('contact_form_submitted', { topic, source })
     }
 
     return nextState
@@ -74,6 +74,7 @@ export function ContactForm() {
       <Field label="Budget" id="budget" optional hint="A range is enough. It helps us propose the right scope.">
         <input id="budget" name="budget" className="field" placeholder="e.g. 15k to 30k EUR" />
       </Field>
+      <input type="hidden" name="source" value={source} />
       <div className="hidden" aria-hidden>
         <label htmlFor="website">Website</label>
         <input id="website" name="website" tabIndex={-1} autoComplete="off" />

@@ -1,5 +1,7 @@
 import type { Payload } from 'payload'
 
+import { layronCaseStudy } from './case-studies/layron'
+
 /**
  * Seeds the catalogue on first boot so the site is never empty. Everything is editable in the
  * admin afterwards; the seed only runs when a collection has no documents.
@@ -133,5 +135,15 @@ export async function seed(payload: Payload) {
     ].entries()) {
       await payload.create({ collection: 'roadmap-items', data: { ...data, order } as never, overrideAccess: true })
     }
+  }
+
+  const caseStudies = await payload.count({ collection: 'case-studies', overrideAccess: true })
+  if (caseStudies.totalDocs === 0) {
+    await payload.create({
+      collection: 'case-studies',
+      data: { ...layronCaseStudy, _status: 'published' } as never,
+      draft: false,
+      overrideAccess: true,
+    })
   }
 }

@@ -31,6 +31,7 @@ export function OpenSource() {
             <ActionRow href={brand.github}>GitHub repository</ActionRow>
             <ActionRow href={brand.docsUrl}>Documentation</ActionRow>
             <ActionRow href={X_URL}>Follow @PayloadStack on X</ActionRow>
+            <ActionRow href={`${SOLUTIONS_URL}/case-studies`}>Case studies</ActionRow>
             <ActionRow href={`${SOLUTIONS_URL}/#contact`}>Hire the team</ActionRow>
           </div>
         </Reveal>

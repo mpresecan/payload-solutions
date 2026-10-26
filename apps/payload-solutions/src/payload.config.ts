@@ -9,6 +9,7 @@ import sharp from "sharp";
 import { fileURLToPath } from "url";
 
 import {
+	CaseStudies,
 	ContactSubmissions,
 	Media,
 	Plugins,
@@ -75,6 +76,7 @@ export default buildConfig({
 		Products,
 		Plugins,
 		RoadmapItems,
+		CaseStudies,
 		ContactSubmissions,
 		Media,
 		Users,

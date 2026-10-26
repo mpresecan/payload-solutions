@@ -49,6 +49,7 @@ const COLUMNS: Array<{ title: string; links: FooterLink[]; theme?: boolean }> = 
       { label: 'Payload Solutions', href: SOLUTIONS_URL },
       { label: 'Payload Clock', href: brands.clock.url, soon: true },
       { label: 'Plugins', href: `${SOLUTIONS_URL}/#plugins` },
+      { label: 'Case studies', href: `${SOLUTIONS_URL}/case-studies` },
       { label: 'Hire us', href: `${SOLUTIONS_URL}/#contact` },
     ],
   },

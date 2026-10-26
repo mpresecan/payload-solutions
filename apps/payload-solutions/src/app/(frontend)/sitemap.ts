@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { brands } from '@payload-solutions/brand'
 
+import { listCaseStudies } from '@/lib/case-studies'
 import { getPayloadClient } from '@/lib/payload'
 import { source } from '@/lib/source'
 
@@ -21,7 +22,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }))
 
-  return [{ url: base, changeFrequency: 'weekly', priority: 1 }, ...docs, ...(await getLegalEntries({ base }))]
+  const caseStudies: MetadataRoute.Sitemap = (await listCaseStudies()).map((study) => ({
+    url: `${base}/case-studies/${study.slug}`,
+    lastModified: study.updatedAt,
+    changeFrequency: 'monthly',
+    priority: 0.8,
+  }))
+
+  return [
+    { url: base, changeFrequency: 'weekly', priority: 1 },
+    { url: `${base}/case-studies`, changeFrequency: 'weekly', priority: 0.8 },
+    ...caseStudies,
+    ...docs,
+    ...(await getLegalEntries({ base })),
+  ]
 }
 
 async function getLegalEntries({ base }: { base: string }): Promise<MetadataRoute.Sitemap> {
