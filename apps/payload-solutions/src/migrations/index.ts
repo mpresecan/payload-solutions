@@ -5,6 +5,7 @@ import * as migration_20260929_184546_consent_plugin from './20260929_184546_con
 import * as migration_20260929_191625_contact_consent from './20260929_191625_contact_consent';
 import * as migration_20261020_080228_payload_3_91 from './20261020_080228_payload_3_91';
 import * as migration_20261026_080000_plugin_display_names from './20261026_080000_plugin_display_names';
+import * as migration_20261026_110000_roadmap_docs_quarter from './20261026_110000_roadmap_docs_quarter';
 
 export const migrations = [
   {
@@ -41,5 +42,10 @@ export const migrations = [
     up: migration_20261026_080000_plugin_display_names.up,
     down: migration_20261026_080000_plugin_display_names.down,
     name: '20261026_080000_plugin_display_names',
+  },
+  {
+    up: migration_20261026_110000_roadmap_docs_quarter.up,
+    down: migration_20261026_110000_roadmap_docs_quarter.down,
+    name: '20261026_110000_roadmap_docs_quarter',
   },
 ];

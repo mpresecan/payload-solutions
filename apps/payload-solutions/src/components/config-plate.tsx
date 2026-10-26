@@ -3,7 +3,7 @@ import { Crosshairs } from '@payload-solutions/brand/crosshairs'
 import { Parallax } from '@payload-solutions/brand/parallax'
 
 /**
- * The whole catalogue as it actually appears in a customer's project: four imports and four
+ * The whole catalogue as it actually appears in a customer's project: five imports and five
  * lines of `plugins`. It sits opposite the open-source statement because it is the claim's
  * evidence — one npm scope, one repository, installed like anything else — and because a
  * paragraph alone on a dark band is not a composition.
@@ -15,13 +15,14 @@ import { Parallax } from '@payload-solutions/brand/parallax'
  * mask fades the last few percent instead of chopping a glyph in half.
  *
  * Each of our identifiers carries its own accent, the same hue the plugin has in the table
- * below and on its documentation. The colours are the literals from ACCENT_COLORS rather than
+ * below and on its documentation (Resend Broadcasts has no hue of its own yet, so it takes the
+ * `solutions` fallback that accentForSlug() gives it there too). The colours are the literals from ACCENT_COLORS rather than
  * `var(--accent)`: this plate lives inside a dark ThemeBand, and a `light-dark()` accent in a
  * custom property resolves against the page theme, not the band, so on a light page the
  * tokens would come out in the light twins over black.
  *
- * Real API. `consentPlugin`, `emailsPlugin`, `actionScheduler` and `vercelPlugin` are the
- * exported names, and the options shown are the required ones from each installation page —
+ * Real API. `consentPlugin`, `emailsPlugin`, `actionScheduler`, `resendBroadcastsPlugin` and
+ * `vercelPlugin` are the exported names, and the options shown are the required ones from each installation page —
  * keep it that way, a fictional config here would be caught by the first developer who tried
  * it.
  */
@@ -53,10 +54,11 @@ const register = (name: string, brand: AccentId, options: string): Tok[] => [
 ]
 
 const LINES: Tok[][] = [
-  imp('consentPlugin', 'consent', 'plugin-consent', '  '),
-  imp('emailsPlugin', 'emails', 'plugin-emails', '   '),
-  imp('actionScheduler', 'scheduler', 'plugin-action-scheduler', ''),
-  imp('vercelPlugin', 'vercel', 'plugin-vercel', '   '),
+  imp('consentPlugin', 'consent', 'plugin-consent', ' '.repeat(9)),
+  imp('emailsPlugin', 'emails', 'plugin-emails', ' '.repeat(10)),
+  imp('actionScheduler', 'scheduler', 'plugin-action-scheduler', ' '.repeat(7)),
+  imp('resendBroadcastsPlugin', 'solutions', 'plugin-resend-broadcasts', ''),
+  imp('vercelPlugin', 'vercel', 'plugin-vercel', ' '.repeat(10)),
   [],
   [
     { t: 'kw', v: 'export default' },
@@ -68,6 +70,7 @@ const LINES: Tok[][] = [
   register('consentPlugin', 'consent', '{ seed }'),
   register('emailsPlugin', 'emails', '{ emails }'),
   register('actionScheduler', 'scheduler', '{ actions }'),
+  register('resendBroadcastsPlugin', 'solutions', '{ from, sources }'),
   register('vercelPlugin', 'vercel', '{ targets }'),
   [{ t: 'x', v: '  ],' }],
   [{ t: 'x', v: '})' }],
