@@ -51,14 +51,21 @@ const CELLS: [Logo, Logo][] = [
   ],
 ]
 
-/** Must match the `logo-swap` animation duration in globals.css. */
-const SWAP_CYCLE_S = 12
+/** Seconds one cross-fade takes. Must match the keyframe stops in globals.css. */
+const SWAP_FADE_S = 1
+/** Seconds the row rests after one cell has finished swapping, before the next cell starts. */
+const SWAP_HOLD_S = 0.5
 /** Seconds between one cell swapping and the next, so the row changes one cell at a time. */
-const SWAP_STAGGER_S = 1
+const SWAP_STAGGER_S = SWAP_FADE_S + SWAP_HOLD_S
+/**
+ * Six cells swap out, then six swap back: twelve swaps per cycle, evenly spaced. Must match the
+ * `logo-swap` animation duration in globals.css (18s).
+ */
+const SWAP_CYCLE_S = SWAP_STAGGER_S * CELLS.length * 2
 /** Seconds after load before the first cell swaps. */
 const FIRST_SWAP_S = 2.5
-/** Where in the cycle the cross-fade is half done (44% of the keyframes). */
-const SWAP_MIDPOINT_S = SWAP_CYCLE_S * 0.44
+/** Where in the cycle the cross-fade is half done (the fade-out ends at 50% of the keyframes). */
+const SWAP_MIDPOINT_S = SWAP_CYCLE_S / 2 - SWAP_FADE_S / 2
 
 /**
  * Logo wall, set the way payloadcms.com sets its own: a sentence starting on the first grid
