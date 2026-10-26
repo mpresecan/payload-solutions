@@ -25,7 +25,11 @@ if (!projectToken || !apiHost) {
   // Nothing is captured or stored until the visitor grants the analytics category; the
   // opt-in itself is driven by PostHogConsent (src/components/consent/posthog-consent.tsx).
   posthog.init(projectToken, {
+    // NEXT_PUBLIC_POSTHOG_HOST is PostHog's managed reverse proxy (https://t.payload.solutions,
+    // run on Cloudflare — disclosed in the privacy policy). Behind a proxy, ui_host keeps links
+    // the SDK builds (toolbar, recordings) pointing at the PostHog app itself.
     api_host: apiHost,
+    ui_host: 'https://eu.posthog.com',
     defaults: '2026-01-30',
     capture_exceptions: true,
     debug: process.env.NODE_ENV === 'development',

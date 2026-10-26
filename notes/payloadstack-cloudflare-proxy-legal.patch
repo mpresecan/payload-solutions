@@ -1,0 +1,82 @@
+diff --git a/apps/payload-stack-web/src/app/legal/privacy/page.tsx b/apps/payload-stack-web/src/app/legal/privacy/page.tsx
+index 0ba8eb3..87ddf03 100644
+--- a/apps/payload-stack-web/src/app/legal/privacy/page.tsx
++++ b/apps/payload-stack-web/src/app/legal/privacy/page.tsx
+@@ -82,6 +82,14 @@ export default function PrivacyPage() {
+         written contract that binds them to confidentiality and appropriate security.
+       </p>
+       <RecipientsTable />
++      <p>
++        When you allow analytics, your browser sends analytics requests through PostHog&rsquo;s managed
++        reverse proxy, which PostHog runs on Cloudflare&rsquo;s network. Cloudflare receives those requests,
++        including your IP address and the analytics data they carry, and forwards them to PostHog. It acts as
++        PostHog&rsquo;s sub-processor under PostHog&rsquo;s Data Processing Agreement, and may handle the
++        traffic in data centres in several countries, chosen dynamically by its network. Without analytics
++        consent, no request goes through this proxy.
++      </p>
+       <p>
+         We may also disclose personal data when the law requires it, to establish or defend legal claims, or
+         to a buyer as part of a merger or acquisition — in which case this policy continues to apply until
+diff --git a/apps/payload-stack-web/src/lib/consent.ts b/apps/payload-stack-web/src/lib/consent.ts
+index 281ddff..a8090c4 100644
+--- a/apps/payload-stack-web/src/lib/consent.ts
++++ b/apps/payload-stack-web/src/lib/consent.ts
+@@ -10,9 +10,9 @@ import type { ConsentConfig } from '@payload-solutions/consent-react'
+   already chose is asked again. Adding or removing a category bumps CATEGORIES_VERSION.
+ */
+ 
+-export const LEGAL_EFFECTIVE_DATE = '2026-09-29'
++export const LEGAL_EFFECTIVE_DATE = '2026-10-26'
+ const CATEGORIES_VERSION = '2026-09-29'
+-const TRACKERS_VERSION = '2026-09-29'
++const TRACKERS_VERSION = '2026-10-26'
+ 
+ /** Same controller as payload.solutions (see its consentPlugin seed). */
+ export const COMPANY = {
+@@ -32,7 +32,7 @@ export function formatLegalDate(iso: string): string {
+ export interface Processor {
+   name: string
+   legalName: string
+-  role: 'Processor' | 'Controller'
++  role: 'Processor' | 'Sub-processor' | 'Controller'
+   purpose: string
+   data: string
+   country: string
+@@ -46,12 +46,27 @@ export const PROCESSORS: Processor[] = [
+     name: 'PostHog (EU Cloud)',
+     legalName: 'PostHog Inc.',
+     role: 'Processor',
+-    purpose: 'Product analytics hosted in the EU, only where analytics consent is given.',
++    purpose:
++      'Product analytics hosted in the EU, only where analytics consent is given. Requests reach it through PostHog\u2019s managed reverse proxy, run on Cloudflare (next row).',
+     data: 'usage, technical',
+     country: 'DE',
+     transferBasis: 'Standard Contractual Clauses',
+     privacyUrl: 'https://posthog.com/privacy',
+   },
++  {
++    // PostHog's managed reverse proxy (enabled 2026-10-26): analytics requests pass through
++    // Cloudflare before they reach PostHog. Cloudflare is PostHog's sub-processor under the
++    // PostHog DPA, not a processor we contract with directly.
++    name: 'Cloudflare (via PostHog)',
++    legalName: 'Cloudflare, Inc.',
++    role: 'Sub-processor',
++    purpose:
++      'Runs PostHog\u2019s managed reverse proxy, which forwards analytics requests to PostHog. Only where analytics consent is given.',
++    data: 'usage, technical',
++    country: 'US; global edge network',
++    transferBasis: 'Standard Contractual Clauses (PostHog DPA); EU\u2013US Data Privacy Framework',
++    privacyUrl: 'https://www.cloudflare.com/privacypolicy/',
++  },
+   {
+     name: 'Vercel',
+     legalName: 'Vercel Inc.',
+@@ -148,7 +163,7 @@ export const consentConfig: ConsentConfig = {
+       categoryKey: 'analytics',
+       kind: 'sdk',
+       purpose:
+-        'Product analytics hosted in the EU. Initialised by the application code; capture only starts once the analytics category is granted.',
++        'Product analytics hosted in the EU, reached through PostHog\u2019s managed reverse proxy on Cloudflare. Initialised by the application code; capture only starts once the analytics category is granted.',
+       cookies: [
+         {
+           name: `ph_${posthogToken}_posthog`,
