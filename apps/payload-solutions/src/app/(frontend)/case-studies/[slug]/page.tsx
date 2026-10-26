@@ -222,6 +222,7 @@ export default async function CaseStudyPage({ params }: Params) {
             eyebrow="Start a project"
             title={study.cta?.title || 'Need it built? We build SaaS on Payload.'}
             lead={study.cta?.body || undefined}
+            caseStudiesLink={false}
             source={`case-study:${study.slug}`}
           />
         </div>

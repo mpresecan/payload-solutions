@@ -5,9 +5,7 @@ import { HeroVideoBackdrop } from '@payload-solutions/brand/hero-video'
 import { ThemeBand } from '@payload-solutions/brand/theme-band'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
-import { listCaseStudies } from '@/lib/case-studies'
 import { getPayloadClient } from '@/lib/payload'
-import { CaseStudies } from '@/sections/case-studies'
 import { Contact } from '@/sections/contact'
 import { Hero } from '@/sections/hero'
 import { Plugins } from '@/sections/plugins'
@@ -22,11 +20,10 @@ export const metadata: Metadata = { alternates: { canonical: '/' } }
 
 export default async function HomePage() {
   const payload = await getPayloadClient()
-  const [products, plugins, roadmap, caseStudies] = await Promise.all([
+  const [products, plugins, roadmap] = await Promise.all([
     payload.find({ collection: 'products', sort: 'order', limit: 10, overrideAccess: true }),
     payload.find({ collection: 'plugins', sort: 'order', limit: 20, overrideAccess: true }),
     payload.find({ collection: 'roadmap-items', sort: 'order', limit: 50, overrideAccess: true }),
-    listCaseStudies(),
   ])
 
   return (
@@ -49,7 +46,6 @@ export default async function HomePage() {
           <Products products={products.docs} />
           <Plugins plugins={plugins.docs} />
           <Roadmap items={roadmap.docs} />
-          <CaseStudies studies={caseStudies} />
           <Contact />
         </div>
       </main>
