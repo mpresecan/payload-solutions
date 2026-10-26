@@ -21,6 +21,12 @@ export interface MobileMenuProps {
   x: string
 }
 
+/** `https://x.com/PayloadStack` → `@PayloadStack`; falls back to "X" for anything else. */
+function xHandle(url: string) {
+  const handle = url.replace(/\/+$/, '').split('/').pop()
+  return handle && !handle.includes('.') ? `@${handle}` : 'X'
+}
+
 const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 /**
@@ -58,7 +64,13 @@ export function MobileMenu({ items, cta, github, x }: MobileMenuProps) {
     if (restoreFocus) toggleRef.current?.focus()
   }, [])
 
-  const openMenu = () => {
+  // Opened from the keyboard (click with detail 0) → focus moves into the sheet. Opened by a
+  // tap or click → focus stays on the toggle, otherwise Safari paints the first link's
+  // focus ring (an underline here) as if it were a selected item.
+  const keyboardOpen = useRef(false)
+
+  const openMenu = (fromKeyboard: boolean) => {
+    keyboardOpen.current = fromKeyboard
     const header = toggleRef.current?.closest('header')
     if (header) {
       const bottom = Math.max(0, Math.round(header.getBoundingClientRect().bottom))
@@ -77,8 +89,10 @@ export function MobileMenu({ items, cta, github, x }: MobileMenuProps) {
   useEffect(() => {
     if (!open) return
     const sheet = sheetRef.current
-    // Focus the first link once the sheet is visible (visibility flips on the same frame).
-    const raf = requestAnimationFrame(() => sheet?.querySelector<HTMLElement>(FOCUSABLE)?.focus({ preventScroll: true }))
+    // Keyboard users land on the first link once the sheet is visible.
+    const raf = keyboardOpen.current
+      ? requestAnimationFrame(() => sheet?.querySelector<HTMLElement>(FOCUSABLE)?.focus({ preventScroll: true }))
+      : 0
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -161,7 +175,8 @@ export function MobileMenu({ items, cta, github, x }: MobileMenuProps) {
                 <span aria-hidden className="contents">
                   <BrandIcon icon={siX} size={14} />
                 </span>
-                X
+                {/* The handle, not the letter: "X" next to the X glyph reads as a typo. */}
+                {xHandle(x)}
               </a>
             </div>
           </div>
@@ -175,7 +190,7 @@ export function MobileMenu({ items, cta, github, x }: MobileMenuProps) {
       <button
         ref={toggleRef}
         type="button"
-        onClick={() => (open ? close() : openMenu())}
+        onClick={(e) => (open ? close() : openMenu(e.detail === 0))}
         aria-expanded={open}
         aria-controls={sheetId}
         aria-label={open ? 'Close menu' : 'Open menu'}
