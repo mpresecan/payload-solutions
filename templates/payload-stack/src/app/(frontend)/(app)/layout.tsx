@@ -14,8 +14,9 @@ import { getQueryClient } from '@/lib/query-client'
  */
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const queryClient = getQueryClient()
-  const payload = await getPayloadClient()
+  // Request first, then Payload: keeps `next build` from connecting to the database (see getSession).
   const requestHeaders = await headers()
+  const payload = await getPayloadClient()
 
   const session = await ensureSessionServer(queryClient, payload.betterAuth, { headers: requestHeaders })
   if (!session) {

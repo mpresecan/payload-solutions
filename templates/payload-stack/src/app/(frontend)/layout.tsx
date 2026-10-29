@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   },
   description: stack.description,
   applicationName: stack.name,
+  // Replace public/favicon.svg with your own mark.
+  icons: { icon: '/favicon.svg' },
   openGraph: {
     type: 'website',
     siteName: stack.name,

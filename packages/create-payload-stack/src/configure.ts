@@ -5,10 +5,10 @@ import { applyAgentsChoice } from './agents'
 import { applyConsentChoice, swapConsentPackages } from './consent'
 import { DB_CHOICES, type DbChoice } from './databases'
 import { addEmailsPlugin, applyEmailsChoice, swapEmailsPackages } from './emails'
-import type { ProjectOptions } from './options'
+import type { PackageManager, ProjectOptions } from './options'
 import { applySchedulerChoice, renderVercelJson, RUNNER_CHOICES, swapSchedulerPackages } from './scheduler'
 import { LOCAL_STORAGE_CONFIG, STORAGE_CHOICES, STORAGE_PACKAGES, type StorageChoice, type StorageKey } from './storage'
-import { generateSecret } from './utils'
+import { generateSecret, packageManagerVersion } from './utils'
 import { removeVariants } from './variants'
 
 /**
@@ -20,7 +20,7 @@ import { removeVariants } from './variants'
  *   5. consent and legal pages wired to the Cookie Consent plugin, or left as a plain collection
  *   6. scheduled actions wired to the Action Scheduler, and a runner for the job queue
  *   7. .env generated from .env.example
- *   8. package.json renamed
+ *   8. package.json renamed, package manager version pinned
  *   9. skills and MCP servers arranged for the chosen coding agents
  * Every function is pure over file contents so it can be unit-tested without a filesystem.
  */
@@ -234,6 +234,19 @@ export function stripWorkspaceDependencies(packageJson: Record<string, unknown>)
   return next
 }
 
+/**
+ * Pins the package manager that scaffolded the project, so corepack (and pnpm itself) run that exact
+ * version everywhere: a Docker build, a host's builder, CI. Unpinned, they fetch the newest major,
+ * which may reject the lockfile. pnpm keeps the template's pin when its version cannot be read; npm
+ * and bun do not use the field, so it is removed for them.
+ */
+export function pinPackageManager(packageJson: Record<string, unknown>, pm: PackageManager, version: string | undefined) {
+  const next: Record<string, unknown> = { ...packageJson }
+  if ((pm === 'pnpm' || pm === 'yarn') && version) next.packageManager = `${pm}@${version}`
+  else if (pm !== 'pnpm') delete next.packageManager
+  return next
+}
+
 export function renameProject(packageJson: Record<string, unknown>, slug: string) {
   const next: Record<string, unknown> = { ...packageJson, name: slug, version: '0.1.0', private: true }
   delete next.homepage
@@ -340,7 +353,15 @@ export async function configureProject(o: ProjectOptions) {
   )
   await write(
     'package.json',
-    JSON.stringify(renameProject(stripWorkspaceDependencies(configured), o.slug), null, 2) + '\n',
+    JSON.stringify(
+      pinPackageManager(
+        renameProject(stripWorkspaceDependencies(configured), o.slug),
+        o.packageManager,
+        await packageManagerVersion(o.packageManager),
+      ),
+      null,
+      2,
+    ) + '\n',
   )
 
   await write('test.env', renderTestEnv(await read('test.env'), db, o.slug))

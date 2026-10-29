@@ -11,8 +11,11 @@ import { getPayloadClient } from '@/lib/payload'
  * Current Better Auth session for server components and route handlers, deduplicated per request.
  */
 export const getSession = cache(async () => {
+  // Read the request before touching Payload: headers() marks the route dynamic, so `next build`
+  // skips it instead of opening a database connection the build may not be able to reach.
+  const requestHeaders = await headers()
   const payload = await getPayloadClient()
-  return payload.betterAuth.api.getSession({ headers: await headers() })
+  return payload.betterAuth.api.getSession({ headers: requestHeaders })
 })
 
 /** Like getSession, but redirects to sign-in (with a return URL) when there is no session. */

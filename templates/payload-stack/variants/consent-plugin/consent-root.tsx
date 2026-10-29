@@ -17,8 +17,9 @@ import { getPayloadClient } from '@/lib/payload'
 
 /** Reads the banner config and the visitor's existing decision, for either half. */
 async function load() {
-  const payload = await getPayloadClient()
+  // Request first, then Payload: keeps `next build` from connecting to the database (see getSession).
   const requestHeaders = await headers()
+  const payload = await getPayloadClient()
   const config = await getConsentConfig(payload, { headers: requestHeaders })
   return {
     config,

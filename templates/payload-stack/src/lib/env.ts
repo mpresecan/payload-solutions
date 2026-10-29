@@ -84,8 +84,16 @@ const schema = z.object({
   UPLOADTHING_TOKEN: optionalString,
 })
 
+/**
+ * `next build` imports server modules to collect page data, but secrets usually exist only at runtime
+ * (Docker, CI, Railway and most hosts). During the build the two required values fall back to
+ * placeholders the build never connects with; the running server still validates the real ones.
+ */
+const BUILD_PLACEHOLDERS = { DATABASE_URL: 'postgres://build-placeholder', PAYLOAD_SECRET: 'build-placeholder' }
+
 function load() {
-  const parsed = schema.safeParse(process.env)
+  const isBuild = process.env.NEXT_PHASE === 'phase-production-build'
+  const parsed = schema.safeParse(isBuild ? { ...BUILD_PLACEHOLDERS, ...withoutEmpty(process.env) } : process.env)
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n')
     throw new Error(`Invalid environment variables:\n${issues}`)
@@ -93,7 +101,14 @@ function load() {
   return parsed.data
 }
 
+function withoutEmpty(source: NodeJS.ProcessEnv) {
+  return Object.fromEntries(Object.entries(source).filter(([, value]) => value !== undefined && value !== ''))
+}
+
 export const env = load()
+
+/** True while `next build` runs without a database (Docker, CI): skip build-time queries. */
+export const buildWithoutDatabase = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.DATABASE_URL
 
 export type Env = z.output<typeof schema>
 

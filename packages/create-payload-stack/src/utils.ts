@@ -46,6 +46,17 @@ export async function detectPackageManager(): Promise<PackageManager> {
   return 'npm'
 }
 
+/** The installed version of a package manager (`10.28.0`), or undefined when it cannot be run. */
+export async function packageManagerVersion(pm: PackageManager): Promise<string | undefined> {
+  try {
+    const { stdout } = await execa(pm, ['--version'])
+    const version = stdout.trim()
+    return /^\d+\.\d+\.\d+$/.test(version) ? version : undefined
+  } catch {
+    return undefined
+  }
+}
+
 export function installCommand(pm: PackageManager) {
   return pm === 'yarn' ? 'yarn' : `${pm} install`
 }

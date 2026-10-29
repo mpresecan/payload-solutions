@@ -11,6 +11,7 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import {
+  pinPackageManager,
   renameProject,
   renderEnv,
   renderTestEnv,
@@ -446,5 +447,26 @@ describe('renderTestEnv', () => {
     expect(scheme(int)).toBe(scheme(defaultConnectionString(db, 'acme')))
     expect(scheme(e2e)).toBe(scheme(defaultConnectionString(db, 'acme')))
     expect(int).not.toBe(e2e)
+  })
+})
+
+describe('pinPackageManager', () => {
+  it('the template pins pnpm, so an unpinned host never pulls a newer major', () => {
+    expect(packageJson.packageManager).toMatch(/^pnpm@\d+\.\d+\.\d+$/)
+    expect((packageJson.engines as Record<string, string>).pnpm).toBeUndefined()
+  })
+
+  it('pins the pnpm or yarn version that scaffolded the project', () => {
+    expect(pinPackageManager(packageJson, 'pnpm', '12.16.1').packageManager).toBe('pnpm@12.16.1')
+    expect(pinPackageManager(packageJson, 'yarn', '1.22.22').packageManager).toBe('yarn@1.22.22')
+  })
+
+  it('keeps the template pin for pnpm when the version is unknown', () => {
+    expect(pinPackageManager(packageJson, 'pnpm', undefined).packageManager).toBe(packageJson.packageManager)
+  })
+
+  it('drops the field for npm, bun and a yarn of unknown version', () => {
+    for (const pm of ['npm', 'bun'] as const) expect(pinPackageManager(packageJson, pm, '1.2.3')).not.toHaveProperty('packageManager')
+    expect(pinPackageManager(packageJson, 'yarn', undefined)).not.toHaveProperty('packageManager')
   })
 })

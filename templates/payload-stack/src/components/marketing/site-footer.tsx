@@ -3,10 +3,13 @@ import Link from 'next/link'
 import { Logo } from '@/components/marketing/logo'
 import { ConsentSettingsLink } from '@/consent/consent-settings-link'
 import { paths } from '@/lib/paths'
+import { buildWithoutDatabase } from '@/lib/env'
 import { getPayloadClient } from '@/lib/payload'
 import stack from '@/stack.config'
 
 async function legalLinks() {
+  // The statically built 404 page renders this footer; with no database at build there is nothing to list.
+  if (buildWithoutDatabase) return []
   try {
     const payload = await getPayloadClient()
     const pages = await payload.find({

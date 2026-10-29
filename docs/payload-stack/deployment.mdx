@@ -43,7 +43,14 @@ Nothing runs between requests on Vercel, so a project with [scheduled actions](/
 
 ## Docker
 
-The included `Dockerfile` builds a standalone Next.js image. Provide the environment variables at runtime and run migrations before starting the container. This is the one place `RUN_JOBS_IN_PROCESS=true` belongs, if the project has scheduled actions — on one instance.
+The included `Dockerfile` builds a standalone Next.js image for any container host (Railway, Fly.io, Render, a VPS). The build needs no secrets and never connects to the database, so it works on any builder.
+
+- **Runtime variables:** everything in the table above, set on the host.
+- **Build arguments:** the public `NEXT_PUBLIC_*` values (`NEXT_PUBLIC_APP_URL`, the Stripe price ids, `NEXT_PUBLIC_SENTRY_DSN`), because Next.js compiles them into the bundle. Railway passes a service variable to the build automatically when the Dockerfile declares it as `ARG`, which it does.
+- **Migrations:** the image contains only the compiled server, not the Payload CLI, so run `pnpm db:migrate` against the production database from your machine or CI before the new image goes live.
+- **Uploads:** the container's disk is replaced on every deploy; use a [storage adapter](/docs/payload-stack/storage).
+
+This is the one place `RUN_JOBS_IN_PROCESS=true` belongs, if the project has scheduled actions — on one instance.
 
 ## Checklist before launch
 

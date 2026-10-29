@@ -1,9 +1,10 @@
 {
   "name": "payload-stack",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Payload Stack: a SaaS boilerplate on Payload CMS, Next.js, Better Auth, organizations, Stripe and shadcn/ui.",
   "license": "MIT",
   "type": "module",
+  "packageManager": "pnpm@10.28.0",
   "scripts": {
     "build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=8000\" next build",
     "clean": "rm -rf .next .turbo",
@@ -99,8 +100,7 @@
     "vitest": "4.0.18"
   },
   "engines": {
-    "node": "^18.20.2 || >=20.9.0",
-    "pnpm": "^9 || ^10 || ^11"
+    "node": "^18.20.2 || >=20.9.0"
   },
   "homepage": "https://www.payloadstack.com",
   "repository": {

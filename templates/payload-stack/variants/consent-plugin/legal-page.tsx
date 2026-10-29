@@ -20,8 +20,10 @@ import type { LegalPage } from '@/payload-types'
  * streaming renderer.
  */
 export async function renderLegalPageContent(page: LegalPage, effectiveDate: string): Promise<ReactNode> {
+  // Request first, then Payload: keeps `next build` from connecting to the database (see getSession).
+  const requestHeaders = await headers()
   const payload = await getPayloadClient()
-  const consent = await getConsentConfig(payload, { headers: await headers() })
+  const consent = await getConsentConfig(payload, { headers: requestHeaders })
   const processors = await getProcessorTableData(payload)
 
   return (

@@ -6,6 +6,10 @@ import { getPayloadClient } from '@/lib/payload'
 
 type Params = { params: Promise<{ slug: string }> }
 
+// Rendered on request, like every other marketing page: the consent layer reads the request, and a
+// statically generated route that does so fails at runtime (DYNAMIC_SERVER_USAGE) whenever the
+// build had no database to list the slugs. No generateStaticParams here for that reason.
+
 async function getPage(slug: string) {
   const payload = await getPayloadClient()
   const result = await payload.find({
@@ -15,16 +19,6 @@ async function getPage(slug: string) {
     overrideAccess: false,
   })
   return result.docs[0] ?? null
-}
-
-export async function generateStaticParams() {
-  try {
-    const payload = await getPayloadClient()
-    const pages = await payload.find({ collection: 'legal-pages', select: { slug: true }, limit: 50, overrideAccess: true })
-    return pages.docs.map((p) => ({ slug: p.slug }))
-  } catch {
-    return []
-  }
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {

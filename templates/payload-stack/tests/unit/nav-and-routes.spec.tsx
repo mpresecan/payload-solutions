@@ -179,35 +179,38 @@ describe('organization routes', () => {
 })
 
 describe('auth routes', () => {
-  it('prerenders every Better Auth UI view and 404s anything else', async () => {
-    const page = await import('@/app/(frontend)/auth/[path]/page')
+  const loadAuthPage = (name: PresetName) => loadWithStack(presets[name], () => import('@/app/(frontend)/auth/[path]/page'))
+
+  it.each(presetEntries)('preset %s: prerenders exactly the views the config enables', async (name, input) => {
+    const { features } = defineStack(input)
+    const page = await loadAuthPage(name)
     const views = page.generateStaticParams().map((p) => p.path)
+
     expect(views).toEqual(
-      expect.arrayContaining([
-        'sign-in',
-        'sign-up',
-        'sign-out',
-        'forgot-password',
-        'reset-password',
-        'verify-email',
-        'magic-link',
-        'two-factor',
-        'accept-invitation',
-        'callback',
-        'error',
-      ]),
+      expect.arrayContaining(['sign-in', 'sign-up', 'sign-out', 'forgot-password', 'reset-password', 'verify-email', 'callback', 'error']),
     )
+    // A view whose plugin is off has no component; prerendering it would fail the build.
+    expect(views.includes('magic-link')).toBe(features.magicLink)
+    expect(views.includes('two-factor')).toBe(features.twoFactor)
+    expect(views.includes('accept-invitation')).toBe(features.organizations)
+  })
+
+  it('404s anything else', async () => {
+    const page = await loadAuthPage('billing-org')
     for (const p of ['signIn', 'login', 'admin', '']) {
       await expect(page.default({ params: Promise.resolve({ path: p }) })).rejects.toThrow('NEXT_NOT_FOUND')
     }
     await expect(page.generateMetadata({ params: Promise.resolve({ path: 'forgot-password' }) })).resolves.toEqual({ title: 'Forgot Password' })
   })
 
-  it('covers every path the app links to', async () => {
-    const page = await import('@/app/(frontend)/auth/[path]/page')
+  it.each(presetEntries)('preset %s: every auth path the app links to exists', async (name, input) => {
+    const { features } = defineStack(input)
+    const page = await loadAuthPage(name)
     const views = new Set(page.generateStaticParams().map((p) => `/auth/${p.path}`))
     for (const [key, value] of Object.entries(paths.auth)) {
       if (key === 'base') continue
+      // Invitations are only linked to when organizations are on.
+      if (key === 'acceptInvitation' && !features.organizations) continue
       expect(views.has(value)).toBe(true)
     }
   })

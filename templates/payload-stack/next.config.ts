@@ -3,6 +3,8 @@ import { withSentryConfig } from '@sentry/nextjs'
 import { withPayload } from '@payloadcms/next/withPayload'
 import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
+  // A self-contained server in .next/standalone: what the Dockerfile ships. Vercel ignores it.
+  output: 'standalone',
   images: {
     localPatterns: [
       {

@@ -211,12 +211,13 @@ describe('legal page', () => {
     ).rejects.toThrow('NEXT_NOT_FOUND')
   })
 
-  it('prerenders every legal slug and titles the page', async () => {
+  it('renders on request (no generateStaticParams) and titles the page', async () => {
     const payload = fakePayload()
     vi.doMock('@/lib/payload', () => ({ getPayloadClient: async () => payload }))
     const page = await loadWithStack(presets.defaults, () => import('@/app/(frontend)/(marketing)/legal/[slug]/page'))
     vi.doUnmock('@/lib/payload')
-    expect(await page.generateStaticParams()).toEqual([{ slug: 'privacy' }, { slug: 'terms' }])
+    // A static route that reads headers() 500s at runtime when the build could not list the slugs.
+    expect('generateStaticParams' in page).toBe(false)
     expect(await page.generateMetadata({ params: Promise.resolve({ slug: 'terms' }) })).toEqual({ title: 'Terms of Service' })
     expect(await page.generateMetadata({ params: Promise.resolve({ slug: 'nope' }) })).toEqual({ title: 'Legal' })
   })

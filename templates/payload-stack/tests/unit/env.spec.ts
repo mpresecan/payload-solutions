@@ -35,6 +35,18 @@ describe('env', () => {
     await expect(loadEnv({ ...required, [key]: undefined })).rejects.toThrow(new RegExp(`Invalid environment variables:[\\s\\S]*${key}`))
   })
 
+  it('lets `next build` import without runtime secrets, but only during the build', async () => {
+    const { env } = await loadEnv({ DATABASE_URL: undefined, PAYLOAD_SECRET: undefined, NEXT_PHASE: 'phase-production-build' })
+    expect(env.DATABASE_URL).toMatch(/build-placeholder/)
+    expect(env.PAYLOAD_SECRET).toBe('build-placeholder')
+    const built = await loadEnv({ DATABASE_URL: undefined, NEXT_PHASE: 'phase-production-build' })
+    expect(built.buildWithoutDatabase).toBe(true)
+    const real = await loadEnv({ ...required, NEXT_PHASE: 'phase-production-build' })
+    expect(real.env.DATABASE_URL).toBe(required.DATABASE_URL)
+    expect(real.buildWithoutDatabase).toBe(false)
+    await expect(loadEnv({ DATABASE_URL: undefined, PAYLOAD_SECRET: undefined, NEXT_PHASE: 'phase-production-server' })).rejects.toThrow(/DATABASE_URL/)
+  })
+
   it('treats an empty required variable as missing', async () => {
     await expect(loadEnv({ ...required, PAYLOAD_SECRET: '' })).rejects.toThrow(/PAYLOAD_SECRET/)
   })

@@ -101,7 +101,7 @@ src/
 
 ## Deploying
 
-Any Node host or Vercel. Set the environment variables from `.env.example`, use a managed PostgreSQL (or the database you chose when scaffolding), point uploads at a storage adapter (local disk does not survive a redeploy on Vercel), and run `pnpm db:migrate` as part of your deploy instead of relying on schema push.
+Vercel, or any container host with the included `Dockerfile` (Railway, Fly.io, Render). Set the environment variables from `.env.example` on the host; the build itself needs none of them and never connects to the database. Use a managed PostgreSQL (or the database you chose when scaffolding), point uploads at a storage adapter (local disk does not survive a redeploy, on Vercel or in a container), and run `pnpm db:migrate` as part of your deploy instead of relying on schema push.
 
 ## License
 
