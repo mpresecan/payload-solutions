@@ -123,7 +123,9 @@ export function createSchedulerAPI(
       stopAfterCurrent: false,
       tz: input.tz ?? null,
       unique,
-      uniqueKey,
+      // Only set when unique: on MongoDB the unique, sparse index counts an explicit null as a
+      // value, so a second non-unique action stored with `uniqueKey: null` would be a duplicate.
+      ...(uniqueKey ? { uniqueKey } : {}),
       createdAt: now.toISOString(),
       updatedAt: now.toISOString(),
     }
