@@ -1,0 +1,16 @@
+# Keeps secrets, host-built dependencies and local state out of the image.
+.env
+.env.*
+!.env.example
+test.env
+node_modules
+.next
+.turbo
+.git
+media
+*.db
+*.db-*
+coverage
+playwright-report
+test-results
+tsconfig.tsbuildinfo

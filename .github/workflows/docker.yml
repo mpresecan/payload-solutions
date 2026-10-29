@@ -1,0 +1,68 @@
+name: Docker
+
+# A freshly scaffolded project must build in Docker with no .env and no database, then boot.
+# Catches what the unit suites cannot: an unpinned package manager, a missing standalone output,
+# secrets or a database required at build time, files the Dockerfile expects but the template lacks.
+on:
+  push:
+    branches: [main]
+    paths: ['templates/payload-stack/**', 'packages/create-payload-stack/**', '.github/workflows/docker.yml']
+  pull_request:
+    paths: ['templates/payload-stack/**', 'packages/create-payload-stack/**', '.github/workflows/docker.yml']
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: 10.28.0
+  NODE_VERSION: 22
+
+jobs:
+  scaffold-build:
+    name: Fresh scaffold (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: defaults
+            flags: ''
+          # Features off: catches routes and tests that assume a feature is on.
+          - name: minimal
+            flags: --auth email-password --no-organizations --billing none --no-emails --no-consent --no-scheduler
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter create-payload-stack run build
+
+      - name: Scaffold
+        working-directory: ${{ runner.temp }}
+        run: >-
+          node $GITHUB_WORKSPACE/packages/create-payload-stack/dist/index.js app
+          --local-template $GITHUB_WORKSPACE/templates/payload-stack
+          --use-pnpm --no-git --agents none -y ${{ matrix.flags }}
+
+      - name: Unit tests of the scaffolded project
+        working-directory: ${{ runner.temp }}/app
+        run: pnpm test:unit
+
+      - name: Docker build (no .env, no database)
+        working-directory: ${{ runner.temp }}/app
+        run: docker build -t app .
+
+      - name: Container boots and serves
+        run: |
+          docker run -d --name app -p 3000:3000 \
+            -e DATABASE_URL=postgres://nobody:nothing@db.invalid:5432/none \
+            -e PAYLOAD_SECRET=ci-secret app
+          for i in $(seq 1 30); do curl -fsS http://localhost:3000/favicon.svg >/dev/null && exit 0; sleep 1; done
+          docker logs app; exit 1
