@@ -219,7 +219,12 @@ export const actionScheduler =
             data.createdBy = data.createdBy ?? ((req.user as { email?: string } | null)?.email ?? null)
             const unique = Boolean(data.unique ?? definition.unique ?? repeat !== 'once')
             data.unique = unique
-            data.uniqueKey = unique ? uniqueKeyFor(hook, group, data.argsHash as string) : null
+            if (unique) {
+              data.uniqueKey = uniqueKeyFor(hook, group, data.argsHash as string)
+            } else {
+              // Never an explicit null: see the uniqueKey note in api/index.ts.
+              delete data.uniqueKey
+            }
             data.scheduleAt = toDate(data.scheduleAt as string).toISOString()
           }
           return data

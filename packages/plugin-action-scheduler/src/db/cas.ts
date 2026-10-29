@@ -169,7 +169,21 @@ async function casMongoose(payload: Payload, args: CasArgs): Promise<boolean> {
   if ((filter.$and as unknown[]).length === 0) {
     delete filter.$and
   }
-  const result = await model.findOneAndUpdate(filter, { $set: { ...args.set, updatedAt: new Date() } }, { lean: true, new: true })
+  // A null is removed with $unset rather than stored. `uniqueKey` has a unique, sparse index, and a
+  // sparse index still indexes an explicit null: storing it made the second action to finish (or be
+  // canceled) fail with a duplicate key, so its result was never recorded and the row stayed
+  // `running` until the sweeper ran it again. A missing field reads back as null everywhere.
+  const $set: Record<string, unknown> = { updatedAt: new Date() }
+  const $unset: Record<string, ''> = {}
+  for (const [field, value] of Object.entries(args.set)) {
+    if (value === null) {
+      $unset[field] = ''
+    } else {
+      $set[field] = value
+    }
+  }
+  const update = Object.keys($unset).length ? { $set, $unset } : { $set }
+  const result = await model.findOneAndUpdate(filter, update, { lean: true, new: true })
   return Boolean(result)
 }
 
