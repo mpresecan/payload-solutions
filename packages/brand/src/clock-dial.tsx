@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react'
+
 /*
   Payload Clock's signature visual, and its counterpart to Payload Stack's IsoStack. It lives
   in the brand package because two sites draw it: payloadclock.com's hero, and the Payload
@@ -26,6 +28,14 @@
   spoke at `angle / 6` seconds. Subtracting a whole cycle makes that delay negative, which
   starts each spoke mid-cycle on first paint instead of waiting up to a minute for the first
   pulse.
+
+  `intro` adds a load-in for the hero, still pure CSS on first paint: the glow blooms, the rim
+  draws itself clockwise from twelve, the ticks sweep in behind it, each spoke draws out to its
+  node and the node pops, and the hand grows out of the hub. None of it touches the 60-second
+  cycle — the intro rides on wrapper groups and on properties the cycle does not animate — so
+  the pulses stay locked to the hand. The first pulse (22° → 3.7s) lands after the intro ends.
+  It is opt-in because payload.solutions draws this dial below the fold, where a load-in would
+  play to nobody.
 */
 
 /** Where the deployments sit, in degrees clockwise from twelve o'clock. */
@@ -42,11 +52,22 @@ function polar(deg: number, r: number): [number, number] {
   return [CENTER + r * Math.cos(rad), CENTER + r * Math.sin(rad)]
 }
 
-export function ClockDial({ className }: { className?: string }) {
+export interface ClockDialProps {
+  className?: string
+  /** Play the load-in on first paint. Use it where the dial is above the fold. */
+  intro?: boolean
+}
+
+/** Custom properties the intro stylesheet staggers on. */
+const vars = (v: Record<string, number>) => v as CSSProperties
+
+export function ClockDial({ className, intro = false }: ClockDialProps) {
   return (
     <svg
       viewBox="0 0 440 440"
-      className={['clock-dial h-auto w-full', className].filter(Boolean).join(' ')}
+      className={['clock-dial h-auto w-full', intro && 'clock-dial--intro', className]
+        .filter(Boolean)
+        .join(' ')}
       role="img"
       aria-label="A clock dial with a hand sweeping once a minute, sending a pulse to each connected Payload deployment as it passes."
       fill="none"
@@ -119,12 +140,99 @@ export function ClockDial({ className }: { className?: string }) {
             }
           }
 
+          /* ---- Load-in (opt-in via .clock-dial--intro) ----------------------------------------
+             Every rule fills \`backwards\`: hidden through its delay, then it hands back the
+             element's own resting style, so nothing is left held by an animation. */
+          .clock-dial--intro .clock-dial__glow,
+          .clock-dial--intro .clock-dial__hub,
+          .clock-dial--intro .clock-dial__hand-in {
+            transform-box: view-box;
+            transform-origin: ${CENTER}px ${CENTER}px;
+          }
+
+          .clock-dial--intro .clock-dial__glow {
+            animation: clock-bloom 1.8s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+          }
+          @keyframes clock-bloom {
+            from {
+              opacity: 0;
+              transform: scale(0.55);
+            }
+          }
+
+          /* The rim draws from twelve o'clock (the circle is turned -90°; pathLength is 1). */
+          .clock-dial--intro .clock-dial__rim {
+            stroke-dasharray: 1;
+            animation: clock-draw 1.5s cubic-bezier(0.65, 0, 0.35, 1) 0.15s backwards;
+          }
+          @keyframes clock-draw {
+            from {
+              stroke-dashoffset: 1;
+            }
+          }
+
+          /* The ticks follow the rim round, a minute at a time. Opacity animates to the tick's
+             own presentation opacity, so majors and minors keep their weight. */
+          .clock-dial--intro .clock-dial__tick {
+            animation: clock-fade 0.5s ease-out backwards;
+            animation-delay: calc(0.3s + var(--t) * 21ms);
+          }
+          .clock-dial--intro .clock-dial__inner {
+            animation: clock-fade 1.2s ease-out 0.7s backwards;
+          }
+          @keyframes clock-fade {
+            from {
+              opacity: 0;
+            }
+          }
+
+          /* Each deployment comes online clockwise: its guide line draws out, then the node pops. */
+          .clock-dial--intro .clock-dial__guide {
+            stroke-dasharray: 1;
+            animation: clock-draw 0.45s cubic-bezier(0.165, 0.84, 0.44, 1) backwards;
+            animation-delay: calc(0.85s + var(--s) * 90ms);
+          }
+          .clock-dial--intro .clock-dial__node-in {
+            transform-box: fill-box;
+            transform-origin: center;
+            animation: clock-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+            animation-delay: calc(1.1s + var(--s) * 90ms);
+          }
+          @keyframes clock-pop {
+            from {
+              opacity: 0;
+              transform: scale(0);
+            }
+          }
+
+          /* The hub lights first; the hand grows out of it. */
+          .clock-dial--intro .clock-dial__hub {
+            animation: clock-pop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s backwards;
+          }
+          .clock-dial--intro .clock-dial__hand-in {
+            animation: clock-grow 1.3s cubic-bezier(0.16, 1, 0.3, 1) 0.55s backwards;
+          }
+          @keyframes clock-grow {
+            from {
+              opacity: 0;
+              transform: scale(0.15);
+            }
+          }
+
           /* One rule retires the whole diagram for anyone who asks for less motion. What is left is
              not a broken picture: the hand parks at twelve, the nodes keep their hairline. */
           @media (prefers-reduced-motion: reduce) {
             .clock-dial__hand,
             .clock-dial__pulse,
-            .clock-dial__node {
+            .clock-dial__node,
+            .clock-dial--intro .clock-dial__glow,
+            .clock-dial--intro .clock-dial__rim,
+            .clock-dial--intro .clock-dial__tick,
+            .clock-dial--intro .clock-dial__inner,
+            .clock-dial--intro .clock-dial__guide,
+            .clock-dial--intro .clock-dial__node-in,
+            .clock-dial--intro .clock-dial__hub,
+            .clock-dial--intro .clock-dial__hand-in {
               animation: none;
             }
           }
@@ -150,12 +258,28 @@ export function ClockDial({ className }: { className?: string }) {
         </linearGradient>
       </defs>
 
-      <circle cx={CENTER} cy={CENTER} r={RING + 18} fill="url(#clock-hub-glow)" />
+      <circle
+        className="clock-dial__glow"
+        cx={CENTER}
+        cy={CENTER}
+        r={RING + 18}
+        fill="url(#clock-hub-glow)"
+      />
 
       {/* Two hairline rings and the minute ticks: the dial as a measuring instrument, in the
           same weight as the page's background lattice. */}
-      <circle cx={CENTER} cy={CENTER} r={RING} stroke="var(--border-strong)" strokeWidth="1" />
       <circle
+        className="clock-dial__rim"
+        cx={CENTER}
+        cy={CENTER}
+        r={RING}
+        stroke="var(--border-strong)"
+        strokeWidth="1"
+        pathLength={1}
+        transform={`rotate(-90 ${CENTER} ${CENTER})`}
+      />
+      <circle
+        className="clock-dial__inner"
         cx={CENTER}
         cy={CENTER}
         r={RING - 34}
@@ -170,33 +294,57 @@ export function ClockDial({ className }: { className?: string }) {
           const major = i % 5 === 0
           const [x1, y1] = polar(deg, RING)
           const [x2, y2] = polar(deg, RING + (major ? 13 : 6))
-          return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} opacity={major ? 0.9 : 0.35} />
+          return (
+            <line
+              key={i}
+              className="clock-dial__tick"
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              opacity={major ? 0.9 : 0.35}
+              style={vars({ '--t': i })}
+            />
+          )
         })}
       </g>
 
       {/* One group per deployment: the guide line, the node on the rim, and the pulse that
           travels out to it. The group is rotated to the spoke's angle, so the pulse only ever
           has to move along its own Y axis. */}
-      {SPOKES.map((deg) => {
+      {SPOKES.map((deg, s) => {
         const [nx, ny] = polar(deg, SPOKE_END)
         const [gx, gy] = polar(deg, RING + 16)
         // Negative delay: start the spoke mid-cycle rather than after up to a full minute.
         const delay = `${(deg / 6 - 60).toFixed(2)}s`
         return (
           <g key={deg}>
-            <line x1={gx} y1={gy} x2={nx} y2={ny} stroke="var(--border)" strokeWidth="1" />
-
-            {/* The node lights as the pulse lands: the same delay plus the travel time. */}
-            <circle
-              className="clock-dial__node"
-              cx={nx}
-              cy={ny}
-              r="5.5"
-              fill="var(--bg)"
-              stroke="var(--border-strong)"
+            <line
+              className="clock-dial__guide"
+              x1={gx}
+              y1={gy}
+              x2={nx}
+              y2={ny}
+              stroke="var(--border)"
               strokeWidth="1"
-              style={{ animationDelay: `${(deg / 6 - 60 + TRAVEL).toFixed(2)}s` }}
+              pathLength={1}
+              style={vars({ '--s': s })}
             />
+
+            {/* The node lights as the pulse lands: the same delay plus the travel time. The
+                wrapper carries the intro pop, so it never fights the blip on the circle. */}
+            <g className="clock-dial__node-in" style={vars({ '--s': s })}>
+              <circle
+                className="clock-dial__node"
+                cx={nx}
+                cy={ny}
+                r="5.5"
+                fill="var(--bg)"
+                stroke="var(--border-strong)"
+                strokeWidth="1"
+                style={{ animationDelay: `${(deg / 6 - 60 + TRAVEL).toFixed(2)}s` }}
+              />
+            </g>
 
             <g
               style={{ transform: `rotate(${deg}deg)`, transformOrigin: `${CENTER}px ${CENTER}px` }}
@@ -214,21 +362,26 @@ export function ClockDial({ className }: { className?: string }) {
         )
       })}
 
-      {/* The hand. One rotation a minute, linear, forever — the whole diagram is timed off it. */}
-      <g className="clock-dial__hand" style={{ transformOrigin: `${CENTER}px ${CENTER}px` }}>
-        <line
-          x1={CENTER}
-          y1={CENTER}
-          x2={CENTER}
-          y2={CENTER - RING + 4}
-          stroke="url(#clock-hand)"
-          strokeWidth="1.5"
-        />
-        <circle cx={CENTER} cy={CENTER - RING + 4} r="3" fill="var(--accent)" />
+      {/* The hand. One rotation a minute, linear, forever — the whole diagram is timed off it.
+          The outer group only carries the intro, so the sweep's clock is never delayed. */}
+      <g className="clock-dial__hand-in">
+        <g className="clock-dial__hand" style={{ transformOrigin: `${CENTER}px ${CENTER}px` }}>
+          <line
+            x1={CENTER}
+            y1={CENTER}
+            x2={CENTER}
+            y2={CENTER - RING + 4}
+            stroke="url(#clock-hand)"
+            strokeWidth="1.5"
+          />
+          <circle cx={CENTER} cy={CENTER - RING + 4} r="3" fill="var(--accent)" />
+        </g>
       </g>
 
-      <circle cx={CENTER} cy={CENTER} r="4.5" fill="var(--accent)" />
-      <circle cx={CENTER} cy={CENTER} r="11" stroke="var(--accent-line)" strokeWidth="1" />
+      <g className="clock-dial__hub">
+        <circle cx={CENTER} cy={CENTER} r="4.5" fill="var(--accent)" />
+        <circle cx={CENTER} cy={CENTER} r="11" stroke="var(--accent-line)" strokeWidth="1" />
+      </g>
     </svg>
   )
 }
