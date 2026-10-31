@@ -49,7 +49,7 @@ export function Hero() {
         </div>
 
         <Parallax speed={-0.08} className="min-w-0 lg:col-span-2 lg:pl-10">
-          <ClockDial className="mx-auto w-full max-w-[20rem] sm:max-w-[26rem] md:max-w-[34rem] lg:max-w-none" />
+          <ClockDial intro className="mx-auto w-full max-w-[20rem] sm:max-w-[26rem] md:max-w-[34rem] lg:max-w-none" />
         </Parallax>
       </div>
     </section>
