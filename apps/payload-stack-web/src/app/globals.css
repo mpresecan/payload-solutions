@@ -169,42 +169,47 @@
   padding-left: 0;
 }
 
-/* Built-with logo wall: each cell's two logos trade places through a 10px blur. Both run the
-   same keyframes half a cycle apart (negative delays set per logo in built-with.tsx), so one is
-   always fully in while the other is out. The 18s cycle and 1s fades (44.44%→50%, 94.44%→100%)
-   must match SWAP_FADE_S / SWAP_CYCLE_S there: each cell finishes, the row rests 0.5s, then the
-   next cell starts. Resting frames use `filter: none`, so the page only pays for blur during the
-   cross-fade. */
-@keyframes logo-swap {
-  0%,
-  44.44% {
+/* Built-with logo carousel (components/logos-carousel.tsx): whole groups rotate, each cell
+   staggered by its index. The outgoing logo lifts and blurs away while the next rises in from
+   below; both run at once in the same cell. Duration and delay are set inline per item. Resting
+   logos carry no filter, so blur is only paid for during the swap. */
+@keyframes logos-carousel-exit {
+  from {
     opacity: 1;
+    transform: none;
     filter: none;
-    visibility: visible;
   }
-  50%,
-  94.44% {
+  to {
     opacity: 0;
-    filter: blur(10px);
-    /* Hidden, not just transparent: the logo out of view must not catch clicks meant for the
-       one showing. */
+    transform: translateY(-14px);
+    filter: blur(6px);
     visibility: hidden;
   }
-  100% {
-    opacity: 1;
-    filter: none;
-    visibility: visible;
-  }
 }
-.logo-swap {
-  animation: logo-swap 18s ease-in-out infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .logo-swap {
-    animation: none;
-  }
-  .logo-swap-alt {
+@keyframes logos-carousel-enter {
+  from {
     opacity: 0;
-    visibility: hidden;
+    transform: translateY(14px);
+    filter: blur(6px);
   }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+.logos-carousel-item[data-state='enter'] {
+  animation-name: logos-carousel-enter;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-fill-mode: both;
+}
+.logos-carousel-item[data-state='exit'] {
+  animation-name: logos-carousel-exit;
+  animation-timing-function: cubic-bezier(0.55, 0, 0.75, 0.2);
+  animation-fill-mode: both;
+  pointer-events: none;
+}
+.logos-carousel-item[data-state='off'] {
+  opacity: 0;
+  visibility: hidden;
 }
