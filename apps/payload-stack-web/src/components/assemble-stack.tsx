@@ -13,10 +13,9 @@ import { useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEv
  *     answers its prompts one at a time and each answer drops the layer it creates into a dashed
  *     slot. The optional plugins land in their own entity accent, and a
  *     declined one stays an empty slot, so "optional" is visible rather than claimed.
- *  2. TOUR. Once the stack is built, each layer lifts in turn. One glow follows whichever layer
- *     is lifted, taking its accent: it travels as a narrow beam and spreads into a flat pool
- *     under the layer when it lands,
- *     and the transcript line that created it lights up.
+ *  2. TOUR. Once the stack is built, each layer lifts in turn over a soft pool of light in its
+ *     own accent, and the transcript line that created it lights up. Between two layers a
+ *     hairline pulse runs along the stack's axis, and the pool opens where it arrives.
  *  3. SWAP. At the bottom of the tour the database slab slides out to the left and the next
  *     adapter slides in from the right, and the Database answer in the transcript changes with it.
  *
@@ -47,9 +46,14 @@ const LIFT_ABOVE = 48
 const LIFT_ABOVE_BASE = 20
 const DROP = 44
 const SWAP_X = 62
-/** The glow in flight: squeezed to a narrow, tall beam. At rest it is 1 x 1, a wide flat pool. */
-const BEAM_X = 0.14
-const BEAM_Y = 2.4
+/** Resting opacity of the pool of light under the lifted layer. */
+const POOL = 0.5
+/** The pulse that runs up or down the stack's axis between two layers: a hairline, not a shape. */
+const PULSE_W = 1.2
+const PULSE_H = 24
+const PULSE_S = 0.42
+/** From the pool's centre up to the middle of the layer it sits under, where the pulse runs. */
+const AXIS_DY = -(T + 20)
 
 const BEAT_MS = 275
 /** One prompt per beat: once the command and the name are typed, the stack goes up briskly. */
@@ -359,6 +363,9 @@ export function AssembleStack({ className }: { className?: string }) {
   const uid = useId()
   const captionId = `${uid}-caption`
   const blurId = `${uid}-glow`
+  const haloId = `${uid}-halo`
+  const fadeId = `${uid}-fade`
+  const maskId = `${uid}-mask`
 
   const [s, setS] = useState<State>({ step: 0, p: -1, db: 0, manual: -1, pinned: -1, run: 0 })
   /** The latest state for the timer and the handlers, which must not re-subscribe on every change. */
@@ -504,49 +511,66 @@ export function AssembleStack({ className }: { className?: string }) {
     activeSlot?.docs && s.pinned === active ? `${brands.stack.docsUrl}/${activeSlot.docs}` : null
   const glowSlot = Math.max(active, 0)
   const glowY = -glowSlot * STEP + (active < 0 ? 0 : liftOf(glowSlot)) + W / 2 + T + 20
-  // The glow moves as a beam and lands as a shadow: it narrows and stretches along its path as
-  // it leaves, travels like that, then spreads back out flat under the layer it arrives at.
-  const glowYmv = useMotionValue(glowY)
-  const glowSX = useMotionValue(1)
-  const glowSY = useMotionValue(1)
+  // Two separate things, because they are two different kinds of light.
+  //
+  // The POOL is the soft glow that lies flat under the lifted layer. It never travels: when the
+  // lifted layer changes it dims where it is, and opens out again under the new layer.
+  //
+  // The PULSE is what crosses the stack in between: a hairline of light running along the
+  // stack's vertical axis, through the middle of the layers, from the old layer to the new one.
+  // It is a signal moving through the stack, and the pool opening is that signal arriving.
+  const poolY = useMotionValue(glowY)
+  const poolSX = useMotionValue(1)
+  const poolO = useMotionValue(0)
+  const pulseY = useMotionValue(glowY + AXIS_DY)
+  const pulseO = useMotionValue(0)
   const glowWas = useRef(-1)
-  /** The layer the glow last came to rest under. While it differs from `active`, the glow is in flight. */
-  const [landedAt, setLandedAt] = useState(-1)
-  useEffect(() => {
-    const id = setTimeout(() => setLandedAt(active), active < 0 || reduce ? 0 : 560)
-    return () => clearTimeout(id)
-  }, [active, reduce])
   useEffect(() => {
     const from = glowWas.current
     glowWas.current = active
-    if (active < 0) return
+    if (active < 0) {
+      const c = animate(poolO, 0, { duration: reduce ? 0 : 0.3 })
+      return () => c.stop()
+    }
     if (reduce) {
-      glowYmv.set(glowY)
-      glowSX.set(1)
-      glowSY.set(1)
+      poolY.set(glowY)
+      poolSX.set(1)
+      poolO.set(POOL)
+      pulseO.set(0)
       return
     }
-    // Appearing from nothing: it is already in place, so it only spreads.
-    const travelling = from >= 0
-    if (!travelling) glowYmv.set(glowY)
-    const shape = travelling
-      ? { duration: 0.9, times: [0, 0.16, 0.6, 1], ease: 'easeOut' as const }
-      : { duration: 0.5, ease: 'easeOut' as const }
-    const controls = [
-      travelling ? animate(glowYmv, glowY, { duration: 0.46, delay: 0.1, ease: EASE_LIFT }) : null,
-      animate(glowSX, travelling ? [glowSX.get(), BEAM_X, BEAM_X, 1] : [BEAM_X, 1], shape),
-      animate(glowSY, travelling ? [glowSY.get(), BEAM_Y, BEAM_Y, 1] : [BEAM_Y, 1], shape),
+    const open = (delay: number) => [
+      animate(poolSX, 1, { duration: 0.55, delay, ease: [0.16, 1, 0.3, 1] }),
+      animate(poolO, POOL, { duration: 0.4, delay }),
     ]
-    return () => controls.forEach((c) => c?.stop())
-  }, [active, glowY, reduce, glowYmv, glowSX, glowSY])
+    // Appearing from nothing: no journey to show, the pool just opens.
+    if (from < 0) {
+      poolY.set(glowY)
+      poolSX.set(0.3)
+      const controls = open(0)
+      return () => controls.forEach((c) => c.stop())
+    }
+    const startY = poolY.get()
+    pulseY.set(startY + AXIS_DY)
+    const controls = [
+      animate(poolO, 0, { duration: 0.16 }),
+      animate(pulseY, glowY + AXIS_DY, { duration: PULSE_S, ease: EASE_LIFT }),
+      animate(pulseO, [0, 1, 1, 0], { duration: PULSE_S + 0.1, times: [0, 0.2, 0.75, 1] }),
+    ]
+    // Once it has dimmed, the pool is moved (unseen) to where the pulse is heading.
+    const move = setTimeout(() => {
+      poolY.set(glowY)
+      poolSX.set(0.3)
+      controls.push(...open(PULSE_S - 0.2))
+    }, 170)
+    return () => {
+      clearTimeout(move)
+      controls.forEach((c) => c.stop())
+    }
+  }, [active, glowY, reduce, poolY, poolSX, poolO, pulseY, pulseO])
 
-  // ONE glow for the whole stack. At rest it is painted just under the lifted layer, between it
-  // and the layer below. In flight it is painted over the whole stack, so the beam is seen
-  // crossing the layers rather than hidden behind them. The key keeps it the same element in
-  // both places, so it travels instead of fading out in one spot and in at another.
-  const flying = active >= 0 && landedAt >= 0 && landedAt !== active
-  const glowEl = (
-    <g key="glow" data-brand={activeSlot?.brand}>
+  const poolEl = (
+    <g key="pool" data-brand={activeSlot?.brand}>
       <motion.ellipse
         className="as-glow"
         cx={0}
@@ -554,10 +578,7 @@ export function AssembleStack({ className }: { className?: string }) {
         rx={118}
         ry={30}
         filter={`url(#${blurId})`}
-        initial={false}
-        style={{ y: glowYmv, scaleX: glowSX, scaleY: glowSY }}
-        animate={{ opacity: active >= 0 ? 0.5 : 0 }}
-        transition={{ duration: reduce ? 0 : 0.42 }}
+        style={{ y: poolY, scaleX: poolSX, opacity: poolO }}
       />
     </g>
   )
@@ -714,6 +735,19 @@ export function AssembleStack({ className }: { className?: string }) {
             <filter id={blurId} x="-50%" y="-150%" width="200%" height="400%">
               <feGaussianBlur stdDeviation="11" />
             </filter>
+            <filter id={haloId} x="-400%" y="-30%" width="900%" height="160%">
+              <feGaussianBlur stdDeviation="1.6" />
+            </filter>
+            {/* Fades the pulse out at both ends. A mask rather than a gradient fill, so the fill
+                stays var(--accent) and follows the layer's entity colour. */}
+            <linearGradient id={fadeId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#fff" stopOpacity="0" />
+              <stop offset="0.5" stopColor="#fff" stopOpacity="1" />
+              <stop offset="1" stopColor="#fff" stopOpacity="0" />
+            </linearGradient>
+            <mask id={maskId} maskContentUnits="objectBoundingBox">
+              <rect width="1" height="1" fill={`url(#${fadeId})`} />
+            </mask>
             <style>{`
               .as-top { fill: var(--slab-top); stroke: var(--border-strong); stroke-width: 1; transition: fill 360ms var(--ease-standard), stroke 360ms var(--ease-standard); }
               .as-side { fill: var(--slab-side-a); transition: fill 360ms var(--ease-standard), stroke 360ms var(--ease-standard); }
@@ -743,7 +777,7 @@ export function AssembleStack({ className }: { className?: string }) {
             const on = j === active
             const declined = slot.skipped && step >= slot.at
             return [
-              !flying && j === glowSlot ? glowEl : null,
+              j === glowSlot ? poolEl : null,
               <g key={slot.id} transform={`translate(0 ${-j * STEP})`} data-brand={slot.brand}>
                 <motion.g initial={false} animate={{ y: liftOf(j) }} transition={liftT}>
                   <motion.g
@@ -806,7 +840,28 @@ export function AssembleStack({ className }: { className?: string }) {
               </g>,
             ]
           })}
-          {flying ? glowEl : null}
+          {/* The pulse, over everything: it runs through the layers, not behind them. */}
+          <motion.g data-brand={activeSlot?.brand} style={{ y: pulseY, opacity: pulseO }}>
+            <rect
+              className="as-glow"
+              x={-2.5}
+              y={-PULSE_H / 2}
+              width={5}
+              height={PULSE_H}
+              rx={2.5}
+              opacity={0.35}
+              filter={`url(#${haloId})`}
+            />
+            <rect
+              className="as-glow"
+              x={-PULSE_W / 2}
+              y={-PULSE_H / 2}
+              width={PULSE_W}
+              height={PULSE_H}
+              rx={PULSE_W / 2}
+              mask={`url(#${maskId})`}
+            />
+          </motion.g>
 
           {/* Hit areas stay where the layers rest. If they rode the lift, a slab would move out
               from under the pointer, the one below would take the hover, and the stack would chase
