@@ -7,6 +7,10 @@ import { SlideFaces } from '@payload-solutions/brand/lattice'
 import posthog from 'posthog-js'
 import { cn } from '@/lib/cn'
 
+const AT = NPX_COMMAND.lastIndexOf('@')
+const COMMAND_HEAD = AT > 0 ? NPX_COMMAND.slice(0, AT) : NPX_COMMAND
+const COMMAND_TAG = AT > 0 ? NPX_COMMAND.slice(AT) : ''
+
 interface CopyCommandProps {
   className?: string
   /**
@@ -86,7 +90,13 @@ export function CopyCommand({ className, variant = 'box', size = 'md' }: CopyCom
           <span className="mr-3 opacity-45" aria-hidden>
             $
           </span>
-          <span className="min-w-0 [overflow-wrap:anywhere]">{NPX_COMMAND}</span>
+          {/* A break opportunity before the version tag: where the row is one lattice column
+              wide the command sets as two clean lines instead of splitting mid-word. */}
+          <span className="min-w-0 [overflow-wrap:anywhere]">
+            {COMMAND_HEAD}
+            <wbr />
+            {COMMAND_TAG}
+          </span>
         </SlideFaces>
         <span className="sr-only">
           {copied ? 'Copied' : failed ? 'Copy failed, select the text instead' : ''}
