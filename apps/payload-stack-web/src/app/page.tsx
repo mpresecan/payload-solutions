@@ -29,7 +29,7 @@ export default function HomePage() {
       <SiteHeader />
       <main id="main">
         <ThemeBand theme="dark" as="div" className="-mt-header pt-header">
-          <HeroVideoBackdrop video="stack" heroDim={0.5} />
+          <HeroVideoBackdrop video="stack" heroDim={0.68} />
           <GridColumns fadeTop />
           <Hero />
           <BuiltWith />

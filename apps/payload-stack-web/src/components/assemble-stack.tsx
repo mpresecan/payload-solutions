@@ -12,7 +12,8 @@ import { useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEv
  *     answers its prompts one at a time and each answer drops the layer it creates into a dashed
  *     slot. The optional plugins land in their own entity accent, and a
  *     declined one stays an empty slot, so "optional" is visible rather than claimed.
- *  2. TOUR. Once the stack is built, each layer lifts in turn on a soft glow of its own accent,
+ *  2. TOUR. Once the stack is built, each layer lifts in turn. One glow travels down the stack
+ *     under whichever layer is lifted, taking that layer's accent,
  *     and the transcript line that created it lights up.
  *  3. SWAP. At the bottom of the tour the database slab slides out to the left and the next
  *     adapter slides in from the right, and the Database answer in the transcript changes with it.
@@ -457,6 +458,8 @@ export function AssembleStack({ className }: { className?: string }) {
     : built
       ? 'Hover a layer to lift it.'
       : `${landedCount} of ${PLACEABLE} layers placed`
+  const glowSlot = Math.max(active, 0)
+  const glowY = -glowSlot * STEP + (active < 0 ? 0 : liftOf(glowSlot)) + W / 2 + T + 20
   const touring = p >= 0 && s.manual < 0
 
   const liftT = reduce ? { duration: 0 } : { duration: 0.56, ease: EASE_LIFT }
@@ -473,7 +476,7 @@ export function AssembleStack({ className }: { className?: string }) {
       <div className="grid items-center gap-8 md:grid-cols-[minmax(0,17.5rem)_minmax(0,1fr)] md:gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-10">
         <div className="order-2 min-w-0 md:order-1">
           <div
-            className="flex min-h-[16.5rem] flex-col gap-[0.5rem] border border-border bg-surface p-4 font-mono text-[0.6875rem] leading-[1.35] lg:min-h-[18.5rem] lg:gap-[0.625rem] lg:p-5 lg:text-[0.75rem]"
+            className="flex min-h-[16.5rem] flex-col gap-[0.5rem] font-mono text-[0.6875rem] leading-[1.35] lg:min-h-[18.5rem] lg:gap-[0.625rem] lg:text-[0.75rem]"
             aria-hidden="true"
           >
             {lines.map((line, i) => {
@@ -597,7 +600,7 @@ export function AssembleStack({ className }: { className?: string }) {
         >
           <defs>
             <filter id={blurId} x="-50%" y="-150%" width="200%" height="400%">
-              <feGaussianBlur stdDeviation="9" />
+              <feGaussianBlur stdDeviation="11" />
             </filter>
             <style>{`
               .as-top { fill: var(--slab-top); stroke: var(--border-strong); stroke-width: 1; transition: fill 360ms var(--ease-standard), stroke 360ms var(--ease-standard); }
@@ -606,7 +609,7 @@ export function AssembleStack({ className }: { className?: string }) {
               .as-tag { fill: var(--fg-subtle); transition: fill 360ms var(--ease-standard); }
               .as-ghost { fill: none; stroke: var(--border-strong); stroke-width: 1; stroke-dasharray: 4 4; }
               .as-ghost-tag { fill: var(--fg-subtle); }
-              .as-glow { fill: var(--accent); }
+              .as-glow { fill: var(--accent); transition: fill 420ms var(--ease-standard); }
               .as-slab.is-toned .as-top { fill: color-mix(in srgb, var(--accent) 13%, var(--bg)); stroke: var(--accent); }
               .as-slab.is-toned .as-side { fill: color-mix(in srgb, var(--accent) 42%, var(--bg)); }
               .as-slab.is-toned .as-side-edge { stroke: color-mix(in srgb, var(--accent) 42%, var(--bg)); }
@@ -623,11 +626,36 @@ export function AssembleStack({ className }: { className?: string }) {
             `}</style>
           </defs>
 
-          {SLOTS.map((slot, j) => {
+          {SLOTS.flatMap((slot, j) => {
             const landed = !slot.skipped && step >= slot.at
             const on = j === active
             const declined = slot.skipped && step >= slot.at
-            return (
+            // ONE glow for the whole stack. It is painted just under the lifted layer, so it has
+            // to sit between that layer and the one below in paint order; the key keeps it the
+            // same element as it moves through the list, so it travels from layer to layer
+            // instead of fading out in one place and in at another.
+            const glow =
+              j === glowSlot ? (
+                <g key="glow" data-brand={activeSlot?.brand}>
+                  <motion.ellipse
+                    className="as-glow"
+                    cx={0}
+                    cy={0}
+                    rx={118}
+                    ry={30}
+                    filter={`url(#${blurId})`}
+                    initial={false}
+                    animate={{ y: glowY, opacity: active >= 0 ? 0.5 : 0 }}
+                    transition={
+                      reduce
+                        ? { duration: 0 }
+                        : { y: { duration: 0.56, ease: EASE_LIFT }, opacity: { duration: 0.42 } }
+                    }
+                  />
+                </g>
+              ) : null
+            return [
+              glow,
               <g key={slot.id} transform={`translate(0 ${-j * STEP})`} data-brand={slot.brand}>
                 <motion.g initial={false} animate={{ y: liftOf(j) }} transition={liftT}>
                   <motion.g
@@ -655,17 +683,6 @@ export function AssembleStack({ className }: { className?: string }) {
 
                   {slot.skipped ? null : (
                     <>
-                      <motion.ellipse
-                        className="as-glow"
-                        cx={0}
-                        cy={W / 2 + T + 18}
-                        rx={104}
-                        ry={24}
-                        filter={`url(#${blurId})`}
-                        initial={false}
-                        animate={{ opacity: on && landed ? 0.2 : 0 }}
-                        transition={reduce ? { duration: 0 } : { duration: 0.42 }}
-                      />
                       <motion.g
                         className={`as-slab${slot.toned ? ' is-toned' : ''}${on ? ' is-on' : ''}`}
                         initial={false}
@@ -698,8 +715,8 @@ export function AssembleStack({ className }: { className?: string }) {
                     </>
                   )}
                 </motion.g>
-              </g>
-            )
+              </g>,
+            ]
           })}
 
           {/* Hit areas stay where the layers rest. If they rode the lift, a slab would move out
