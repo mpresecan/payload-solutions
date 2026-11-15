@@ -1,7 +1,8 @@
 'use client'
 
+import { brands } from '@payload-solutions/brand'
 import { useReducedMotionSafe } from '@payload-solutions/brand/reduced-motion'
-import { AnimatePresence, motion } from 'motion/react'
+import { animate, AnimatePresence, motion, useMotionValue } from 'motion/react'
 import { useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 
 /**
@@ -12,14 +13,16 @@ import { useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEv
  *     answers its prompts one at a time and each answer drops the layer it creates into a dashed
  *     slot. The optional plugins land in their own entity accent, and a
  *     declined one stays an empty slot, so "optional" is visible rather than claimed.
- *  2. TOUR. Once the stack is built, each layer lifts in turn. One glow travels down the stack
- *     under whichever layer is lifted, taking that layer's accent,
+ *  2. TOUR. Once the stack is built, each layer lifts in turn. One glow follows whichever layer
+ *     is lifted, taking its accent: it travels as a narrow beam and spreads into a flat pool
+ *     under the layer when it lands,
  *     and the transcript line that created it lights up.
  *  3. SWAP. At the bottom of the tour the database slab slides out to the left and the next
  *     adapter slides in from the right, and the Database answer in the transcript changes with it.
  *
- * Hovering (or tapping) a layer lifts it and pauses the loop; the database can be stepped by
- * clicking its slab or picked with the adapter buttons under the caption.
+ * Hovering (or tapping) a layer lifts it and pauses the loop. Clicking one pins it and offers a
+ * "Read documentation" button in the caption; the click itself never navigates. The database
+ * also steps to its next adapter on a click, or can be picked with the adapter buttons.
  *
  * The prompts mirror packages/create-payload-stack/src/cli.ts — same labels, same order. Three
  * prompts with no layer of their own (connection string, media storage, coding agents) are left
@@ -44,6 +47,9 @@ const LIFT_ABOVE = 48
 const LIFT_ABOVE_BASE = 20
 const DROP = 44
 const SWAP_X = 62
+/** The glow in flight: squeezed to a narrow, tall beam. At rest it is 1 x 1, a wide flat pool. */
+const BEAM_X = 0.14
+const BEAM_Y = 2.4
 
 const BEAT_MS = 275
 /** One prompt per beat: once the command and the name are typed, the stack goes up briskly. */
@@ -64,6 +70,8 @@ interface Slot {
   tag: string
   name: string
   detail: string
+  /** Page under the Payload Stack docs that covers this layer. */
+  docs?: string
   /** The transcript step that lands this layer. */
   at: number
   /** Stagger within a step that lands more than one layer, in seconds. */
@@ -78,9 +86,17 @@ interface Slot {
 
 /** Bottom to top. */
 const SLOTS: Slot[] = [
-  { id: 'db', tag: '', name: 'Database', detail: 'Chosen when you scaffold. Swap it here.', at: 2 },
+  {
+    id: 'db',
+    docs: 'database',
+    tag: '',
+    name: 'Database',
+    detail: 'Chosen when you scaffold. Swap it here.',
+    at: 2,
+  },
   {
     id: 'payload',
+    docs: 'configuration',
     tag: 'Payload CMS',
     name: 'Payload CMS',
     detail: 'Collections, access control, jobs, admin',
@@ -89,6 +105,7 @@ const SLOTS: Slot[] = [
   },
   {
     id: 'auth',
+    docs: 'authentication',
     tag: 'Better Auth',
     name: 'Better Auth',
     detail: 'Sessions, passkeys, 2FA, social sign-in',
@@ -96,6 +113,7 @@ const SLOTS: Slot[] = [
   },
   {
     id: 'orgs',
+    docs: 'organizations',
     tag: 'Organizations',
     name: 'Organizations',
     detail: 'Multi-tenant scoping, roles, invitations',
@@ -103,6 +121,7 @@ const SLOTS: Slot[] = [
   },
   {
     id: 'billing',
+    docs: 'billing',
     tag: 'Stripe billing',
     name: 'Stripe billing',
     detail: 'Plans, seats, trials, customer portal',
@@ -110,6 +129,7 @@ const SLOTS: Slot[] = [
   },
   {
     id: 'emails',
+    docs: 'emails',
     tag: 'Emails',
     name: 'Transactional Emails',
     detail: 'Optional. Email copy editable in the admin',
@@ -119,6 +139,7 @@ const SLOTS: Slot[] = [
   },
   {
     id: 'consent',
+    docs: 'legal',
     tag: 'Consent',
     name: 'Cookie Consent',
     detail: 'Optional. Banner, consent records, legal pages',
@@ -136,6 +157,7 @@ const SLOTS: Slot[] = [
   },
   {
     id: 'ui',
+    docs: 'dashboard',
     tag: 'Next.js + shadcn/ui',
     name: 'Next.js + shadcn/ui',
     detail: 'Dashboard, account, marketing pages',
@@ -252,6 +274,8 @@ interface State {
   db: number
   /** A layer lifted by hand, or -1. */
   manual: number
+  /** A layer the visitor clicked, which offers its documentation, or -1. */
+  pinned: number
   /** Counts builds. The typed lines are keyed by it, so every rebuild types them again. */
   run: number
 }
@@ -336,7 +360,7 @@ export function AssembleStack({ className }: { className?: string }) {
   const captionId = `${uid}-caption`
   const blurId = `${uid}-glow`
 
-  const [s, setS] = useState<State>({ step: 0, p: -1, db: 0, manual: -1, run: 0 })
+  const [s, setS] = useState<State>({ step: 0, p: -1, db: 0, manual: -1, pinned: -1, run: 0 })
   /** The latest state for the timer and the handlers, which must not re-subscribe on every change. */
   const sRef = useRef(s)
   useEffect(() => {
@@ -370,7 +394,7 @@ export function AssembleStack({ className }: { className?: string }) {
       const cur = sRef.current
       if (cur.manual >= 0) {
         // A tap's hold ran out: let go and carry on from where the tour was.
-        setS({ ...cur, manual: -1 })
+        setS({ ...cur, manual: -1, pinned: -1 })
         return
       }
       if (cur.p < 0) {
@@ -428,27 +452,39 @@ export function AssembleStack({ className }: { className?: string }) {
     hold(e)
     if (sRef.current.manual === j) return
     enteredAt.current = now()
-    setS({ ...sRef.current, manual: j })
+    // Moving to another layer withdraws the documentation offer made for the last one.
+    setS({ ...sRef.current, manual: j, pinned: sRef.current.pinned === j ? j : -1 })
   }
   const release = (e: ReactPointerEvent) => {
     if (e.pointerType !== 'mouse') return
     holdUntil.current = 0
-    if (sRef.current.manual >= 0) setS({ ...sRef.current, manual: -1 })
+    if (sRef.current.manual >= 0) setS({ ...sRef.current, manual: -1, pinned: -1 })
   }
   const setAdapter = (i: number) => {
     if (holdUntil.current !== Number.POSITIVE_INFINITY) holdUntil.current = now() + TOUCH_HOLD_MS
     setS({ ...sRef.current, manual: DB, db: i })
   }
-  const stepAdapter = () => {
-    // The same press that lifted the layer must not also swap it.
-    if (now() - enteredAt.current < 350) return
-    setAdapter((sRef.current.db + 1) % ADAPTERS.length)
+  /**
+   * A click does not navigate. It pins the layer and offers its documentation as a button in the
+   * caption, so leaving the page is a second, deliberate press.
+   */
+  const pin = (j: number) => {
+    if (holdUntil.current !== Number.POSITIVE_INFINITY) holdUntil.current = now() + TOUCH_HOLD_MS
+    const cur = sRef.current
+    // The database also steps to its next adapter, but not on the press that first lifted it.
+    const step = j === DB && now() - enteredAt.current >= 350
+    setS({
+      ...cur,
+      manual: j,
+      pinned: j,
+      db: step ? (cur.db + 1) % ADAPTERS.length : cur.db,
+    })
   }
   const replay = () => {
     holdUntil.current = 0
     beat.current = 0
     typed.current = { cmd: false, name: false }
-    setS({ ...sRef.current, step: 0, p: -1, manual: -1, run: sRef.current.run + 1 })
+    setS({ ...sRef.current, step: 0, p: -1, manual: -1, pinned: -1, run: sRef.current.run + 1 })
   }
 
   const activeSlot = active >= 0 ? SLOTS[active]! : null
@@ -462,10 +498,70 @@ export function AssembleStack({ className }: { className?: string }) {
   const capDetail = activeSlot
     ? activeSlot.detail
     : built
-      ? 'Hover a layer to lift it.'
+      ? 'Hover a layer to lift it. Click one for its docs.'
       : `${landedCount} of ${PLACEABLE} layers placed`
+  const docsHref =
+    activeSlot?.docs && s.pinned === active ? `${brands.stack.docsUrl}/${activeSlot.docs}` : null
   const glowSlot = Math.max(active, 0)
   const glowY = -glowSlot * STEP + (active < 0 ? 0 : liftOf(glowSlot)) + W / 2 + T + 20
+  // The glow moves as a beam and lands as a shadow: it narrows and stretches along its path as
+  // it leaves, travels like that, then spreads back out flat under the layer it arrives at.
+  const glowYmv = useMotionValue(glowY)
+  const glowSX = useMotionValue(1)
+  const glowSY = useMotionValue(1)
+  const glowWas = useRef(-1)
+  /** The layer the glow last came to rest under. While it differs from `active`, the glow is in flight. */
+  const [landedAt, setLandedAt] = useState(-1)
+  useEffect(() => {
+    const id = setTimeout(() => setLandedAt(active), active < 0 || reduce ? 0 : 560)
+    return () => clearTimeout(id)
+  }, [active, reduce])
+  useEffect(() => {
+    const from = glowWas.current
+    glowWas.current = active
+    if (active < 0) return
+    if (reduce) {
+      glowYmv.set(glowY)
+      glowSX.set(1)
+      glowSY.set(1)
+      return
+    }
+    // Appearing from nothing: it is already in place, so it only spreads.
+    const travelling = from >= 0
+    if (!travelling) glowYmv.set(glowY)
+    const shape = travelling
+      ? { duration: 0.9, times: [0, 0.16, 0.6, 1], ease: 'easeOut' as const }
+      : { duration: 0.5, ease: 'easeOut' as const }
+    const controls = [
+      travelling ? animate(glowYmv, glowY, { duration: 0.46, delay: 0.1, ease: EASE_LIFT }) : null,
+      animate(glowSX, travelling ? [glowSX.get(), BEAM_X, BEAM_X, 1] : [BEAM_X, 1], shape),
+      animate(glowSY, travelling ? [glowSY.get(), BEAM_Y, BEAM_Y, 1] : [BEAM_Y, 1], shape),
+    ]
+    return () => controls.forEach((c) => c?.stop())
+  }, [active, glowY, reduce, glowYmv, glowSX, glowSY])
+
+  // ONE glow for the whole stack. At rest it is painted just under the lifted layer, between it
+  // and the layer below. In flight it is painted over the whole stack, so the beam is seen
+  // crossing the layers rather than hidden behind them. The key keeps it the same element in
+  // both places, so it travels instead of fading out in one spot and in at another.
+  const flying = active >= 0 && landedAt >= 0 && landedAt !== active
+  const glowEl = (
+    <g key="glow" data-brand={activeSlot?.brand}>
+      <motion.ellipse
+        className="as-glow"
+        cx={0}
+        cy={0}
+        rx={118}
+        ry={30}
+        filter={`url(#${blurId})`}
+        initial={false}
+        style={{ y: glowYmv, scaleX: glowSX, scaleY: glowSY }}
+        animate={{ opacity: active >= 0 ? 0.5 : 0 }}
+        transition={{ duration: reduce ? 0 : 0.42 }}
+      />
+    </g>
+  )
+
   const touring = p >= 0 && s.manual < 0
 
   const liftT = reduce ? { duration: 0 } : { duration: 0.56, ease: EASE_LIFT }
@@ -573,15 +669,14 @@ export function AssembleStack({ className }: { className?: string }) {
             <div
               className="mt-3 flex flex-wrap gap-1 transition-opacity duration-300"
               style={{
-                opacity: active === DB ? 1 : 0,
-                pointerEvents: active === DB ? 'auto' : 'none',
+                opacity: active === DB || docsHref ? 1 : 0,
+                pointerEvents: active === DB || docsHref ? 'auto' : 'none',
               }}
             >
-              {ADAPTERS.map((name, i) => (
+              {(active === DB ? ADAPTERS : []).map((name, i) => (
                 <button
                   key={name}
                   type="button"
-                  tabIndex={active === DB ? 0 : -1}
                   aria-pressed={i === s.db}
                   onClick={() => setAdapter(i)}
                   className={`min-h-9 border px-2 font-mono text-[0.625rem] uppercase tracking-[0.08em] transition-colors duration-300 ${
@@ -593,6 +688,17 @@ export function AssembleStack({ className }: { className?: string }) {
                   {name}
                 </button>
               ))}
+              {docsHref ? (
+                <a
+                  href={docsHref}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex min-h-9 items-center gap-1.5 border border-accent px-2.5 font-mono text-[0.625rem] uppercase tracking-[0.08em] text-accent transition-colors duration-300 hover:border-fg hover:text-fg"
+                >
+                  Read documentation
+                  <span aria-hidden="true">↗</span>
+                </a>
+              ) : null}
             </div>
           </div>
         </div>
@@ -636,32 +742,8 @@ export function AssembleStack({ className }: { className?: string }) {
             const landed = !slot.skipped && step >= slot.at
             const on = j === active
             const declined = slot.skipped && step >= slot.at
-            // ONE glow for the whole stack. It is painted just under the lifted layer, so it has
-            // to sit between that layer and the one below in paint order; the key keeps it the
-            // same element as it moves through the list, so it travels from layer to layer
-            // instead of fading out in one place and in at another.
-            const glow =
-              j === glowSlot ? (
-                <g key="glow" data-brand={activeSlot?.brand}>
-                  <motion.ellipse
-                    className="as-glow"
-                    cx={0}
-                    cy={0}
-                    rx={118}
-                    ry={30}
-                    filter={`url(#${blurId})`}
-                    initial={false}
-                    animate={{ y: glowY, opacity: active >= 0 ? 0.5 : 0 }}
-                    transition={
-                      reduce
-                        ? { duration: 0 }
-                        : { y: { duration: 0.56, ease: EASE_LIFT }, opacity: { duration: 0.42 } }
-                    }
-                  />
-                </g>
-              ) : null
             return [
-              glow,
+              !flying && j === glowSlot ? glowEl : null,
               <g key={slot.id} transform={`translate(0 ${-j * STEP})`} data-brand={slot.brand}>
                 <motion.g initial={false} animate={{ y: liftOf(j) }} transition={liftT}>
                   <motion.g
@@ -724,6 +806,7 @@ export function AssembleStack({ className }: { className?: string }) {
               </g>,
             ]
           })}
+          {flying ? glowEl : null}
 
           {/* Hit areas stay where the layers rest. If they rode the lift, a slab would move out
               from under the pointer, the one below would take the hover, and the stack would chase
@@ -738,7 +821,7 @@ export function AssembleStack({ className }: { className?: string }) {
                     className="as-hit"
                     onPointerEnter={(e) => pick(j, e)}
                     onPointerDown={(e) => pick(j, e)}
-                    onClick={j === DB ? () => stepAdapter() : undefined}
+                    onClick={() => pin(j)}
                   />
                 ),
               )
