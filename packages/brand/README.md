@@ -11,7 +11,7 @@ The shared brand system for the three sibling sites: payload.solutions, payloads
 | `@payload-solutions/brand/tokens.css`       | CSS custom properties for both themes                                                                                                |
 | `@payload-solutions/brand/tailwind.css`     | Tailwind v4 `@theme` mapping, base styles and a few utilities. Imports `tokens.css`                                                  |
 | `@payload-solutions/brand/assets/*`         | Static SVG marks for favicons and OG images, plus `assets/screens/` (real screenshots of the Payload Stack template, both themes)    |
-| `@payload-solutions/brand/iso-stack`        | `<IsoStack />`, the isometric stack illustration used in both heroes                                                                 |
+| `@payload-solutions/brand/iso-stack`        | `<IsoStack />`, the isometric stack illustration (not mounted now)                                                                |
 | `@payload-solutions/brand/screens`          | `screens`: typed registry of the screenshots (`{ light, dark, alt }` per screen)                                                     |
 | `@payload-solutions/brand/themed-image`     | `<ThemedImage light dark alt />`: one `next/image` per theme, the tokens decide which shows                                          |
 | `@payload-solutions/brand/theme-band`       | `<ThemeBand theme="dark">`: a section that keeps one theme whatever the page is set to                                               |

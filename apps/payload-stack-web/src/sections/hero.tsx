@@ -6,9 +6,9 @@ import {
 } from "@payload-solutions/brand/lattice";
 import { Parallax } from "@payload-solutions/brand/parallax";
 import { SplitLoad } from "@payload-solutions/brand/split-load";
+import { AssembleStack } from "@/components/assemble-stack";
 import { CopyCommand } from "@/components/copy-command";
 import { LaunchFilm } from "@/components/launch-film";
-import { StackVisual } from "@/components/stack-visual";
 
 const brand = brands.stack;
 
@@ -18,9 +18,10 @@ const brand = brands.stack;
  * so the page answers "what is this?" without spending the h1 on it.
  * The headline is the only large thing on the page; everything you can do with it
  * is a row of the lattice under the headline rather than a cluster of buttons, which is what
- * gives payloadcms.com its document-like calm. The stack illustration keeps the right half
- * and now stands on true black — the isometric floor that used to sit behind it competed
- * with the isometry of the drawing itself.
+ * gives payloadcms.com its document-like calm. The right half shows the command at work:
+ * the create-payload-stack transcript assembles the stack layer by layer, then each layer
+ * lifts in turn and the database swaps adapters (see components/assemble-stack.tsx). It
+ * stands on true black — an isometric floor behind it competed with the drawing's own isometry.
  */
 export function Hero() {
 	return (
@@ -56,7 +57,7 @@ export function Hero() {
 				</div>
 
 				<Parallax speed={-0.08} className="min-w-0 lg:col-span-2 lg:pl-10">
-					<StackVisual className="mx-auto w-full max-w-[20rem] sm:max-w-[26rem] md:max-w-[40rem] lg:max-w-none" />
+					<AssembleStack className="mx-auto w-full max-w-[20rem] sm:max-w-[26rem] md:max-w-[40rem] lg:max-w-none" />
 				</Parallax>
 			</div>
 		</section>
