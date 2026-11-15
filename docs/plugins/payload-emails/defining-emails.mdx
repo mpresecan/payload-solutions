@@ -127,6 +127,10 @@ Thanks, {{user.name}}.
 
 Markdown, converted once when the document is created. `**bold**`, `_italic_`, `[links](url)`, headings, lists, `---` and `<Button label="…" url="…" />` all import into the editor as real editor content — a Button in Markdown becomes a Button block an editor can click and change.
 
+### Button fallback link
+
+Every button carries a copyable version of its own link: under the call-to-action, in smaller muted type, the resolved URL repeated as plain text, for readers whose client stripped the link. It is the Button block's `fallback` field, on by default, with an editable sentence above it — one checkbox in the admin. Turn it off where the reader can simply navigate to the page: `<Button label="…" url="{{url}}" fallback="false" />`.
+
 Each field can also be a per-locale map:
 
 ```ts
