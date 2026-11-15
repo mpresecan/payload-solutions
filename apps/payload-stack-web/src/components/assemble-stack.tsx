@@ -8,8 +8,9 @@ import { useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEv
  * The hero illustration: `create-payload-stack` assembles the stack.
  *
  * Three beats, looped.
- *  1. ASSEMBLE. The transcript answers its prompts one at a time and each answer drops the layer
- *     it creates into a dashed slot. The optional plugins land in their own entity accent, and a
+ *  1. ASSEMBLE. The command types itself, then the project name. After that the transcript
+ *     answers its prompts one at a time and each answer drops the layer it creates into a dashed
+ *     slot. The optional plugins land in their own entity accent, and a
  *     declined one stays an empty slot, so "optional" is visible rather than claimed.
  *  2. TOUR. Once the stack is built, each layer lifts in turn on a soft glow of its own accent,
  *     and the transcript line that created it lights up.
@@ -139,6 +140,8 @@ const SLOTS: Slot[] = [
   },
 ]
 const DB = 0
+/** The transcript line whose answer is typed rather than shown. */
+const NAME_LINE = 1
 const BUILT = 9
 const PLACEABLE = SLOTS.filter((s) => !s.skipped).length
 
@@ -245,6 +248,55 @@ interface State {
   db: number
   /** A layer lifted by hand, or -1. */
   manual: number
+  /** Counts builds. The typed lines are keyed by it, so every rebuild types them again. */
+  run: number
+}
+
+/**
+ * Text that types itself once, a character per tick, with a block caret while it runs. Remount
+ * it (change its key) to type again. `instant` shows the whole text and reports done at once.
+ */
+function Typed({
+  text,
+  charMs,
+  instant,
+  onDone,
+}: {
+  text: string
+  charMs: number
+  instant: boolean
+  onDone: () => void
+}) {
+  const [n, setN] = useState(0)
+  const doneRef = useRef(onDone)
+  useEffect(() => {
+    doneRef.current = onDone
+  }, [onDone])
+
+  useEffect(() => {
+    if (instant) {
+      doneRef.current()
+      return
+    }
+    let i = 0
+    const id = setInterval(() => {
+      i += 1
+      setN(i)
+      if (i >= text.length) {
+        clearInterval(id)
+        doneRef.current()
+      }
+    }, charMs)
+    return () => clearInterval(id)
+  }, [text, charMs, instant])
+
+  const typing = !instant && n < text.length
+  return (
+    <>
+      {instant ? text : text.slice(0, n)}
+      {typing ? <span className="as-caret" /> : null}
+    </>
+  )
 }
 
 function SlabBody({ tag, tagClass = 'as-tag' }: { tag: string; tagClass?: string }) {
@@ -280,7 +332,7 @@ export function AssembleStack({ className }: { className?: string }) {
   const captionId = `${uid}-caption`
   const blurId = `${uid}-glow`
 
-  const [s, setS] = useState<State>({ step: 0, p: -1, db: 0, manual: -1 })
+  const [s, setS] = useState<State>({ step: 0, p: -1, db: 0, manual: -1, run: 0 })
   /** The latest state for the timer and the handlers, which must not re-subscribe on every change. */
   const sRef = useRef(s)
   useEffect(() => {
@@ -289,6 +341,8 @@ export function AssembleStack({ className }: { className?: string }) {
 
   const figureRef = useRef<HTMLElement>(null)
   const beat = useRef(0)
+  /** Which typed lines have finished; the transcript waits for each before moving on. */
+  const typed = useRef({ cmd: false, name: false })
   const holdUntil = useRef(0)
   const onScreen = useRef(true)
   /** When a pointer last arrived on a layer, so the tap that lifts the database does not also swap it. */
@@ -315,6 +369,11 @@ export function AssembleStack({ className }: { className?: string }) {
         setS({ ...cur, manual: -1 })
         return
       }
+      if (cur.p < 0) {
+        // The command and the project name are typed; nothing follows until each has landed.
+        if (cur.step === 0 && !typed.current.cmd) return
+        if (cur.step === 1 && !typed.current.name) return
+      }
       beat.current += 1
       if (cur.p < 0) {
         if (beat.current % ASSEMBLE_BEATS) return
@@ -329,7 +388,8 @@ export function AssembleStack({ className }: { className?: string }) {
       const np = cur.p + 1
       if (np >= TOUR.length) {
         beat.current = 0
-        setS({ ...cur, p: -1, step: 0 })
+        typed.current = { cmd: false, name: false }
+        setS({ ...cur, p: -1, step: 0, run: cur.run + 1 })
         return
       }
       setS({ ...cur, p: np, db: TOUR[np] === 'swap' ? (cur.db + 1) % ADAPTERS.length : cur.db })
@@ -380,7 +440,8 @@ export function AssembleStack({ className }: { className?: string }) {
   const replay = () => {
     holdUntil.current = 0
     beat.current = 0
-    setS({ ...sRef.current, step: 0, p: -1, manual: -1 })
+    typed.current = { cmd: false, name: false }
+    setS({ ...sRef.current, step: 0, p: -1, manual: -1, run: sRef.current.run + 1 })
   }
 
   const activeSlot = active >= 0 ? SLOTS[active]! : null
@@ -409,10 +470,10 @@ export function AssembleStack({ className }: { className?: string }) {
       aria-labelledby={captionId}
       onPointerLeave={(e) => release(e)}
     >
-      <div className="grid items-center gap-8 md:grid-cols-[minmax(0,17.5rem)_minmax(0,1fr)] md:gap-6">
+      <div className="grid items-center gap-8 md:grid-cols-[minmax(0,17.5rem)_minmax(0,1fr)] md:gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-10">
         <div className="order-2 min-w-0 md:order-1">
           <div
-            className="flex min-h-[16.5rem] flex-col gap-[0.5rem] border border-border bg-surface p-4 font-mono text-[0.6875rem] leading-[1.35]"
+            className="flex min-h-[16.5rem] flex-col gap-[0.5rem] border border-border bg-surface p-4 font-mono text-[0.6875rem] leading-[1.35] lg:min-h-[18.5rem] lg:gap-[0.625rem] lg:p-5 lg:text-[0.75rem]"
             aria-hidden="true"
           >
             {lines.map((line, i) => {
@@ -431,13 +492,39 @@ export function AssembleStack({ className }: { className?: string }) {
                   <span
                     className={`shrink-0 ${hot ? 'text-accent' : dim ? 'text-fg-muted' : 'text-fg'}`}
                   >
-                    {line.label}
+                    {line.kind === 'cmd' ? (
+                      <Typed
+                        key={s.run}
+                        text={line.label}
+                        charMs={42}
+                        instant={reduce}
+                        onDone={() => {
+                          typed.current.cmd = true
+                        }}
+                      />
+                    ) : (
+                      line.label
+                    )}
                   </span>
                   {line.answer ? (
                     <span
                       className={`ml-auto min-w-0 truncate ${line.answer === 'No' ? 'text-fg-subtle' : 'text-accent'}`}
                     >
-                      {line.answer}
+                      {i === NAME_LINE ? (
+                        shown ? (
+                          <Typed
+                            key={s.run}
+                            text={line.answer}
+                            charMs={75}
+                            instant={reduce}
+                            onDone={() => {
+                              typed.current.name = true
+                            }}
+                          />
+                        ) : null
+                      ) : (
+                        line.answer
+                      )}
                     </span>
                   ) : null}
                 </div>
@@ -503,7 +590,7 @@ export function AssembleStack({ className }: { className?: string }) {
 
         <svg
           viewBox={`${VB_X.toFixed(2)} ${VB_Y} ${VB_W.toFixed(2)} ${VB_H}`}
-          className="order-1 h-auto w-full overflow-visible md:order-2"
+          className="order-1 mx-auto h-auto w-full overflow-visible md:order-2 lg:max-w-[26rem]"
           role="img"
           aria-describedby={captionId}
           style={{ fontFamily: 'var(--font-mono)' }}
@@ -531,6 +618,8 @@ export function AssembleStack({ className }: { className?: string }) {
               .as-hit { fill: transparent; cursor: pointer; touch-action: pan-y; }
               @keyframes as-progress { from { width: 0; } to { width: 100%; } }
               .as-progress { animation: as-progress linear both; }
+              @keyframes as-caret { 50% { opacity: 0; } }
+              .as-caret { display: inline-block; width: 0.55em; height: 1.05em; margin-left: 1px; vertical-align: text-bottom; background: currentColor; animation: as-caret 900ms steps(1) infinite; }
             `}</style>
           </defs>
 

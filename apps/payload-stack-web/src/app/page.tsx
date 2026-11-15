@@ -18,8 +18,10 @@ import { WhyPayload } from '@/sections/why-payload'
  * The opening band is always dark: hero, logo wall and the product showcase are transparent
  * and sit on the pinned hero video, shared with payload.solutions. Everything after it follows
  * the visitor's theme and slides over the video like a curtain (relative, z-10, opaque), the
- * way payloadcms.com runs its own background video. The hero copy spans two columns, so the
- * copy scrim does too.
+ * way payloadcms.com runs its own background video. The hero copy sits in the first lattice
+ * column, as on payload.solutions, so the copy scrim covers one. The hero visual carries a terminal transcript and hairline slabs on the
+ * side the copy scrim leaves open, so the video is also dimmed evenly while the page is at the top
+ * (`heroDim`) and returns to full strength as the hero scrolls away.
  */
 export default function HomePage() {
   return (
@@ -27,7 +29,7 @@ export default function HomePage() {
       <SiteHeader />
       <main id="main">
         <ThemeBand theme="dark" as="div" className="-mt-header pt-header">
-          <HeroVideoBackdrop video="stack" copyColumns={2} />
+          <HeroVideoBackdrop video="stack" heroDim={0.5} />
           <GridColumns fadeTop />
           <Hero />
           <BuiltWith />

@@ -59,9 +59,12 @@ export type HeroVideoId = keyof typeof HERO_VIDEOS
 export function HeroVideoBackdrop({
   video,
   copyColumns = 1,
+  heroDim,
 }: {
   video: HeroVideoId
   copyColumns?: 1 | 2
+  /** See VideoBackdrop: an even veil over the frame at the top of the page, released on scroll. */
+  heroDim?: number
 }) {
   const { file, phone, poster, scrim } = HERO_VIDEOS[video]
   return (
@@ -72,6 +75,7 @@ export function HeroVideoBackdrop({
         poster={poster}
         copyColumns={copyColumns}
         scrim={scrim}
+        heroDim={heroDim}
         sources={[
           // Phones first: the browser takes the first <source> whose media matches.
           { src: `${HERO_VIDEO_ORIGIN}/${phone}`, type: 'video/mp4', media: '(max-width: 767px)' },
