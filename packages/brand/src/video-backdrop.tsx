@@ -30,7 +30,12 @@ export type VideoBackdropSource = {
  *    from lg (horizontal) and the top of the frame below lg (vertical, where the copy spans
  *    the width), and leaves columns two to four, where the hero visual sits, untouched.
  *    Measured worst case behind the copy with it: 10.4:1 at 1440, 14:1 on a phone.
- * 5. A top vignette: solid --bg under the header easing out over ~26rem, so the video dissolves
+ * 5. An optional hero dim (`heroDim`): an even veil of --bg over the whole frame while the page
+ *    is at the top, released as the visitor scrolls through the first viewport. It is for a hero
+ *    whose VISUAL carries small text or thin lines (the payloadstack.com transcript and slabs),
+ *    which the copy scrim deliberately leaves on the full video. The sections that follow the
+ *    hero inside the band get the video at its usual strength.
+ * 6. A top vignette: solid --bg under the header easing out over ~26rem, so the video dissolves
  *    into the header rather than meeting its bottom border.
  *
  * Like AmbientBackdrop it fades out over the last stretch of its band, so nothing pinned can
@@ -45,6 +50,7 @@ export function VideoBackdrop({
   playbackRate = 1,
   copyColumns = 1,
   scrim = 'standard',
+  heroDim = 0,
   className,
 }: {
   sources: VideoBackdropSource[]
@@ -64,6 +70,12 @@ export function VideoBackdrop({
    * payload.solutions loop). Pick it by measuring, not by eye.
    */
   scrim?: 'standard' | 'strong'
+  /**
+   * Opacity (0 to 1) of an even --bg veil over the whole frame at the top of the page, gone by
+   * the time the hero has mostly scrolled away. 0 draws no layer. Keep it low enough that the
+   * release is not noticed as a change: it should read as the video settling, not a fade.
+   */
+  heroDim?: number
   className?: string
 }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -71,6 +83,7 @@ export function VideoBackdrop({
   const reduce = useReducedMotionSafe()
   const { scrollY } = useScroll()
   const [fade, setFade] = useState<[number, number]>([0, 640])
+  const [dimEnd, setDimEnd] = useState(560)
 
   useEffect(() => {
     const video = videoRef.current
@@ -84,6 +97,7 @@ export function VideoBackdrop({
       const vh = window.innerHeight
       const start = Math.max(0, band.offsetHeight - vh)
       setFade([start, start + vh * 0.4])
+      setDimEnd(vh * 0.7)
     }
     measure()
     const ro = new ResizeObserver(measure)
@@ -107,6 +121,7 @@ export function VideoBackdrop({
   }, [])
 
   const opacity = useTransform(scrollY, fade, [1, 0])
+  const dimOpacity = useTransform(scrollY, [0, dimEnd], [heroDim, 0])
 
   return (
     <motion.div
@@ -143,6 +158,14 @@ export function VideoBackdrop({
       )}
       <div className="video-backdrop__crt absolute inset-0" />
       <div className="video-backdrop__scrim absolute inset-0" />
+      {heroDim > 0 ? (
+        // Under reduced motion the frame is absolute and only ever sits behind the hero, so the
+        // veil is simply constant.
+        <motion.div
+          className="absolute inset-0 bg-bg"
+          style={{ opacity: reduce ? heroDim : dimOpacity }}
+        />
+      ) : null}
       <div className="video-backdrop__edge absolute inset-0" />
       <div className="video-backdrop__vignette absolute inset-0" />
     </motion.div>
