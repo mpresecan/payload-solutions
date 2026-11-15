@@ -21,7 +21,7 @@ import { useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEv
  *     adapter slides in from the right, and the Database answer in the transcript changes with it.
  *
  * Hovering (or tapping) a layer lifts it and pauses the loop. Clicking one pins it and offers a
- * "Read documentation" button in the caption; the click itself never navigates. The database
+ * "Learn more" button in the caption; the click itself never navigates. The database
  * also steps to its next adapter on a click, or can be picked with the adapter buttons.
  *
  * The prompts mirror packages/create-payload-stack/src/cli.ts — same labels, same order. Three
@@ -695,7 +695,7 @@ export function AssembleStack({ className }: { className?: string }) {
                   rel="noreferrer noopener"
                   className="inline-flex min-h-9 items-center gap-1.5 border border-accent px-2.5 font-mono text-[0.625rem] uppercase tracking-[0.08em] text-accent transition-colors duration-300 hover:border-fg hover:text-fg"
                 >
-                  Read documentation
+                  Learn more
                   <span aria-hidden="true">↗</span>
                 </a>
               ) : null}
