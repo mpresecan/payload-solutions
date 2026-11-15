@@ -18,17 +18,16 @@ Both answers use the same call sites. `src/scheduler` exports the same names eit
 
 ## With `--scheduler`
 
-The [Action Scheduler](/docs/plugins/payload-action-scheduler) is registered and the project gets:
+The [Action Scheduler](/docs/plugins/payload-action-scheduler) is registered. This page covers only what Payload Stack adds on top: where the plugin's pieces sit in the project, the catalogue it ships, and the runner the CLI sets up. How the plugin itself works is in its own documentation:
 
-| | Where |
-| --- | --- |
-| The ledger and its log | `scheduled-actions`, `scheduled-action-logs` |
-| The admin screen | **System → Scheduled Actions**: run now, reschedule, retry, cancel, and the log for every attempt |
-| What can be scheduled | `src/scheduler/actions` |
-| When it is scheduled | `src/scheduler/hooks.ts` |
-| What runs it | `src/scheduler/jobs.ts` — see [Runners](#runners) |
-
-An action is a promise about *when*, so its arguments hold identifiers and nothing else. Who the account owner is, what the plan is called, whether the invoice was paid in the meantime — all of that is resolved when the action runs, not when it was booked eleven days earlier.
+| In your project | What it is | Plugin documentation |
+| --- | --- | --- |
+| `scheduled-actions`, `scheduled-action-logs` | The ledger and its log | [Overview](/docs/plugins/payload-action-scheduler) |
+| **System → Scheduled Actions** | Run now, reschedule, retry, cancel, and the log for every attempt | [Admin](/docs/plugins/payload-action-scheduler/admin) |
+| `src/scheduler/actions` | What can be scheduled | [Defining actions](/docs/plugins/payload-action-scheduler/defining-actions) |
+| `src/scheduler/hooks.ts` | When it is scheduled | [Scheduling](/docs/plugins/payload-action-scheduler/scheduling) |
+| `src/scheduler/jobs.ts` | What runs it — see [Runners](#runners) | [Runners](/docs/plugins/payload-action-scheduler/runners) |
+| `src/scheduler/plugin.ts` | The registration and its options, retention included | [Configuration](/docs/plugins/payload-action-scheduler/configuration) |
 
 ### The catalogue
 
@@ -74,31 +73,17 @@ export const recurring = [
 ]
 ```
 
-Series are reconciled on every boot: change a cron and the next start moves the pending occurrence, remove a key and its series is dropped.
+Recurring series are [reconciled on every boot](/docs/plugins/payload-action-scheduler/recipes#nightly-and-hourly-jobs-declared-in-code).
 
 ### Scheduling your own
 
-```ts
-// Once, at a time
-await payload.scheduler.schedule('reports.monthly', { organization: org.id }, { scheduleAt: firstOfNextMonth })
+New actions go in `src/scheduler/actions` and into the `actions` array; run `pnpm generate:types` afterwards so their arguments are typed. Writing an action, scheduling it once or on a series, and cancelling it are the plugin's API, unchanged: see [Defining actions](/docs/plugins/payload-action-scheduler/defining-actions), [Scheduling](/docs/plugins/payload-action-scheduler/scheduling) and [TypeScript](/docs/plugins/payload-action-scheduler/typescript).
 
-// Any email in the catalogue, later — visible and cancelable, unlike a bare queued send
-await payload.scheduler.schedule(
-  'emails.send',
-  { slug: 'welcome', to: user.email, input: { user: user.id } },
-  { scheduleAt: '2026-10-01T09:00:00Z' },
-)
-
-// Recurring, and called off by name
-await payload.scheduler.recurring('digest.weekly', { organization: org.id }, { every: '7d', group: `org:${org.id}` })
-await payload.scheduler.cancelAll('digest.weekly', { group: `org:${org.id}` })
-```
-
-New actions go in `src/scheduler/actions` and into the `actions` array. A slug is a promise: rows already in the ledger refer to it, so renaming one leaves them with nowhere to run. Arguments are typed from the generated `Config['scheduledActions']` after `pnpm generate:types` — see the plugin's [TypeScript](/docs/plugins/payload-action-scheduler/typescript) page.
+The catalogue's `emails.send` action schedules any email in the [email catalogue](/docs/payload-stack/emails) for later — the plugin's [Sending emails later](/docs/plugins/payload-action-scheduler/recipes#sending-emails-later) recipe, already wired.
 
 ## Runners
 
-The scheduler decides when an action is due and turns it into a Payload job. Something outside Payload still has to say "run the queue now", and on a serverless host nothing does — no code runs between requests. That is the second question the CLI asks, `--runner`:
+The scheduler decides when an action is due; something outside Payload still has to call the queue. The plugin's [Runners](/docs/plugins/payload-action-scheduler/runners) page explains why, what one call does, and how two runners are kept from running the same action twice. The CLI's second question, `--runner`, sets one up for you:
 
 | `--runner` | What it writes | Good for |
 | --- | --- | --- |
@@ -107,34 +92,13 @@ The scheduler decides when an action is due and turns it into a Payload job. Som
 | `server` | `RUN_JOBS_IN_PROCESS=true` | Docker, Fly, Railway, a VM — anything long-lived. |
 | `later` | Nothing | Development, and deciding when you deploy. |
 
-Whichever you pick, all of them are one call:
-
-```bash
-curl -fsS -H "Authorization: Bearer $CRON_SECRET" \
-  "$NEXT_PUBLIC_APP_URL/api/payload-jobs/run?allQueues=true"
-```
-
-One call runs both the due actions and the scheduler's maintenance tick, so once a minute is the cadence this is designed around. At one call a day, an action scheduled for 09:00 runs at the next call instead.
-
-Switching runner later is a variable, not a rewrite: set `CRON_SECRET` and point a clock at that URL, or set `RUN_JOBS_IN_PROCESS=true` on a long-lived server. **Scheduled Actions → Run queue** in the admin always works, and stays useful for "run it now, I am watching".
+Switching runner later is a variable, not a rewrite: set `CRON_SECRET` and point a clock at `/api/payload-jobs/run?allQueues=true`, or set `RUN_JOBS_IN_PROCESS=true` on a long-lived server. **Scheduled Actions → Run queue** in the admin always works.
 
 ### Who may run the queue
 
 Payload lets any signed-in user run jobs. A clock is not a user, and a customer is not a scheduler, so `src/scheduler/jobs.ts` narrows it: the `CRON_SECRET` bearer token gets in, administrators get in, nobody else does. With no `CRON_SECRET` set the endpoint is admin-only — which is why a fresh project runs the queue from the admin button.
 
 Vercel sends `CRON_SECRET` as the bearer token by itself, so add it to the Vercel project as well as `.env`.
-
-### Exactly once
-
-Claims are compare-and-set statements — conditional `UPDATE … RETURNING` on Postgres and SQLite, `findOneAndUpdate` on MongoDB — so two runners picking up the same job invoke the handler once. On any other adapter the plugin warns at start-up and you should run a single runner. See the plugin's [Runners](/docs/plugins/payload-action-scheduler/runners) page.
-
-## Retention
-
-Finished rows are history, not state. A week of successes and cancellations, a quarter of failures, so "why did this customer never get the reminder?" is answerable long after the fact. Change it in `src/scheduler/plugin.ts`:
-
-```ts
-retention: { canceled: '7d', complete: '7d', failed: '90d' }
-```
 
 ## Changing your mind later
 
