@@ -56,8 +56,12 @@ const PULSE_S = 0.42
 const AXIS_DY = -(T + 20)
 
 const BEAT_MS = 275
-/** One prompt per beat: once the command and the name are typed, the stack goes up briskly. */
-const ASSEMBLE_BEATS = 1
+/**
+ * Beats per prompt once the command and the name are typed: 550ms each. At one beat the answers
+ * arrived faster than anyone answers a prompt and the terminal stopped reading as a terminal; at
+ * four they dragged.
+ */
+const ASSEMBLE_BEATS = 2
 /** Beats the finished stack rests before the tour starts, so the last layer has landed. */
 const SETTLE_BEATS = 3
 const TOUR_BEATS = 8
