@@ -45,9 +45,12 @@ const LIFT_ABOVE_BASE = 20
 const DROP = 44
 const SWAP_X = 62
 
-const BEAT_MS = 550
-const ASSEMBLE_BEATS = 2
-const TOUR_BEATS = 4
+const BEAT_MS = 275
+/** One prompt per beat: once the command and the name are typed, the stack goes up briskly. */
+const ASSEMBLE_BEATS = 1
+/** Beats the finished stack rests before the tour starts, so the last layer has landed. */
+const SETTLE_BEATS = 3
+const TOUR_BEATS = 8
 /** How long a tap keeps a layer lifted before the loop resumes. A mouse holds for as long as it hovers. */
 const TOUCH_HOLD_MS = 6000
 
@@ -377,12 +380,15 @@ export function AssembleStack({ className }: { className?: string }) {
       }
       beat.current += 1
       if (cur.p < 0) {
-        if (beat.current % ASSEMBLE_BEATS) return
-        if (cur.step < BUILT) setS({ ...cur, step: cur.step + 1 })
-        else {
+        if (cur.step < BUILT) {
+          if (beat.current % ASSEMBLE_BEATS) return
           beat.current = 0
-          setS({ ...cur, p: 0 })
+          setS({ ...cur, step: cur.step + 1 })
+          return
         }
+        if (beat.current < SETTLE_BEATS) return
+        beat.current = 0
+        setS({ ...cur, p: 0 })
         return
       }
       if (beat.current % TOUR_BEATS) return
