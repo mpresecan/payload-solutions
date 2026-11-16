@@ -57,11 +57,12 @@ const CENTER_DY = -(T + 20)
 /** How long the pulse takes to dissolve once it lands. */
 const DISSOLVE_S = 0.3
 /**
- * The light spreading over a layer's top face: a circle of radius 75 lying on the face, which
- * this projection draws as an ellipse 1.2247r wide by 0.7071r tall. It stays inside the face.
+ * The light that washes over a layer's top face. It grows from the middle as a circle lying on
+ * the face (drawn by this projection as an ellipse) until it passes through all four corners, and
+ * it is clipped to the face, so what is seen is the whole plane filling with light, edge to edge.
  */
-const SURF_RX = 92
-const SURF_RY = 53
+const SURF_RX = WC
+const SURF_RY = W / 2
 
 const BEAT_MS = 275
 /**
@@ -377,6 +378,7 @@ export function AssembleStack({ className }: { className?: string }) {
   const blurId = `${uid}-glow`
   const haloId = `${uid}-halo`
   const splashId = `${uid}-splash`
+  const clipId = `${uid}-face`
   const fadeId = `${uid}-fade`
   const maskId = `${uid}-mask`
 
@@ -580,7 +582,8 @@ export function AssembleStack({ className }: { className?: string }) {
     // The pulse runs through the middle of the layers, and what it does on arrival depends on
     // which side of the layer it meets.
     //  - Coming DOWN it meets the top face: its tip touches the middle of the face and the light
-    //    spreads out over the surface from that point, then the pool settles in underneath.
+    //    runs out from that point across the whole plane, to every edge, and fades there. Then
+    //    the pool settles in underneath.
     //  - Coming UP it meets the underside: nothing shows on the face, the pool under the layer
     //    simply lights up, brighter for a moment, from the middle outwards.
     const down = active < from
@@ -588,7 +591,7 @@ export function AssembleStack({ className }: { className?: string }) {
     const endY = glowY + CENTER_DY + (down ? -PULSE_H / 2 : T + PULSE_H / 2)
     pulseY.set(startY)
     pulseSY.set(1)
-    splashY.set(glowY + CENTER_DY)
+    splashY.set(glowY + CENTER_DY - W / 2)
     splashS.set(0.04)
     splashO.set(0)
     const total = PULSE_S + DISSOLVE_S
@@ -601,8 +604,12 @@ export function AssembleStack({ className }: { className?: string }) {
     ]
     if (down) {
       controls.push(
-        animate(splashS, 1, { duration: 0.8, delay: PULSE_S - 0.05, ease: [0.16, 1, 0.3, 1] }),
-        animate(splashO, [0, 0.4, 0], { duration: 0.8, delay: PULSE_S - 0.05, times: [0, 0.2, 1] }),
+        animate(splashS, 1.06, { duration: 0.7, delay: PULSE_S - 0.05, ease: [0.22, 1, 0.36, 1] }),
+        animate(splashO, [0, 0.42, 0.3, 0], {
+          duration: 1.05,
+          delay: PULSE_S - 0.05,
+          times: [0, 0.14, 0.6, 1],
+        }),
       )
     }
     // Once it has dimmed, the pool is moved (unseen) to where the pulse is heading.
@@ -648,15 +655,17 @@ export function AssembleStack({ className }: { className?: string }) {
   // and the layers above still pass in front of it.
   const splashEl = (
     <g key="splash" data-brand={activeSlot?.brand}>
-      <motion.ellipse
-        className="as-glow"
-        cx={0}
-        cy={0}
-        rx={SURF_RX}
-        ry={SURF_RY}
-        filter={`url(#${splashId})`}
-        style={{ y: splashY, scale: splashS, opacity: splashO }}
-      />
+      <motion.g clipPath={`url(#${clipId})`} style={{ y: splashY }}>
+        <motion.ellipse
+          className="as-glow"
+          cx={0}
+          cy={W / 2}
+          rx={SURF_RX}
+          ry={SURF_RY}
+          filter={`url(#${splashId})`}
+          style={{ scale: splashS, opacity: splashO }}
+        />
+      </motion.g>
     </g>
   )
 
@@ -813,8 +822,11 @@ export function AssembleStack({ className }: { className?: string }) {
               <feGaussianBlur stdDeviation="11" />
             </filter>
             <filter id={splashId} x="-30%" y="-40%" width="160%" height="180%">
-              <feGaussianBlur stdDeviation="5" />
+              <feGaussianBlur stdDeviation="7" />
             </filter>
+            <clipPath id={clipId}>
+              <path d={FACE} />
+            </clipPath>
             <filter id={haloId} x="-400%" y="-30%" width="900%" height="160%">
               <feGaussianBlur stdDeviation="1.6" />
             </filter>
