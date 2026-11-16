@@ -60,7 +60,7 @@ export const brands: Record<BrandId, Brand> = {
     name: 'Payload Stack',
     word: 'Stack',
     domain: 'payloadstack.com',
-    url: 'https://www.payloadstack.com',
+    url: 'https://payloadstack.com',
     tagline: 'The agentic SaaS boilerplate for Payload CMS.',
     title: 'Payload Stack: The agentic SaaS boilerplate for Payload CMS',
     // Kept under ~155 characters so search results show it whole.

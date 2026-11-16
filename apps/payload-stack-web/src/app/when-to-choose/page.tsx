@@ -17,12 +17,14 @@ import { SiteHeader } from '@/components/site-header'
 
 const brand = brands.stack
 
-const TITLE = 'When to choose Payload Stack'
+// Absolute, so the layout's `%s | Payload Stack` template doesn't repeat the brand.
+const TITLE = 'When to Choose Payload Stack (and When Not To)'
+// Kept under ~155 characters so search results show it whole.
 const DESCRIPTION =
-  'Payload Stack makes two strong choices — Payload CMS as the backend, Next.js and shadcn/ui in front — and leaves the shape of your product to a config file. Which products those choices serve, and which they get in the way of.'
+  'Payload Stack pairs a Payload CMS backend with Next.js and shadcn/ui. See which SaaS products it fits, and when Supabase, Firebase or a custom API fits better.'
 
 export const metadata: Metadata = {
-  title: TITLE,
+  title: { absolute: TITLE },
   description: DESCRIPTION,
   alternates: { canonical: '/when-to-choose' },
   // `openGraph` and `twitter` REPLACE the layout's objects rather than merging, so everything

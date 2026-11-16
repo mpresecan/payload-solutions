@@ -75,7 +75,9 @@ export function Logo({ brand, size = 26, className, style, compact = false }: Lo
             gap: '0.28em',
           }}
         >
-          <span>Payload</span>
+          {/* The space isn't rendered between flex items, but it keeps the text "Payload Stack",
+              not "PayloadStack", for screen readers and for links that name it "Payload Stack home". */}
+          <span>Payload</span>{' '}
           <span style={{ fontWeight: 600 }}>{b.word}</span>
         </span>
       )}

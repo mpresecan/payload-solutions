@@ -1,13 +1,15 @@
 import type { Metadata } from 'next'
+import { legalMetadata } from '@/lib/legal-metadata'
 import { INDEPENDENCE_NOTICE, PAYLOAD_TRADEMARK_ATTRIBUTION, brands } from '@payload-solutions/brand'
 import { ContactBlock, LegalPage } from '@/components/legal/legal-page'
 import { COMPANY } from '@/lib/consent'
 import { Email } from '@payload-solutions/brand/email'
 
-export const metadata: Metadata = {
-  title: 'Terms of Use',
-  alternates: { canonical: '/legal/terms' },
-}
+export const metadata: Metadata = legalMetadata(
+  'Terms of Use',
+  'The terms for using the payloadstack.com website. Payload Stack itself is open-source software under the MIT licence.',
+  '/legal/terms',
+)
 
 /*
   payload.solutions uses plugin-consent's Common Paper cloud-service cover page, written for a

@@ -1,21 +1,19 @@
 import type { MetadataRoute } from 'next'
 import { brands } from '@payload-solutions/brand'
 
+/*
+  lastModified is the date the page's content last changed, not the build time: a sitemap that
+  re-dates every URL on each deploy teaches Google to ignore its dates. Bump a date when you edit
+  that page. changeFrequency and priority are left out because Google ignores them.
+*/
+const PAGES: { path: string; lastModified: string }[] = [
+  { path: '', lastModified: '2026-11-16' },
+  { path: '/when-to-choose', lastModified: '2026-11-16' },
+  { path: '/legal/privacy', lastModified: '2026-10-25' },
+  { path: '/legal/cookies', lastModified: '2026-10-25' },
+  { path: '/legal/terms', lastModified: '2026-10-25' },
+]
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date()
-  return [
-    { url: brands.stack.url, lastModified, changeFrequency: 'weekly', priority: 1 },
-    {
-      url: `${brands.stack.url}/when-to-choose`,
-      lastModified,
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    ...['privacy', 'cookies', 'terms'].map((slug) => ({
-      url: `${brands.stack.url}/legal/${slug}`,
-      lastModified,
-      changeFrequency: 'yearly' as const,
-      priority: 0.2,
-    })),
-  ]
+  return PAGES.map(({ path, lastModified }) => ({ url: `${brands.stack.url}${path}`, lastModified }))
 }

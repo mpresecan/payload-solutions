@@ -68,7 +68,7 @@ export const layronCaseStudy = {
       'I had three weeks. The useful question was not how to work faster than a team of engineers. It was how to spend almost none of those three weeks on anything except the problem.',
     ),
     p(
-      'So I did not start from an empty repository. I started from my own SaaS foundation, the one I have since open-sourced as [Payload Stack](https://www.payloadstack.com). On the first day, before any AI work, the prototype already had:',
+      'So I did not start from an empty repository. I started from my own SaaS foundation, the one I have since open-sourced as [Payload Stack](https://payloadstack.com). On the first day, before any AI work, the prototype already had:',
     ),
     ul(
       '**Sign-in** for users and administrators, with sessions, roles and secure defaults',

@@ -1,13 +1,15 @@
 import type { Metadata } from 'next'
+import { legalMetadata } from '@/lib/legal-metadata'
 import { RecipientsTable, TransfersTable } from '@/components/legal/generated-tables'
 import { ContactBlock, LegalPage, PolicyVersion, Table } from '@/components/legal/legal-page'
 import { COMPANY } from '@/lib/consent'
 import { Email } from '@payload-solutions/brand/email'
 
-export const metadata: Metadata = {
-  title: 'Privacy Policy',
-  alternates: { canonical: '/legal/privacy' },
-}
+export const metadata: Metadata = legalMetadata(
+  'Privacy Policy',
+  'What personal data payloadstack.com collects, why, who receives it, how long it is kept, and your rights under the GDPR.',
+  '/legal/privacy',
+)
 
 /*
   Follows payload.solutions/legal/privacy (plugin-consent's GDPR Art. 13/14 template), cut down

@@ -90,7 +90,8 @@ export function SiteFooter() {
         <div className="grid grid-cols-1 gap-y-14 sm:grid-cols-2 lg:grid-cols-4">
           {COLUMNS.map((col, i) => (
             <Reveal key={col.title} index={i} className="lg:pr-8">
-              <h2 className="footer-heading">{col.title}</h2>
+              {/* A <p>, not a heading: on every page these would add four h2s to the outline. */}
+              <p className="footer-heading">{col.title}</p>
               {/* 72px from heading to first link at desktop, measured off payloadcms.com;
                   tightened on phones, where four stacked columns would otherwise sprawl. */}
               <ul className="mt-6 flex flex-col items-start gap-3.5 text-base lg:mt-[4.5rem] lg:gap-4">

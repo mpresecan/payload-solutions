@@ -814,7 +814,7 @@ export function AssembleStack({ className }: { className?: string }) {
           viewBox={`${VB_X.toFixed(2)} ${VB_Y} ${VB_W.toFixed(2)} ${VB_H}`}
           className="order-1 mx-auto h-auto w-full overflow-visible md:order-2 lg:max-w-[26rem]"
           role="img"
-          aria-describedby={captionId}
+          aria-labelledby={captionId}
           style={{ fontFamily: 'var(--font-mono)' }}
         >
           <defs>
