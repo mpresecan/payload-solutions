@@ -17,7 +17,7 @@ export const revalidate = 300
 export const metadata: Metadata = {
   title: 'Case studies',
   description:
-    'Products we built on Payload CMS for clients: what was stuck, what we shipped and how long it took.',
+    'Products we built on Payload CMS, for clients and for ourselves: what was stuck, what we shipped and how long it took.',
   alternates: { canonical: '/case-studies' },
 }
 
@@ -39,11 +39,12 @@ export default async function CaseStudiesPage() {
             <div className="reveal-load-group max-w-[52rem]">
               <Eyebrow className="mb-7">Case studies</Eyebrow>
               <SplitLoad as="h1" className="display-xl text-balance">
-                Built on Payload. Shipped for clients.
+                Built on Payload. Running in production.
               </SplitLoad>
               <p className="lead mt-7 max-w-[40rem] text-pretty">
-                What was stuck, what we built and how long it took. Every project here started
-                from Payload Stack, so the time went into the part only that product has.
+                Client work and our own products: what was stuck, what we built and how long it
+                took. Every project here started from Payload Stack, so the time went into the
+                part only that product has.
               </p>
             </div>
           </header>

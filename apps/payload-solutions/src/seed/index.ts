@@ -1,5 +1,6 @@
 import type { Payload } from 'payload'
 
+import { aigenicaCaseStudy } from './case-studies/aigenica'
 import { layronCaseStudy } from './case-studies/layron'
 
 /**
@@ -139,11 +140,13 @@ export async function seed(payload: Payload) {
 
   const caseStudies = await payload.count({ collection: 'case-studies', overrideAccess: true })
   if (caseStudies.totalDocs === 0) {
-    await payload.create({
-      collection: 'case-studies',
-      data: { ...layronCaseStudy, _status: 'published' } as never,
-      draft: false,
-      overrideAccess: true,
-    })
+    for (const study of [layronCaseStudy, aigenicaCaseStudy]) {
+      await payload.create({
+        collection: 'case-studies',
+        data: { ...study, _status: 'published' } as never,
+        draft: false,
+        overrideAccess: true,
+      })
+    }
   }
 }
