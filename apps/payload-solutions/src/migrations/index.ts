@@ -10,6 +10,7 @@ import * as migration_20261026_120000_case_studies from './20261026_120000_case_
 import * as migration_20261026_121000_case_study_layron from './20261026_121000_case_study_layron';
 import * as migration_20261026_130000_consent_save_label from './20261026_130000_consent_save_label';
 import * as migration_20261116_090000_case_study_aigenica from './20261116_090000_case_study_aigenica';
+import * as migration_20261116_122438_stack_pro_waitlist from './20261116_122438_stack_pro_waitlist';
 
 export const migrations = [
   {
@@ -71,5 +72,10 @@ export const migrations = [
     up: migration_20261116_090000_case_study_aigenica.up,
     down: migration_20261116_090000_case_study_aigenica.down,
     name: '20261116_090000_case_study_aigenica',
+  },
+  {
+    up: migration_20261116_122438_stack_pro_waitlist.up,
+    down: migration_20261116_122438_stack_pro_waitlist.down,
+    name: '20261116_122438_stack_pro_waitlist'
   },
 ];

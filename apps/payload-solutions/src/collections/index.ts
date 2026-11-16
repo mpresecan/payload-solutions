@@ -1,5 +1,7 @@
 import type { Access, CollectionConfig } from 'payload'
 
+import { PRO_STAGES, PRO_VERTICALS } from '@/lib/pro'
+
 const anyone: Access = () => true
 const authenticated: Access = ({ req }) => Boolean(req.user)
 
@@ -237,6 +239,62 @@ export const CaseStudies: CollectionConfig = {
         { name: 'title', type: 'text' },
         { name: 'body', type: 'textarea' },
       ],
+    },
+  ],
+}
+
+/**
+ * The Payload Stack Pro waitlist. Lives on payload.solutions, not payloadstack.com, because the
+ * Pro licence will be bought through an account here. One row per email: signing up again
+ * updates the row instead of failing, so a visitor can change their vote.
+ */
+export const ProWaitlist: CollectionConfig = {
+  slug: 'pro-waitlist',
+  labels: { singular: 'Pro waitlist signup', plural: 'Pro waitlist' },
+  admin: {
+    useAsTitle: 'email',
+    group: 'Inbox',
+    defaultColumns: ['email', 'verticals', 'stage', 'status', 'createdAt'],
+    description: 'People waiting for Payload Stack Pro, and which verticals they want first.',
+  },
+  access: { read: authenticated, create: authenticated, update: authenticated, delete: authenticated },
+  defaultSort: '-createdAt',
+  fields: [
+    { name: 'email', type: 'email', required: true, unique: true, index: true },
+    { name: 'name', type: 'text' },
+    {
+      name: 'verticals',
+      type: 'select',
+      hasMany: true,
+      options: PRO_VERTICALS.map(({ label, value }) => ({ label, value })),
+      admin: { description: 'The verticals they want. Drives what ships first.' },
+    },
+    { name: 'otherVertical', type: 'text', admin: { description: 'A vertical we did not list.' } },
+    {
+      name: 'stage',
+      type: 'select',
+      options: PRO_STAGES.map(({ label, value }) => ({ label, value })),
+    },
+    { name: 'building', type: 'textarea', admin: { description: 'What they said they are building.' } },
+    { name: 'source', type: 'text', admin: { position: 'sidebar', readOnly: true } },
+    {
+      // Proof of consent (GDPR Art. 7(1)), as on contact submissions.
+      name: 'consentedAt',
+      type: 'date',
+      admin: { position: 'sidebar', readOnly: true, date: { pickerAppearance: 'dayAndTime' } },
+    },
+    { name: 'consentPolicyVersion', type: 'text', admin: { position: 'sidebar', readOnly: true } },
+    {
+      name: 'status',
+      type: 'select',
+      defaultValue: 'waiting',
+      options: [
+        { label: 'Waiting', value: 'waiting' },
+        { label: 'Invited', value: 'invited' },
+        { label: 'Customer', value: 'customer' },
+        { label: 'Removed', value: 'removed' },
+      ],
+      admin: { position: 'sidebar' },
     },
   ],
 }
