@@ -21,7 +21,7 @@ export const COMPANY = {
   address: 'Gradiščak 31A, 40313, Gradiščak, Croatia',
   email: 'hello@payload.solutions',
   url: 'https://fortbit.hr',
-  site: 'https://www.payloadstack.com',
+  site: 'https://payloadstack.com',
   governingLaw: 'Croatia',
 } as const
 

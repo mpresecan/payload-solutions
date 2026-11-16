@@ -18,7 +18,7 @@ export async function seed(payload: Payload) {
         description:
           'Better Auth, organizations, Stripe subscriptions and a shadcn dashboard, wired into Payload and Next.js. Scaffold a production-ready SaaS in one command.',
         status: 'available',
-        url: 'https://www.payloadstack.com',
+        url: 'https://payloadstack.com',
         docsPath: '/docs/payload-stack',
         command: 'npx create-payload-stack@latest',
         highlights: [

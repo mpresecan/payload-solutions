@@ -81,7 +81,7 @@ export async function SiteFooter() {
           </p>
           <p>
             Built with{' '}
-            <a href="https://www.payloadstack.com" className="underline underline-offset-4 hover:text-foreground">
+            <a href="https://payloadstack.com" className="underline underline-offset-4 hover:text-foreground">
               Payload Stack
             </a>
           </p>

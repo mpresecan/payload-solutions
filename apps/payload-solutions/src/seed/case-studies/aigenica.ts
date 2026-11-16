@@ -52,7 +52,7 @@ export const aigenicaCaseStudy = {
 
     h2('Starting from Payload Stack'),
     p(
-      'The project was scaffolded with npx create-payload-stack, the command behind [Payload Stack](https://www.payloadstack.com). On the first day it already had:',
+      'The project was scaffolded with npx create-payload-stack, the command behind [Payload Stack](https://payloadstack.com). On the first day it already had:',
     ),
     ul(
       '**Payload CMS 3 and Next.js 16** in one app, on MongoDB, deployed to [Railway](https://railway.com) from a Dockerfile',

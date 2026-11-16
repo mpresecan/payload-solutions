@@ -1,14 +1,16 @@
 import type { Metadata } from 'next'
+import { legalMetadata } from '@/lib/legal-metadata'
 import { ManageConsentButton } from '@payload-solutions/consent-react'
 import { CookieTable } from '@/components/legal/generated-tables'
 import { LegalPage, PolicyVersion } from '@/components/legal/legal-page'
 import { COMPANY } from '@/lib/consent'
 import { Email } from '@payload-solutions/brand/email'
 
-export const metadata: Metadata = {
-  title: 'Cookie Policy',
-  alternates: { canonical: '/legal/cookies' },
-}
+export const metadata: Metadata = legalMetadata(
+  'Cookie Policy',
+  'The cookies and local storage payloadstack.com uses, what each one does, how long it lasts, and how to change your consent.',
+  '/legal/cookies',
+)
 
 /* Follows payload.solutions/legal/cookies; the table is generated from consentConfig. */
 export default function CookiesPage() {
