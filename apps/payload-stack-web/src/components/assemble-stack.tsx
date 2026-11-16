@@ -52,16 +52,16 @@ const POOL = 0.5
 const PULSE_W = 1.2
 const PULSE_H = 24
 const PULSE_S = 0.42
-/**
- * From the pool's centre down to where the pulse lands: on the axis, in the gap just under the
- * lifted layer's front corner. That is the one place the gap under a lifted layer is open to
- * view, so it is where the light can be seen to arrive and spread.
- */
-const LAND_DY = W / 2 - 20 - PULSE_H / 2 + 5
+/** From the pool's centre up to the middle of the top face of the layer it sits under. */
+const CENTER_DY = -(T + 20)
 /** How long the pulse takes to dissolve once it lands. */
 const DISSOLVE_S = 0.3
-/** Half-width the splash of light reaches where the pulse lands, before the pool takes over. */
-const SPLASH_RX = 44
+/**
+ * The light spreading over a layer's top face: a circle of radius 75 lying on the face, which
+ * this projection draws as an ellipse 1.2247r wide by 0.7071r tall. It stays inside the face.
+ */
+const SURF_RX = 92
+const SURF_RY = 53
 
 const BEAT_MS = 275
 /**
@@ -530,18 +530,16 @@ export function AssembleStack({ className }: { className?: string }) {
   // lifted layer changes it dims where it is, and opens out again under the new layer.
   //
   // The PULSE is what crosses the stack in between: a hairline of light running along the
-  // stack's vertical axis from the old layer to the new one. When it lands in the gap under the
-  // new layer it sinks in, a soft splash runs out sideways from that point, and the pool opens
-  // from a tight core at the same spot: the line dissolves and spreads into the glow.
+  // stack's vertical axis, through the middle of the layers, from the old layer to the new one.
   const poolY = useMotionValue(glowY)
   const poolSX = useMotionValue(1)
   const poolSY = useMotionValue(1)
   const poolO = useMotionValue(0)
-  const pulseY = useMotionValue(glowY + LAND_DY)
+  const pulseY = useMotionValue(glowY + CENTER_DY)
   const pulseO = useMotionValue(0)
   const pulseSY = useMotionValue(1)
   const splashY = useMotionValue(glowY)
-  const splashSX = useMotionValue(0)
+  const splashS = useMotionValue(0)
   const splashO = useMotionValue(0)
   const glowWas = useRef(-1)
   useEffect(() => {
@@ -561,14 +559,16 @@ export function AssembleStack({ className }: { className?: string }) {
       return
     }
     // The pool opens from a tight core outwards, which is the light spreading under the layer.
-    const open = (delay: number) => [
+    const open = (delay: number, flash = false) => [
       animate(poolSX, 1, { duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }),
       animate(poolSY, 1, { duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }),
-      animate(poolO, POOL, { duration: 0.3, delay }),
+      flash
+        ? animate(poolO, [0, 0.9, POOL], { duration: 0.75, delay, times: [0, 0.25, 1] })
+        : animate(poolO, POOL, { duration: 0.4, delay }),
     ]
     const core = () => {
       poolY.set(glowY)
-      poolSX.set(0.06)
+      poolSX.set(0.25)
       poolSY.set(0.5)
     }
     // Appearing from nothing: no journey to show, the pool just opens.
@@ -577,34 +577,38 @@ export function AssembleStack({ className }: { className?: string }) {
       const controls = open(0)
       return () => controls.forEach((c) => c.stop())
     }
-    const startY = poolY.get()
-    pulseY.set(startY + LAND_DY)
+    // The pulse runs through the middle of the layers, and what it does on arrival depends on
+    // which side of the layer it meets.
+    //  - Coming DOWN it meets the top face: its tip touches the middle of the face and the light
+    //    spreads out over the surface from that point, then the pool settles in underneath.
+    //  - Coming UP it meets the underside: nothing shows on the face, the pool under the layer
+    //    simply lights up, brighter for a moment, from the middle outwards.
+    const down = active < from
+    const startY = poolY.get() + CENTER_DY
+    const endY = glowY + CENTER_DY + (down ? -PULSE_H / 2 : T + PULSE_H / 2)
+    pulseY.set(startY)
     pulseSY.set(1)
-    splashY.set(glowY + LAND_DY + PULSE_H / 2 - 2)
-    splashSX.set(0.06)
+    splashY.set(glowY + CENTER_DY)
+    splashS.set(0.04)
+    splashO.set(0)
     const total = PULSE_S + DISSOLVE_S
     const landed = PULSE_S / total
-    // One continuous move. The hairline travels, and where its tip lands it sinks in while a
-    // soft splash of light runs out sideways from that point and fades. The pool opens from a
-    // tight core at the same spot and keeps spreading after the splash has gone, so the line
-    // reads as dissolving into the glow rather than being swapped for it.
     const controls = [
       animate(poolO, 0, { duration: 0.16 }),
-      animate(pulseY, glowY + LAND_DY, { duration: PULSE_S, ease: EASE_LIFT }),
+      animate(pulseY, endY, { duration: PULSE_S, ease: EASE_LIFT }),
       animate(pulseO, [0, 1, 1, 0], { duration: total, times: [0, 0.12, landed, 1] }),
       animate(pulseSY, [1, 1, 0.15], { duration: total, times: [0, landed, 1] }),
-      animate(splashSX, 1, { duration: 0.55, delay: PULSE_S - 0.05, ease: [0.16, 1, 0.3, 1] }),
-      animate(splashO, [0, 0.75, 0], {
-        duration: 0.55,
-        delay: PULSE_S - 0.05,
-        times: [0, 0.18, 1],
-      }),
     ]
-    // Once it has dimmed, the pool is moved (unseen) to where the pulse is heading, so it is
-    // waiting as a tight core when the pulse lands on it.
+    if (down) {
+      controls.push(
+        animate(splashS, 1, { duration: 0.8, delay: PULSE_S - 0.05, ease: [0.16, 1, 0.3, 1] }),
+        animate(splashO, [0, 0.4, 0], { duration: 0.8, delay: PULSE_S - 0.05, times: [0, 0.2, 1] }),
+      )
+    }
+    // Once it has dimmed, the pool is moved (unseen) to where the pulse is heading.
     const move = setTimeout(() => {
       core()
-      controls.push(...open(PULSE_S - 0.2))
+      controls.push(...(down ? open(PULSE_S + 0.05) : open(PULSE_S - 0.22, true)))
     }, 170)
     return () => {
       clearTimeout(move)
@@ -622,7 +626,7 @@ export function AssembleStack({ className }: { className?: string }) {
     pulseO,
     pulseSY,
     splashY,
-    splashSX,
+    splashS,
     splashO,
   ])
 
@@ -636,6 +640,22 @@ export function AssembleStack({ className }: { className?: string }) {
         ry={30}
         filter={`url(#${blurId})`}
         style={{ y: poolY, scaleX: poolSX, scaleY: poolSY, opacity: poolO }}
+      />
+    </g>
+  )
+
+  // The surface light is painted straight after the lifted layer, so it lies on that layer's face
+  // and the layers above still pass in front of it.
+  const splashEl = (
+    <g key="splash" data-brand={activeSlot?.brand}>
+      <motion.ellipse
+        className="as-glow"
+        cx={0}
+        cy={0}
+        rx={SURF_RX}
+        ry={SURF_RY}
+        filter={`url(#${splashId})`}
+        style={{ y: splashY, scale: splashS, opacity: splashO }}
       />
     </g>
   )
@@ -792,8 +812,8 @@ export function AssembleStack({ className }: { className?: string }) {
             <filter id={blurId} x="-50%" y="-150%" width="200%" height="400%">
               <feGaussianBlur stdDeviation="11" />
             </filter>
-            <filter id={splashId} x="-20%" y="-400%" width="140%" height="900%">
-              <feGaussianBlur stdDeviation="2.4" />
+            <filter id={splashId} x="-30%" y="-40%" width="160%" height="180%">
+              <feGaussianBlur stdDeviation="5" />
             </filter>
             <filter id={haloId} x="-400%" y="-30%" width="900%" height="160%">
               <feGaussianBlur stdDeviation="1.6" />
@@ -898,19 +918,9 @@ export function AssembleStack({ className }: { className?: string }) {
                   )}
                 </motion.g>
               </g>,
+              j === glowSlot ? splashEl : null,
             ]
           })}
-          <g data-brand={activeSlot?.brand}>
-            <motion.ellipse
-              className="as-glow"
-              cx={0}
-              cy={0}
-              rx={SPLASH_RX}
-              ry={2.6}
-              filter={`url(#${splashId})`}
-              style={{ y: splashY, scaleX: splashSX, opacity: splashO }}
-            />
-          </g>
           {/* The pulse, over everything: it runs through the layers, not behind them. */}
           <motion.g
             data-brand={activeSlot?.brand}
