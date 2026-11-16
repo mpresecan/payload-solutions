@@ -288,3 +288,8 @@ figure[data-rehype-pretty-code-figure] pre {
   height: 1px;
   background: var(--accent);
 }
+
+/* /pro hero render: true black on true black, so only the outer edge needs hiding. */
+.pro-hero-image {
+  mask-image: radial-gradient(70% 70% at 50% 50%, #000 60%, transparent 100%);
+}

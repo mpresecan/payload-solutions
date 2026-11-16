@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import { NPX_COMMAND, brands } from '@payload-solutions/brand'
 import { CrtGrain } from '@payload-solutions/brand/crt-grain'
 import { GridCross } from '@payload-solutions/brand/crosshairs'
@@ -78,26 +79,74 @@ export default function ProPage() {
       <main id="main" className="flex-1" data-brand="stack">
         <ThemeBand theme="dark" as="div" className="relative -mt-header pt-header">
           <GridColumns fadeTop />
-          <section className="container-content col-grid gap-y-12 py-16 sm:py-20 lg:py-28" aria-labelledby="pro-heading">
-            <div className="reveal-load-group lg:col-span-2 lg:pr-12">
-              <Eyebrow className="mb-7">Payload Stack Pro · Waitlist</Eyebrow>
-              <SplitLoad as="h1" id="pro-heading" className="display-xl text-balance">
-                Start from the product, not the boilerplate.
-              </SplitLoad>
-              <p className="lead mt-7 max-w-[36rem] text-pretty">
-                Payload Stack gives you sign-in, organizations and billing in one command. Pro adds
-                the product on top: an AI chat app, a marketplace, a course platform or a feedback
-                board, scaffolded into your repository and documented like the rest.
-              </p>
-              <div className="mt-11 border-t border-border">
-                <ActionRow href="#verticals">See the verticals</ActionRow>
-                <ActionRow href={stack.url} meta="free, MIT">
-                  What is in Payload Stack
-                </ActionRow>
+          <section className="relative isolate" aria-labelledby="pro-heading">
+            <div className="container-content col-grid items-center gap-y-6 pt-14 sm:pt-16 lg:min-h-[calc(100dvh-var(--header-height))] lg:max-h-[52rem] lg:py-16">
+              <div className="reveal-load-group lg:col-span-2 lg:pr-12">
+                <Eyebrow className="mb-7">Payload Stack Pro · Waitlist</Eyebrow>
+                <SplitLoad as="h1" id="pro-heading" className="display-xl text-balance">
+                  Start from the product, not the boilerplate.
+                </SplitLoad>
+                <p className="lead mt-7 max-w-[36rem] text-pretty">
+                  Payload Stack gives you sign-in, organizations and billing in one command. Pro adds
+                  the product on top: an AI chat app, a marketplace, a course platform or a feedback
+                  board, scaffolded into your repository and documented like the rest.
+                </p>
+                <div className="mt-11 border-t border-border">
+                  <ActionRow href="#waitlist">Join the waitlist</ActionRow>
+                  <ActionRow href="#verticals">See the verticals</ActionRow>
+                  <ActionRow href={stack.url} meta="free, MIT">
+                    What is in Payload Stack
+                  </ActionRow>
+                </div>
+              </div>
+              {/* The render is true black on true black, so it needs no frame: the stack just
+                  floats in the band. A soft radial mask hides the image edge on every width. */}
+              <div className="relative lg:col-span-2">
+                <Image
+                  src="/images/pro/hero-stack.webp"
+                  alt="A stack of dark glass layers; the top layer, lifted above the rest, glows in the Payload Stack accent."
+                  width={1120}
+                  height={896}
+                  priority
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  className="pro-hero-image mx-auto h-auto w-full max-w-[44rem]"
+                />
               </div>
             </div>
-            <div id="waitlist" className="scroll-mt-header min-w-0 lg:col-span-2">
-              <WaitlistForm id="hero" source="pro:hero" />
+          </section>
+
+          {/* The vote: each vertical as a picture, beside the form that counts it. */}
+          <section id="waitlist" className="scroll-mt-header relative hairline-t py-section" aria-labelledby="waitlist-heading">
+            <GridCross line={2} />
+            <div className="container-content col-grid gap-y-12">
+              <div className="lg:col-span-2 lg:pr-12">
+                <Reveal>
+                  <SectionHead
+                    id="waitlist-heading"
+                    eyebrow="Join the waitlist"
+                    title="Your signup is a vote."
+                    lead="Tell us which vertical you want, and it moves up the list. You hear first when it ships."
+                  />
+                </Reveal>
+                <ul className="mt-12 grid grid-cols-2 gap-px border border-border bg-border">
+                  {PRO_VERTICALS.map((v, i) => (
+                    <Reveal as="li" key={v.value} index={i} className="bg-bg">
+                      <Image
+                        src={v.image}
+                        alt=""
+                        width={1152}
+                        height={864}
+                        sizes="(min-width: 1024px) 25vw, 50vw"
+                        className="h-auto w-full"
+                      />
+                      <p className="border-t border-border px-4 py-3 text-sm">{v.label}</p>
+                    </Reveal>
+                  ))}
+                </ul>
+              </div>
+              <div className="min-w-0 lg:col-span-2">
+                <WaitlistForm id="hero" source="pro:hero" />
+              </div>
             </div>
           </section>
         </ThemeBand>
