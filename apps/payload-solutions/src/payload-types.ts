@@ -72,6 +72,7 @@ export interface Config {
     'roadmap-items': RoadmapItem;
     'case-studies': CaseStudy;
     'contact-submissions': ContactSubmission;
+    'pro-waitlist': ProWaitlist;
     media: Media;
     users: User;
     'consent-categories': ConsentCategory;
@@ -93,6 +94,7 @@ export interface Config {
     'roadmap-items': RoadmapItemsSelect<false> | RoadmapItemsSelect<true>;
     'case-studies': CaseStudiesSelect<false> | CaseStudiesSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
+    'pro-waitlist': ProWaitlistSelect<false> | ProWaitlistSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'consent-categories': ConsentCategoriesSelect<false> | ConsentCategoriesSelect<true>;
@@ -326,6 +328,36 @@ export interface ContactSubmission {
   consentedAt?: string | null;
   consentPolicyVersion?: string | null;
   status?: ('new' | 'replied' | 'closed') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * People waiting for Payload Stack Pro, and which verticals they want first.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pro-waitlist".
+ */
+export interface ProWaitlist {
+  id: number;
+  email: string;
+  name?: string | null;
+  /**
+   * The verticals they want. Drives what ships first.
+   */
+  verticals?: ('ai-chat' | 'marketplace' | 'courses' | 'feedback')[] | null;
+  /**
+   * A vertical we did not list.
+   */
+  otherVertical?: string | null;
+  stage?: ('idea' | 'building' | 'live' | 'agency') | null;
+  /**
+   * What they said they are building.
+   */
+  building?: string | null;
+  source?: string | null;
+  consentedAt?: string | null;
+  consentPolicyVersion?: string | null;
+  status?: ('waiting' | 'invited' | 'customer' | 'removed') | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -840,6 +872,10 @@ export interface PayloadLockedDocument {
         value: number | ContactSubmission;
       } | null)
     | ({
+        relationTo: 'pro-waitlist';
+        value: number | ProWaitlist;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -1027,6 +1063,24 @@ export interface ContactSubmissionsSelect<T extends boolean = true> {
   topic?: T;
   message?: T;
   budget?: T;
+  source?: T;
+  consentedAt?: T;
+  consentPolicyVersion?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pro-waitlist_select".
+ */
+export interface ProWaitlistSelect<T extends boolean = true> {
+  email?: T;
+  name?: T;
+  verticals?: T;
+  otherVertical?: T;
+  stage?: T;
+  building?: T;
   source?: T;
   consentedAt?: T;
   consentPolicyVersion?: T;

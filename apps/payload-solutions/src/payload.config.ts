@@ -14,6 +14,7 @@ import {
 	Media,
 	Plugins,
 	Products,
+	ProWaitlist,
 	RoadmapItems,
 	Users,
 } from "@/collections";
@@ -78,6 +79,7 @@ export default buildConfig({
 		RoadmapItems,
 		CaseStudies,
 		ContactSubmissions,
+		ProWaitlist,
 		Media,
 		Users,
 	],

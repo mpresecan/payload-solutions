@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { siGithub, siX } from 'simple-icons'
-import { Logo, X_URL, brands } from '@payload-solutions/brand'
+import { Logo, SOLUTIONS_URL, X_URL, brands } from '@payload-solutions/brand'
 import { HeaderThemeSync } from '@payload-solutions/brand/use-header-theme'
 import { BrandIcon } from '@/components/brand-icon'
 import { MobileMenu } from '@/components/mobile-menu'
@@ -16,6 +16,8 @@ const NAV = [
   { href: '/#config', label: 'Config' },
   { href: '/#why', label: 'Why Payload' },
   { href: '/when-to-choose', label: 'When to choose' },
+  // Pro is sold through a payload.solutions account, so its page lives there.
+  { href: `${SOLUTIONS_URL}/pro`, label: 'Pro' },
 ]
 
 export function SiteHeader() {
