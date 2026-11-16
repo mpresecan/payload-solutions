@@ -91,8 +91,20 @@
      would draw under the sidebar (z-20) on its start side. While focus is in the footer, the
      footer stacks over the sidebar and the whole ring shows (WCAG 2.4.11 / 2.4.13). */
   .docs-footer:focus-within {
-    z-index: 30;
+    z-index: 21;
   }
+}
+
+/* The "on this page" bar (below xl) is sticky over the column. Fumadocs stacks it at z-10 with
+   an 80% background, but the footer is also z-10 and comes later in the DOM, so once the
+   footer scrolls under the bar it painted on top of it (headings and lattice lines through the
+   label). Lift the bar above the footer, even a focused one (21), and below the mobile header
+   (z-30); and make it opaque, since the footer's lattice and wordmark read through 80%. */
+[data-toc-popover] {
+  z-index: 25;
+}
+[data-toc-popover] > header {
+  background-color: var(--bg);
 }
 
 /* Docs pages: square corners, brand type, mono code. */
